@@ -1,0 +1,40 @@
+name: Qualité du site TCN
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Installer les dépendances
+        run: npm ci
+      - name: Tests unitaires, typage et build
+        run: npm run build
+      - name: Installer Chromium pour Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Démarrer la prévisualisation
+        run: |
+          npm run preview -- --host 127.0.0.1 > /tmp/tcn-preview.log 2>&1 &
+          for n in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4321/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/tcn-preview.log
+          exit 1
+      - name: Tests navigateur Playwright
+        env:
+          BASE_URL: http://127.0.0.1:4321
+        run: npm run test:e2e
