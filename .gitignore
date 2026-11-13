@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+public/documents/
+worker/seed.sql
+.dev.vars
+.env*
+test-results/

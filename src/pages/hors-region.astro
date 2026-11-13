@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import TransportBadge from '../components/TransportBadge.astro';
+import { outOfRegion, events } from '../lib/events';
+import { formatDay } from '../lib/format';
+---
+<Base title="Rendez-vous hors région" description="Championnats et finales nationales hors Pays de la Loire cités dans le calendrier 2027.">
+  <section class="section wrap">
+    <p class="eyebrow">Hors Pays de la Loire</p>
+    <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Rendez-vous hors région</h1>
+    <p class="lead">{outOfRegion.length} rendez-vous nationaux cités à part dans le PDF (p. 7 et 20). Ils ne sont <strong>pas comptés</strong> dans les {events.length} rendez-vous régionaux.</p>
+    <ul class="event-list" id="hors-region-list">
+      {outOfRegion.map((e) => (
+        <li class="card">
+          <h2 style="font-family:var(--cond);font-weight:800;font-size:1.2rem;text-transform:none;margin:0 0 2px">{e.name}</h2>
+          <p class="event-meta">{e.endDate ? `Du ${formatDay(e.date)} au ${formatDay(e.endDate)}` : formatDay(e.date)} · {e.town} ({e.department}){e.formats && ` · ${e.formats}`}</p>
+          <div class="badges" style="margin-bottom:8px"><span class="badge">Inscriptions non vérifiées</span><TransportBadge code={e.transport} /></div>
+          <p class="small" style="margin:0"><strong>Depuis la gare de Nantes (indicatif, relevé le 13 novembre 2026) :</strong> {e.journey}. {e.lastMile} Horaires à vérifier.</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>

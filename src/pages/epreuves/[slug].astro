@@ -1,0 +1,131 @@
+---
+import Base from '../../layouts/Base.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import TransportBadge from '../../components/TransportBadge.astro';
+import { events, DEPARTMENT_NAMES, eventUrl, siblings } from '../../lib/events';
+import type { RaceEvent } from '../../lib/types';
+import { formatDay, formatParis } from '../../lib/format';
+import { STATUS_META, effectiveStatus, verifiedRegistrationUrl } from '../../lib/status';
+import { TRANSPORT_META, operatorLinks, bikeConfirmed, BIKE_GENERAL_NOTE } from '../../lib/transport';
+
+export function getStaticPaths() {
+  return events.map((event) => ({ params: { slug: event.id }, props: { event } }));
+}
+interface Props { event: RaceEvent }
+const { event: e } = Astro.props;
+const status = effectiveStatus(e);
+const regUrl = verifiedRegistrationUrl(e);
+const transport = TRANSPORT_META[e.transport];
+const others = siblings(e);
+const uncertain = e.transport === '?';
+const TO_CHECK = 'Horaires à vérifier';
+---
+<Base title={e.name} description={`${e.name}, ${formatDay(e.date)}${e.town ? ` à ${e.town}` : ''} : formats, statut d’inscription et accès depuis Nantes.`}>
+  <article class="section wrap">
+    <p class="eyebrow"><a href="/calendrier/">Calendrier</a> · {e.kind} · {DEPARTMENT_NAMES[e.department]} ({e.department})</p>
+    <h1 style="font-size:clamp(2rem,6vw,3.6rem)">{e.name}</h1>
+    <p class="lead"><time datetime={e.date}>{formatDay(e.date)}</time> · {e.town ?? 'commune à confirmer'}</p>
+    <div class="badges" style="margin-bottom:18px">
+      <StatusBadge event={e} />
+      <TransportBadge code={e.transport} />
+    </div>
+    <div class="actions" style="margin-bottom:24px">
+      {regUrl
+        ? <a class="btn btn-primary" href={regUrl} rel="noopener">S’inscrire (site officiel)</a>
+        : <span class="btn btn-secondary" aria-disabled="true" style="cursor:default">Lien d’inscription non vérifié</span>}
+      {e.officialUrl && <a class="btn btn-secondary" href={e.officialUrl} rel="noopener">Site de l’organisateur</a>}
+      <button type="button" class="btn btn-secondary" id="share" data-title={e.name}>Partager</button>
+    </div>
+    <p class="sr-only" role="status" aria-live="polite" id="share-feedback"></p>
+
+    {e.notes.length > 0 && (
+      <div class="notice" style="margin-bottom:18px">
+        <p><strong>Points à recouper :</strong> {e.notes.join(' ')}</p>
+      </div>
+    )}
+
+    <div class="grid grid-2">
+      <section class="card" aria-labelledby="t-epreuve">
+        <h2 id="t-epreuve" style="font-size:1.5rem">L’épreuve</h2>
+        <dl class="facts">
+          <div><dt>Date</dt><dd>{formatDay(e.date)}</dd></div>
+          <div><dt>Discipline</dt><dd>{e.kind}</dd></div>
+          <div><dt>Formats</dt><dd>{e.formats}</dd></div>
+          <div><dt>Commune</dt><dd>{e.town ?? <span class="unknown">À confirmer</span>}</dd></div>
+          <div><dt>Département</dt><dd>{DEPARTMENT_NAMES[e.department]} ({e.department})</dd></div>
+          <div><dt>Source de la date</dt><dd><a href={`/documents/calendrier-2027.pdf#page=${e.sourcePage}`}>Calendrier de la Ligue, p. {e.sourcePage}</a> (PDF du {formatParis(e.sourceReferenceDate, 'date')})</dd></div>
+          <div><dt>Lieu de départ</dt><dd>{e.raceStartLocation ?? <span class="unknown">Non vérifié</span>}</dd></div>
+          <div><dt>Coordonnées</dt><dd>
+            {e.raceStartLatLon
+              ? <>{e.raceStartLatLon[0]}, {e.raceStartLatLon[1]} (départ vérifié)</>
+              : e.coords
+                ? <>{e.coords[0]}, {e.coords[1]} — <span class="unknown">position indicative</span> (centre de la commune)</>
+                : <span class="unknown">Non localisé</span>}
+          </dd></div>
+        </dl>
+      </section>
+
+      <section class="card" aria-labelledby="t-inscription">
+        <h2 id="t-inscription" style="font-size:1.5rem">Inscription</h2>
+        <dl class="facts">
+          <div><dt>Statut</dt><dd>{STATUS_META[status].label}<br /><span class="small muted">{STATUS_META[status].description}</span></dd></div>
+          <div><dt>Dernière vérification</dt><dd>{e.lastCheckedAt ? formatParis(e.lastCheckedAt) : <span class="unknown">Jamais vérifié</span>}</dd></div>
+          {e.registrationOpenAt && status === 'annonce' && <div><dt>Ouverture annoncée</dt><dd>{formatParis(e.registrationOpenAt)}</dd></div>}
+          <div><dt>Tarif</dt><dd>{e.price !== null && regUrl ? `${e.price} ${e.currency}` : <span class="muted">Non communiqué (aucun tarif sourcé)</span>}</dd></div>
+          {e.registrationEvidence && status !== 'non_verifie' && <div><dt>Fait vérifié</dt><dd>{e.registrationEvidence}</dd></div>}
+        </dl>
+        <p class="small muted" style="margin:12px 0 0">{e.statusDetail}</p>
+      </section>
+    </div>
+
+    <section style="margin-top:28px" aria-labelledby="t-acces">
+      <p class="eyebrow">Depuis la {e.transportOrigin.toLowerCase()}</p>
+      <h2 id="t-acces">Accès en transports</h2>
+      <div class="notice" style="margin-bottom:14px">
+        <p>Itinéraire <strong>indicatif</strong> relevé le {e.transportLastCheckedAt ? formatParis(e.transportLastCheckedAt, 'date') : '13 novembre 2026'} (<a href={`/documents/calendrier-2027.pdf#page=${e.transportSourcePage}`}>PDF p. {e.transportSourcePage}</a>) : service connu en 2026, <strong>pas un horaire 2027 validé</strong>. Atteindre la commune ne garantit pas d’atteindre le départ, encore moins avec un vélo.</p>
+      </div>
+      <ol class="steps">
+        <li><div><h3>Atteindre la commune : gare ou arrêt d’arrivée</h3>
+          <p>{uncertain ? <span class="unknown">Itinéraire à préciser — non garanti.</span> : transport.label} {e.town && <>· destination : {e.town}</>}</p></div></li>
+        <li><div><h3>Correspondances et moyens de transport</h3><p>{e.journey}</p></div></li>
+        <li><div><h3>Dernier kilomètre jusqu’au départ exact</h3>
+          <p>{e.lastMile}</p>
+          <p class="small"><span class="unknown">Lieu de départ {e.raceStartLocation ? 'indiqué' : 'non vérifié'} : le trajet entre l’arrêt et le départ reste à confirmer.</span></p></div></li>
+        <li><div><h3>Arriver avant le départ de la course</h3><p><span class="unknown">{TO_CHECK}</span> — heure de départ de l’épreuve et premier service du jour non confirmés.</p></div></li>
+        <li><div><h3>Retour le même jour</h3><p><span class="unknown">{TO_CHECK}</span> — dernier retour non confirmé pour la date de la course.</p></div></li>
+        <li><div><h3>Atteindre le départ avec un vélo</h3>
+          {bikeConfirmed(e) && e.transportBikePolicy
+            ? <p>{e.transportBikePolicy.summary} (<a href={e.transportBikePolicy.sourceUrl} rel="noopener">source</a>, vérifié le {formatParis(e.transportBikePolicy.checkedAt, 'date')})</p>
+            : <><p><span class="unknown">Emport du vélo non confirmé pour cette date.</span> Vélo monté ou plié, réservation, capacité et règles un jour de compétition restent à vérifier auprès de l’opérateur.</p>
+               <p class="small muted">{BIKE_GENERAL_NOTE}</p></>}
+        </div></li>
+        <li><div><h3>Incertitudes</h3>
+          <p>{uncertain ? 'Itinéraire incomplet : aucun trajet de bout en bout n’est établi. ' : ''}Horaires, tarifs et durées non relevés : aucun n’est affiché tant qu’il n’est pas sourcé auprès de l’opérateur pour la date du déplacement.</p></div></li>
+      </ol>
+      <h3 style="margin-top:18px;font-family:var(--cond);font-weight:800">Vérifier auprès des opérateurs</h3>
+      <ul>
+        {operatorLinks(e).map((l) => <li><a href={l.url} rel="noopener">{l.label}</a></li>)}
+      </ul>
+    </section>
+
+    {others.length > 0 && (
+      <section class="card-sunk" style="margin-top:24px">
+        <h2 style="font-size:1.3rem">Autres journées ou éditions du même événement</h2>
+        <ul style="margin:0;padding-left:18px">
+          {others.map((o) => <li><a href={eventUrl(o)}>{o.name}</a> — {formatDay(o.date)} · {o.formats}</li>)}
+        </ul>
+      </section>
+    )}
+  </article>
+</Base>
+
+<script>
+  const btn = document.getElementById('share');
+  const feedback = document.getElementById('share-feedback');
+  btn?.addEventListener('click', async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: btn.dataset.title ?? document.title, url: location.href });
+      else { await navigator.clipboard.writeText(location.href); btn.textContent = 'Lien copié'; if (feedback) feedback.textContent = 'Lien copié dans le presse-papiers.'; }
+    } catch { /* partage annulé */ }
+  });
+</script>

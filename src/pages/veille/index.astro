@@ -1,0 +1,103 @@
+---
+import Base from '../../layouts/Base.astro';
+import { events, surveys, computeKpis, eventUrl } from '../../lib/events';
+import { formatParis } from '../../lib/format';
+import { CATEGORY_LABEL, STATUS_META } from '../../lib/status';
+import { REGISTRATION_STATUSES } from '../../lib/schema';
+
+const kpis = computeKpis(events);
+const latest = surveys[0];
+const find = (id: string) => events.find((e) => e.id === id);
+---
+<Base title="Veille des inscriptions" description="Journal des relevés d’inscriptions : ce qui est ouvert, annoncé, complet ou encore à confirmer, avec sources et dates de vérification.">
+  <section class="section wrap">
+    <p class="eyebrow">Journal des relevés</p>
+    <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Veille des inscriptions</h1>
+    <p class="lead">Chaque relevé compare l’état des inscriptions à celui du relevé précédent. Une information n’est publiée qu’avec sa source officielle et sa date de vérification.</p>
+    <div class="card" style="margin-block:18px">
+      <p class="eyebrow">Dernier contrôle</p>
+      <p style="font-family:var(--display);font-size:1.8rem;margin:0" id="last-check">
+        {latest ? <time datetime={latest.checkedAt}>{formatParis(latest.checkedAt, latest.checkedAtPrecision)}</time> : 'Aucun relevé'}
+      </p>
+    </div>
+
+    <h2>État actuel</h2>
+    <div class="card" style="overflow-x:auto">
+      <table class="plain">
+        <thead><tr><th scope="col">Statut</th><th scope="col">Rendez-vous</th><th scope="col">Signification</th></tr></thead>
+        <tbody>
+          {REGISTRATION_STATUSES.map((s) => (
+            <tr><th scope="row" style="font-family:var(--text);text-transform:none;letter-spacing:0;font-size:1rem;color:var(--ink)">{STATUS_META[s].label}</th>
+              <td><a href={`/calendrier/?status=${s}`}>{kpis.byStatus[s]}</a></td><td class="small">{STATUS_META[s].description}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted" style="margin-top:8px">L’absence de page d’inscription ne permet jamais de conclure « fermé » : la fiche reste « non vérifiée ».</p>
+
+    <h2 style="margin-top:32px">Historique des différences</h2>
+    <ol class="timeline" id="timeline">
+      {surveys.map((s) => (
+        <li class="card">
+          <p class="small muted" style="margin:0 0 4px"><time datetime={s.checkedAt}>{formatParis(s.checkedAt, s.checkedAtPrecision)}</time> · {s.kind === 'initial' ? 'Relevé initial' : s.kind === 'correction' ? 'Correction manuelle' : 'Relevé hebdomadaire'}</p>
+          <h3>{s.title}</h3>
+          <p>{s.summary}</p>
+          {s.changes.length === 0
+            ? <p class="muted" style="margin:0">Aucune différence avec le relevé précédent{s.kind === 'initial' ? ' (premier relevé)' : ''}.</p>
+            : (
+              <ul>
+                {s.changes.map((c) => {
+                  const ev = find(c.eventId);
+                  return (
+                    <li>
+                      <span class="badge">{CATEGORY_LABEL[c.category]}</span>{' '}
+                      {ev ? <a href={eventUrl(ev)}>{ev.name}</a> : c.eventId} — {c.summary}
+                      {c.previous && <span class="muted"> (auparavant : {c.previous})</span>}
+                      {c.evidence && <><br /><span class="small">Fait vérifié : {c.evidence}</span></>}
+                      {c.sourceUrl && <> · <a href={c.sourceUrl} rel="noopener">source officielle</a></>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          {s.source && <p class="small" style="margin:8px 0 0">Source : <a href={s.source.url}>{s.source.label}</a></p>}
+        </li>
+      ))}
+    </ol>
+
+    <h2 style="margin-top:32px">Comment la veille alimente le site</h2>
+    <div class="card-sunk">
+      <ul style="margin:0;padding-left:18px">
+        <li>Un contrôle est planifié chaque <strong>lundi à 8 h 30 (heure de Paris)</strong>, été comme hiver.</li>
+        <li>Les changements sont importés par un administrateur puis <strong>validés avant publication</strong> ; rien n’est publié automatiquement depuis un outil tiers.</li>
+        <li>Catégories suivies : {Object.values(CATEGORY_LABEL).join(', ').toLowerCase()}.</li>
+        <li>Suivre les nouveautés : <a href="/veille/rss.xml">flux RSS</a>.</li>
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Complète le journal avec les changements validés côté serveur, s'il est disponible.
+  interface ApiUpdate { id: number; eventId: string; eventName: string; categoryLabel: string; summary: string; evidence: string | null; sourceUrl: string | null; publishedAt: string }
+  const fmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Paris' });
+  const text = (tag: string, value: string, cls = ''): HTMLElement => Object.assign(document.createElement(tag), { textContent: value, className: cls });
+  fetch('/api/updates', { headers: { accept: 'application/json' } })
+    .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? r.json() : null))
+    .then((body: { updates?: ApiUpdate[]; lastCheck?: string | null } | null) => {
+      if (!body) return;
+      if (body.lastCheck) document.getElementById('last-check')!.textContent = `${fmt.format(new Date(body.lastCheck))} (heure de Paris)`;
+      const list = document.getElementById('timeline')!;
+      for (const u of [...(body.updates ?? [])].reverse()) {
+        const li = text('li', '', 'card');
+        li.append(text('p', `${fmt.format(new Date(u.publishedAt))} (heure de Paris) · Changement validé`, 'small muted'));
+        const h = text('h3', `${u.categoryLabel} — `);
+        h.append(Object.assign(document.createElement('a'), { href: `/epreuves/${u.eventId}/`, textContent: u.eventName }));
+        li.append(h, text('p', u.summary));
+        if (u.evidence) li.append(text('p', `Fait vérifié : ${u.evidence}`, 'small'));
+        if (u.sourceUrl?.startsWith('https://')) li.append(Object.assign(document.createElement('a'), { href: u.sourceUrl, textContent: 'Source officielle', rel: 'noopener' }));
+        list.prepend(li);
+      }
+    })
+    .catch(() => { /* API absente : le journal statique reste affiché */ });
+</script>

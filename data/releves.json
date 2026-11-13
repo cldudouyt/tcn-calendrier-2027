@@ -1,0 +1,15 @@
+[
+  {
+    "id": "releve-2026-11-13",
+    "checkedAt": "2026-11-13T12:00:00+01:00",
+    "checkedAtPrecision": "date",
+    "kind": "initial",
+    "title": "Relevé initial — transcription du calendrier PDF",
+    "summary": "Transcription des 78 rendez-vous régionaux du calendrier de la Ligue (PDF du 13 novembre 2026). Aucune billetterie n’a encore été vérifiée : toutes les fiches sont « non vérifié », ce qui ne signifie pas « fermé ».",
+    "source": {
+      "label": "calendrier-2027.pdf",
+      "url": "/documents/calendrier-2027.pdf"
+    },
+    "changes": []
+  }
+]

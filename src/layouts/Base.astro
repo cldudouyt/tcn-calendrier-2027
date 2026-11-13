@@ -1,0 +1,57 @@
+---
+import '@fontsource/anton/latin-400.css';
+import '@fontsource/barlow/latin-400.css';
+import '@fontsource/barlow/latin-500.css';
+import '@fontsource/barlow/latin-600.css';
+import '@fontsource/barlow/latin-700.css';
+import '@fontsource/barlow/latin-800.css';
+import '@fontsource/barlow-semi-condensed/latin-600.css';
+import '@fontsource/barlow-semi-condensed/latin-700.css';
+import '@fontsource/barlow-semi-condensed/latin-800.css';
+import '../styles/global.css';
+
+interface Props { title: string; description?: string }
+const { title, description = 'Calendrier, carte et veille des épreuves multisports des Pays de la Loire, de novembre 2026 à novembre 2027.' } = Astro.props;
+const path = Astro.url.pathname;
+const nav = [
+  { href: '/', label: 'Accueil' },
+  { href: '/calendrier/', label: 'Calendrier' },
+  { href: '/carte/', label: 'Carte' },
+  { href: '/veille/', label: 'Veille' },
+  { href: '/documents/', label: 'Documents' },
+];
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} — Multisports Pays de la Loire 2027</title>
+    <meta name="description" content={description} />
+    <link rel="alternate" type="application/rss+xml" title="Veille des inscriptions" href="/veille/rss.xml" />
+  </head>
+  <body>
+    <a class="skip" href="#contenu">Aller au contenu</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/" aria-label="Accueil — Multisports Pays de la Loire 2027">
+          <span class="brand-mark">TCN</span><span>Multisports 2027</span>
+        </a>
+        <nav class="nav" aria-label="Navigation principale">
+          {nav.map((item) => <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>)}
+        </nav>
+      </div>
+    </header>
+    <main id="contenu"><slot /></main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>Site d’information du Triathlon Club Nantais. Dates et formats transcrits du calendrier de la Ligue de triathlon des Pays de la Loire (PDF du 13 novembre 2026) : à confirmer auprès de chaque organisateur avant de s’engager.</p>
+        <p><a href="/documents/">Document source</a> · <a href="/veille/">Veille des inscriptions</a> · <a href="/hors-region/">Rendez-vous hors région</a> · <a href="/composants/">Charte graphique</a></p>
+      </div>
+    </footer>
+    <script>
+      import '../client/status-overlay';
+    </script>
+  </body>
+</html>

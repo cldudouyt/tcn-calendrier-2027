@@ -1,0 +1,134 @@
+---
+import Base from '../layouts/Base.astro';
+import EventCard from '../components/EventCard.astro';
+import Filters from '../components/Filters.astro';
+import { events, groupByWeekend, eventUrl } from '../lib/events';
+import { dayNumber, formatDay, formatMonth, isoWeekday, listMonths, monthKey, addDays } from '../lib/format';
+
+const months = listMonths(monthKey(events[0]!.date), monthKey(events[events.length - 1]!.date));
+const byMonth = months.map((m) => ({ key: m, label: formatMonth(m), events: events.filter((e) => monthKey(e.date) === m) }));
+const daysOf = (m: string) => {
+  const days: string[] = [];
+  for (let d = `${m}-01`; monthKey(d) === m; d = addDays(d, 1)) days.push(d);
+  return days;
+};
+const icsData = events.map((e) => ({ id: e.id, date: e.date, name: e.name, town: e.town, formats: e.formats, url: eventUrl(e) }));
+---
+<Base title="Calendrier" description="Calendrier filtrable des 78 rendez-vous multisports des Pays de la Loire, de novembre 2026 à novembre 2027.">
+  <section class="section wrap">
+    <p class="eyebrow">Novembre 2026 → novembre 2027</p>
+    <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Calendrier</h1>
+    <Filters>
+      <a class="btn btn-dark" href="/carte/" data-keep-filters="/carte/">Voir sur la carte</a>
+      <button type="button" class="btn btn-secondary" id="export-ics">Exporter (.ics)</button>
+    </Filters>
+
+    <div class="toolbar">
+      <p class="count" role="status" aria-live="polite"><strong id="result-count">{events.length}</strong> <span id="result-label">rendez-vous régionaux</span></p>
+      <div class="tabs" role="group" aria-label="Type de vue">
+        <button type="button" data-view="liste" aria-pressed="true">Liste</button>
+        <button type="button" data-view="mois" aria-pressed="false">Mois</button>
+      </div>
+    </div>
+    <p class="card-sunk" id="no-result" hidden>Aucun rendez-vous ne correspond à cette sélection. Élargissez les filtres ou réinitialisez-les.</p>
+
+    <div id="view-liste">
+      {byMonth.filter((m) => m.events.length).map((m) => (
+        <section data-group>
+          <h2 class="month-title" id={`mois-${m.key}`}>{m.label} <small><span data-group-count>{m.events.length}</span> rendez-vous</small></h2>
+          {groupByWeekend(m.events).map((g) => (
+            <div class:list={['weekend', g.multi && 'weekend-multi']} data-group>
+              {g.multi && <p class="weekend-label">{g.label} · {g.events.length} entrées distinctes</p>}
+              <ul class="event-list">{g.events.map((e) => <EventCard event={e} />)}</ul>
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
+
+    <div id="view-mois" hidden>
+      <div class="grid grid-2">
+        {byMonth.map((m) => (
+          <section class="card" aria-labelledby={`grille-${m.key}`}>
+            <h2 id={`grille-${m.key}`} style="font-size:1.5rem">{m.label}</h2>
+            <div class="month-grid">
+              {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d) => <span class="dow" aria-hidden="true">{d}</span>)}
+              {Array.from({ length: isoWeekday(`${m.key}-01`) - 1 }).map(() => <span />)}
+              {daysOf(m.key).map((d) => {
+                const evs = m.events.filter((e) => e.date === d);
+                return evs.length
+                  ? <a class="day" href={`#jour-${d}`} data-day={d} data-ids={evs.map((e) => e.id).join(' ')} aria-label={`${formatDay(d)} : ${evs.length} rendez-vous`}>{dayNumber(d)}<sup data-day-count>{evs.length}</sup></a>
+                  : <span class="day">{dayNumber(d)}</span>;
+              })}
+            </div>
+            {m.events.length === 0
+              ? <p class="small muted">Aucun rendez-vous régional ce mois-ci.</p>
+              : (
+                <ul class="small" style="list-style:none;padding:0;margin:0;display:grid;gap:6px">
+                  {m.events.map((e) => (
+                    <li data-event-id={e.id} id={m.events.find((x) => x.date === e.date) === e ? `jour-${e.date}` : undefined}>
+                      <strong>{dayNumber(e.date)}</strong> · <a href={eventUrl(e)}>{e.name}</a> <span class="muted">— {e.town ?? 'commune à confirmer'}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+          </section>
+        ))}
+      </div>
+    </div>
+  </section>
+  <script type="application/json" id="ics-data" set:html={JSON.stringify(icsData)} />
+</Base>
+
+<script>
+  import { initFilters, readEventsData } from '../client/filters-ui';
+  import { applyFilters } from '../lib/filters';
+  import { buildIcs, type IcsEvent } from '../lib/ics';
+
+  const data = readEventsData();
+  let visible = new Set(data.map((e) => e.id));
+
+  function render(): void {
+    document.querySelectorAll<HTMLElement>('[data-event-id]').forEach((el) => { el.hidden = !visible.has(el.dataset.eventId!); });
+    // Masquer les groupes (mois, week-ends) vides, du plus profond au plus large.
+    [...document.querySelectorAll<HTMLElement>('#view-liste [data-group]')].reverse().forEach((g) => {
+      const n = g.querySelectorAll('.event-card:not([hidden])').length;
+      g.hidden = n === 0;
+      const c = g.querySelector(':scope > h2 [data-group-count]');
+      if (c) c.textContent = String(n);
+    });
+    document.querySelectorAll<HTMLAnchorElement>('a.day[data-ids]').forEach((a) => {
+      const n = a.dataset.ids!.split(' ').filter((id) => visible.has(id)).length;
+      a.classList.toggle('is-empty', n === 0);
+      const sup = a.querySelector('[data-day-count]');
+      if (sup) sup.textContent = n ? String(n) : '';
+    });
+    document.getElementById('result-count')!.textContent = String(visible.size);
+    document.getElementById('result-label')!.textContent = visible.size === data.length ? 'rendez-vous régionaux' : `rendez-vous sur ${data.length}`;
+    document.getElementById('no-result')!.hidden = visible.size > 0;
+  }
+
+  initFilters((f) => { visible = new Set(applyFilters(data, f).map((e) => e.id)); render(); });
+
+  // Vues liste / mois, mémorisées dans l'URL (?vue=mois).
+  const setView = (view: string): void => {
+    document.getElementById('view-liste')!.hidden = view !== 'liste';
+    document.getElementById('view-mois')!.hidden = view !== 'mois';
+    document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    const p = new URLSearchParams(location.search);
+    if (view === 'mois') p.set('vue', 'mois'); else p.delete('vue');
+    const qs = p.toString();
+    history.replaceState(null, '', `${location.pathname}${qs ? `?${qs}` : ''}`);
+  };
+  document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view!)));
+  if (new URLSearchParams(location.search).get('vue') === 'mois') setView('mois');
+
+  document.getElementById('export-ics')?.addEventListener('click', () => {
+    const all = JSON.parse(document.getElementById('ics-data')!.textContent!) as IcsEvent[];
+    const selected = all.filter((e) => visible.has(e.id)).map((e) => ({ ...e, url: new URL(e.url, location.origin).href }));
+    const blob = new Blob([buildIcs(selected)], { type: 'text/calendar;charset=utf-8' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'multisports-pdl-2027.ics' });
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+</script>

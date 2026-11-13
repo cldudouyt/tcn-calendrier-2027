@@ -1,0 +1,27 @@
+/* Jetons de la charte TCN — valeurs relevées dans app/globals.css du site Quiberon
+   (cldudouyt/tcn-quiberon-inscriptions, branche main, 13 novembre 2026).
+   Seul fichier autorisé à contenir des valeurs de couleur. */
+:root {
+  --ink: #1c1e22; --ink-2: #3a3d44; --ink-3: #5b5e65;
+  --body: #3a3833; --muted: #726c61; --grey: #b0aaa0;
+  --paper: #f4f3f0; --sunk: #faf9f7;
+  --line: #ebe8e2; --line-faint: #f1efea; --line-input: #d8d4cc;
+  --orange: #e9530e; --orange-deep: #d64000;
+  --orange-deeper: #b83a00; --orange-200: #f8b58c;
+  --orange-10: rgba(233, 83, 14, 0.10);
+  --success: #176039; --success-bg: #f0fdf5; --success-border: #84d4a8;
+  --warning: #7a5800; --warning-bg: #fdf8f0; --warning-border: #e6d29a;
+
+  --white: #ffffff;
+  --shadow: 0 1px 2px rgba(28, 30, 34, 0.04), 0 8px 24px rgba(28, 30, 34, 0.05);
+  --shadow-pin: 0 2px 6px rgba(28, 30, 34, 0.35);
+  --radius: 18px; --radius-sm: 10px;
+
+  /* Repères de carte par département : distincts de la marque et des statuts,
+     toujours doublés du numéro de département écrit dans le repère. */
+  --dep-44: #d64000; --dep-49: #6b3fa0; --dep-53: #1f6f8b; --dep-72: #a3195b; --dep-85: #2e5aac;
+
+  --display: 'Anton', 'Barlow', sans-serif;
+  --cond: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  --text: 'Barlow', system-ui, sans-serif;
+}

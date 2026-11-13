@@ -1,0 +1,26 @@
+---
+import type { RaceEvent } from '../lib/types';
+import { DEPARTMENT_NAMES, eventUrl } from '../lib/events';
+import { dayNumber, formatDay, monthShort, weekdayShort } from '../lib/format';
+import StatusBadge from './StatusBadge.astro';
+import TransportBadge from './TransportBadge.astro';
+interface Props { event: RaceEvent; heading?: 'h3' | 'h4' }
+const { event } = Astro.props;
+---
+<li class="event-card" data-event-id={event.id} id={`e-${event.id}`}>
+  <div class="event-date" aria-hidden="true">
+    {weekdayShort(event.date)}<b>{dayNumber(event.date)}</b>{monthShort(event.date)}
+  </div>
+  <div>
+    <h3><a href={eventUrl(event)}>{event.name}</a></h3>
+    <p class="event-meta">
+      <span class="sr-only">{formatDay(event.date)} — </span>
+      {event.town ?? 'Commune à confirmer'} · {DEPARTMENT_NAMES[event.department]} ({event.department}) · {event.kind}
+    </p>
+    <p class="small" style="margin:0 0 8px">{event.formats}</p>
+    <div class="badges">
+      <StatusBadge event={event} />
+      <TransportBadge code={event.transport} />
+    </div>
+  </div>
+</li>

@@ -1,0 +1,38 @@
+{
+  "name": "tcn-calendrier-2027",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Calendrier et veille multisports Pays de la Loire 2027 (TCN)",
+  "scripts": {
+    "sync": "node scripts/sync-public.mjs",
+    "dev": "npm run sync && astro dev",
+    "check": "astro check && tsc -p worker",
+    "build": "npm run test && npm run sync && npm run check && astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "test:e2e": "node --test tests/e2e/site.test.mjs",
+    "worker:dev": "wrangler dev",
+    "worker:schema:local": "wrangler d1 execute tcn-calendrier-2027 --local --file worker/schema.sql",
+    "worker:schema:remote": "wrangler d1 execute tcn-calendrier-2027 --remote --file worker/schema.sql"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@cloudflare/workers-types": "^5.20261113.1",
+    "@types/leaflet": "^1.9.22",
+    "@types/leaflet.markercluster": "^1.5.6",
+    "@types/node": "^26.6.6",
+    "astro": "^7.4.12",
+    "playwright": "^1.63.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.162.0"
+  },
+  "dependencies": {
+    "@fontsource/anton": "^5.3.0",
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/barlow-semi-condensed": "^5.3.0",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3"
+  }
+}

@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import Filters from '../components/Filters.astro';
+import { events, DEPARTMENT_NAMES, eventUrl } from '../lib/events';
+import { formatDay } from '../lib/format';
+import { STATUS_META, effectiveStatus } from '../lib/status';
+import { TRANSPORT_META } from '../lib/transport';
+
+const points = events.map((e) => ({
+  id: e.id, name: e.name, town: e.town, dep: e.department, date: formatDay(e.date), formats: e.formats,
+  status: STATUS_META[effectiveStatus(e)].label, transport: TRANSPORT_META[e.transport].short,
+  url: eventUrl(e), coords: e.coords, verified: e.locationAccuracy === 'depart_verifie',
+}));
+const unlocated = events.filter((e) => !e.coords);
+---
+<Base title="Carte" description="Carte interactive des épreuves multisports des Pays de la Loire 2027. Positions indicatives : centre de la commune.">
+  <section class="section wrap">
+    <p class="eyebrow">Pays de la Loire</p>
+    <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Carte des épreuves</h1>
+    <div class="notice" style="margin-bottom:14px">
+      <p><strong>Positions indicatives.</strong> Chaque repère est placé au centre de la commune (source : API Géo), pas au départ de la course. Le lieu exact du départ n’est vérifié pour aucune épreuve à ce jour : consultez la fiche avant de vous déplacer.</p>
+    </div>
+    <Filters>
+      <a class="btn btn-dark" href="/calendrier/" data-keep-filters="/calendrier/">Voir en liste</a>
+    </Filters>
+    <div class="toolbar">
+      <p class="count" role="status" aria-live="polite"><strong id="result-count">{events.length}</strong> <span id="result-label">rendez-vous régionaux</span></p>
+    </div>
+    <div id="map" role="application" aria-label="Carte des épreuves. La même sélection est disponible en liste."></div>
+    <ul class="legend-list" aria-label="Légende des repères">
+      {Object.entries(DEPARTMENT_NAMES).map(([d, n]) => <li><span class="swatch" style={`background:var(--dep-${d})`}></span>{d} · {n}</li>)}
+      <li><span class="cluster" style="width:22px;height:22px;font-size:.7rem;border-width:2px">n</span>Regroupement de repères proches</li>
+    </ul>
+    <h2 style="margin-top:28px;font-size:1.4rem">Accès depuis Nantes : signification des catégories</h2>
+    <ul class="small" style="columns:2 280px;padding-left:18px">
+      {Object.values(TRANSPORT_META).map((t) => <li><strong>{t.short}</strong> — {t.label}</li>)}
+    </ul>
+    {unlocated.length > 0 && (
+      <div class="card-sunk" style="margin-top:18px">
+        <h2 style="font-size:1.3rem">Non localisés sur la carte</h2>
+        <ul style="margin:0;padding-left:18px">
+          {unlocated.map((e) => <li data-event-id={e.id}><a href={eventUrl(e)}>{e.name}</a> — {formatDay(e.date)} · commune à confirmer</li>)}
+        </ul>
+      </div>
+    )}
+  </section>
+  <script type="application/json" id="map-data" set:html={JSON.stringify(points)} />
+</Base>
+
+<script>
+  import { initFilters, readEventsData } from '../client/filters-ui';
+  import { applyFilters } from '../lib/filters';
+  import { createMap, type MapPoint } from '../client/map';
+
+  const data = readEventsData();
+  const points = JSON.parse(document.getElementById('map-data')!.textContent!) as MapPoint[];
+  const map = createMap(document.getElementById('map')!, points);
+
+  initFilters((f) => {
+    const visible = new Set(applyFilters(data, f).map((e) => e.id));
+    map.show(visible);
+    document.querySelectorAll<HTMLElement>('[data-event-id]').forEach((el) => { el.hidden = !visible.has(el.dataset.eventId!); });
+    document.getElementById('result-count')!.textContent = String(visible.size);
+    document.getElementById('result-label')!.textContent = visible.size === data.length ? 'rendez-vous régionaux' : `rendez-vous sur ${data.length}`;
+  });
+</script>

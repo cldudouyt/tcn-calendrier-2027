@@ -1,0 +1,20 @@
+{
+  // Projet Cloudflare distinct du site Quiberon. Aucun identifiant ni secret dans ce fichier.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tcn-calendrier-2027",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  // Lundi 08:30 Europe/Paris = 07:30 UTC en hiver, 06:30 UTC en été.
+  // Les deux déclenchements existent ; le Worker n'exécute que celui qui tombe à 08 h 30 à Paris.
+  "triggers": { "crons": ["30 6 * * MON", "30 7 * * MON"] },
+  "observability": { "enabled": true },
+  // Base D1 : l'identifiant ci-dessous est un marqueur. Il suffit pour le développement local ;
+  // avant le déploiement, le remplacer par celui renvoyé par « wrangler d1 create » (voir README).
+  "d1_databases": [{ "binding": "DB", "database_name": "tcn-calendrier-2027", "database_id": "A-REMPLACER-AVANT-DEPLOIEMENT" }]
+}

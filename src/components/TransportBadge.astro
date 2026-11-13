@@ -1,0 +1,10 @@
+---
+import type { TransportCode } from '../lib/types';
+import { TRANSPORT_META } from '../lib/transport';
+interface Props { code: TransportCode }
+const { code } = Astro.props;
+const meta = TRANSPORT_META[code];
+---
+<span class:list={['badge', code === '?' ? 'badge-warning' : '']} title={meta.label}>
+  <span class="sr-only">Accès depuis Nantes : </span>{meta.short}
+</span>

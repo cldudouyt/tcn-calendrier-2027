@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import EventCard from '../components/EventCard.astro';
+import { events } from '../lib/events';
+const tokens = ['ink', 'ink-2', 'ink-3', 'body', 'muted', 'grey', 'paper', 'sunk', 'line', 'line-faint', 'line-input', 'orange', 'orange-deep', 'orange-deeper', 'orange-200', 'orange-10', 'success', 'success-bg', 'success-border', 'warning', 'warning-bg', 'warning-border'];
+---
+<Base title="Charte graphique" description="Composants et jetons de la charte TCN utilisés sur ce site.">
+  <section class="section wrap">
+    <p class="eyebrow">Design system</p>
+    <h1>Charte TCN</h1>
+    <p class="lead">Jetons repris du site Quiberon du TCN : orange chaud, encre anthracite, papier ivoire ; Anton, Barlow et Barlow Semi Condensed.</p>
+
+    <h2>Couleurs</h2>
+    <ul class="grid grid-3" style="list-style:none;padding:0">
+      {tokens.map((t) => (
+        <li class="card" style="padding:12px;display:flex;gap:12px;align-items:center">
+          <span style={`width:44px;height:44px;border-radius:10px;border:1px solid var(--line-input);background:var(--${t})`}></span>
+          <code>--{t}</code>
+        </li>
+      ))}
+    </ul>
+
+    <h2 style="margin-top:32px">Typographie</h2>
+    <div class="card">
+      <h1 style="font-size:3rem">Titre Anton</h1>
+      <h2>Sous-titre Anton</h2>
+      <p class="eyebrow">Étiquette Barlow Semi Condensed</p>
+      <p>Texte courant en Barlow : choisir une épreuve, savoir quand s’inscrire et comment rejoindre le départ.</p>
+      <p class="muted small">Métadonnée secondaire.</p>
+    </div>
+
+    <h2 style="margin-top:32px">Boutons</h2>
+    <div class="actions">
+      <a class="btn btn-primary" href="#">Action principale</a>
+      <a class="btn btn-dark" href="#">Action sombre</a>
+      <a class="btn btn-secondary" href="#">Action secondaire</a>
+      <button class="btn btn-primary" disabled>Désactivé</button>
+    </div>
+
+    <h2 style="margin-top:32px">Badges et états</h2>
+    <div class="badges">
+      <span class="badge badge-success">Inscriptions ouvertes</span>
+      <span class="badge badge-warning">Ouverture annoncée</span>
+      <span class="badge">Inscriptions non vérifiées</span>
+      <span class="badge badge-dark">Complet</span>
+      <span class="badge badge-dark">Inscriptions fermées</span>
+      <span class="badge badge-dark">Épreuve annulée</span>
+      <span class="badge badge-brand">Étiquette de marque</span>
+    </div>
+    <div class="notice" style="margin-top:12px"><p>Avertissement : information à confirmer.</p></div>
+    <div class="notice notice-neutral" style="margin-top:8px"><p>Note neutre.</p></div>
+
+    <h2 style="margin-top:32px">Formulaires</h2>
+    <form class="card filters" onsubmit="return false">
+      <div class="field"><label for="demo-q">Recherche</label><input id="demo-q" type="search" placeholder="Nom de course ou commune" /></div>
+      <fieldset><legend class="legend">Cases à cocher</legend>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" checked /><span>Sélectionné</span></label>
+          <label class="chip"><input type="checkbox" /><span>Non sélectionné</span></label>
+        </div>
+      </fieldset>
+    </form>
+
+    <h2 style="margin-top:32px">Carte d’épreuve</h2>
+    <ul class="event-list">{events.slice(0, 2).map((e) => <EventCard event={e} />)}</ul>
+  </section>
+</Base>

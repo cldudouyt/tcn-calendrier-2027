@@ -1,0 +1,72 @@
+---
+import Base from '../layouts/Base.astro';
+import EventCard from '../components/EventCard.astro';
+import { events, surveys, computeKpis, outOfRegion, DEPARTMENT_NAMES, PDF_REFERENCE_DATE } from '../lib/events';
+import { formatParis } from '../lib/format';
+import { CATEGORY_LABEL } from '../lib/status';
+
+const kpis = computeKpis(events);
+const latest = surveys[0];
+const today = new Date().toISOString().slice(0, 10);
+const upcoming = events.filter((e) => e.date >= today).slice(0, 4);
+const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e) => e.department === d).length }));
+---
+<Base title="Épreuves multisports Pays de la Loire 2027">
+  <section class="hero wrap">
+    <p class="eyebrow">Triathlon Club Nantais · Novembre 2026 → novembre 2027</p>
+    <h1>Épreuves multisports <span>Pays de la Loire 2027</span></h1>
+    <p class="lead">Triathlon, duathlon, aquathlon, cross-triathlon, swimrun, Bike &amp; Run et endurathlon : choisir une épreuve, savoir quand s’inscrire et comment rejoindre le départ depuis Nantes, y compris avec un vélo.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="/calendrier/">Voir le calendrier</a>
+      <a class="btn btn-dark" href="/carte/">Ouvrir la carte</a>
+      <a class="btn btn-secondary" href="/calendrier/#filters">Filtrer les épreuves</a>
+      <a class="btn btn-secondary" href="/documents/calendrier-2027.pdf">PDF original</a>
+    </div>
+    <ul class="kpis" aria-label="Chiffres clés">
+      <li class="kpi"><span class="kpi-value" data-kpi="total">{kpis.total}</span><span class="kpi-label">Rendez-vous régionaux suivis</span></li>
+      <li class="kpi"><span class="kpi-value" data-kpi="open">{kpis.open}</span><span class="kpi-label">Inscriptions ouvertes vérifiées</span></li>
+      <li class="kpi"><span class="kpi-value" data-kpi="announced">{kpis.announced}</span><span class="kpi-label">Ouvertures annoncées</span></li>
+      <li class="kpi"><span class="kpi-value" data-kpi="toConfirm">{kpis.toConfirm}</span><span class="kpi-label">Informations à confirmer</span></li>
+    </ul>
+    <p class="small muted" style="margin-top:12px">
+      Répartition : {byDep.map((x, i) => <>{i > 0 && ' · '}<a href={`/calendrier/?dep=${x.d}`}>{DEPARTMENT_NAMES[x.d]} {x.n}</a></>)}.
+      Les {outOfRegion.length} <a href="/hors-region/">rendez-vous hors région</a> sont comptés à part.
+    </p>
+  </section>
+
+  <section class="section wrap">
+    <p class="eyebrow">Veille des inscriptions</p>
+    <h2>Dernières nouveautés</h2>
+    {latest && (
+      <article class="card">
+        <p class="small muted" style="margin:0 0 4px">Dernier relevé : <time datetime={latest.checkedAt}>{formatParis(latest.checkedAt, latest.checkedAtPrecision)}</time></p>
+        <h3>{latest.title}</h3>
+        <p>{latest.summary}</p>
+        {latest.changes.length > 0 ? (
+          <ul>
+            {latest.changes.slice(0, 5).map((c) => (
+              <li><strong>{CATEGORY_LABEL[c.category]}</strong> — {c.summary}{c.sourceUrl && <> · <a href={c.sourceUrl} rel="noopener">source officielle</a></>}</li>
+            ))}
+          </ul>
+        ) : <p class="muted">Aucun changement de statut constaté depuis ce relevé.</p>}
+        <div class="actions">
+          <a class="btn btn-secondary" href="/veille/">Journal de veille</a>
+          {latest.source && <a class="btn btn-secondary" href={latest.source.url}>{latest.source.label}</a>}
+        </div>
+      </article>
+    )}
+  </section>
+
+  <section class="section wrap">
+    <p class="eyebrow">À venir</p>
+    <h2>Prochains rendez-vous</h2>
+    <ul class="event-list">{upcoming.map((e) => <EventCard event={e} />)}</ul>
+    <p style="margin-top:16px"><a href="/calendrier/">Tous les rendez-vous →</a></p>
+  </section>
+
+  <section class="section wrap">
+    <div class="notice">
+      <p>Dates, formats et itinéraires proviennent du PDF de la Ligue daté du <time datetime={PDF_REFERENCE_DATE}>13 novembre 2026</time>. Rien n’est garanti tant que l’organisateur ou l’opérateur de transport ne l’a pas confirmé : chaque fiche indique ce qui est vérifié et ce qui ne l’est pas.</p>
+    </div>
+  </section>
+</Base>

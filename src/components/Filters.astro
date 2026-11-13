@@ -1,0 +1,49 @@
+---
+import { events, DEPARTMENT_NAMES, FORMAT_LABELS, toFilterable } from '../lib/events';
+import { formatMonth } from '../lib/format';
+import { STATUS_META } from '../lib/status';
+import { ACCESS_LABEL } from '../lib/transport';
+import { REGISTRATION_STATUSES } from '../lib/schema';
+
+const filterable = events.map(toFilterable);
+const uniq = (values: string[]) => [...new Set(values)];
+const groups = [
+  { key: 'dep', legend: 'Département', options: Object.entries(DEPARTMENT_NAMES).map(([v, l]) => ({ v, l: `${l} (${v})` })) },
+  { key: 'kind', legend: 'Discipline', options: uniq(filterable.map((e) => e.kind)).sort((a, b) => a.localeCompare(b, 'fr')).map((v) => ({ v, l: v })) },
+  { key: 'format', legend: 'Distance ou format', options: Object.entries(FORMAT_LABELS).filter(([v]) => filterable.some((e) => e.formatTags.includes(v))).map(([v, l]) => ({ v, l })) },
+  { key: 'month', legend: 'Mois', options: uniq(filterable.map((e) => e.month)).sort().map((v) => ({ v, l: formatMonth(v) })) },
+  { key: 'status', legend: 'Statut d’inscription', options: REGISTRATION_STATUSES.map((v) => ({ v, l: STATUS_META[v].label })) },
+  { key: 'access', legend: 'Accès en transports depuis Nantes', options: Object.entries(ACCESS_LABEL).map(([v, l]) => ({ v, l })) },
+];
+---
+<form class="card filters" id="filters" role="search" aria-label="Filtrer les épreuves" onsubmit="return false">
+  <div class="field">
+    <label for="q">Rechercher une course ou une commune</label>
+    <input type="search" id="q" name="q" placeholder="Ex. : Vertou, swimrun, Laval…" autocomplete="off" />
+  </div>
+  <details id="filter-details">
+    <summary>Filtres <span class="badge badge-brand" id="filter-count" hidden></span></summary>
+    <div class="filter-groups">
+      {groups.map((g) => (
+        <fieldset>
+          <legend class="legend">{g.legend}</legend>
+          <div class="chips">
+            {g.options.map((o) => (
+              <label class="chip"><input type="checkbox" name={g.key} value={o.v} /><span>{o.l}</span></label>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+    </div>
+    <p class="small muted" style="margin:12px 0 0">
+      « Avec vélo » ne retient que les épreuves dont la règle d’emport du vélo a été confirmée pour la date : aucune ne l’est encore.
+    </p>
+  </details>
+  <div class="actions">
+    <button type="reset" class="btn btn-secondary" id="filters-reset">Réinitialiser</button>
+    <button type="button" class="btn btn-secondary" id="share-url">Partager cette sélection</button>
+    <slot />
+  </div>
+  <p class="sr-only" role="status" aria-live="polite" id="share-feedback"></p>
+</form>
+<script type="application/json" id="events-data" set:html={JSON.stringify(filterable)} />

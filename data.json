@@ -32,13 +32,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.171,
+      -1.6181
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44020"
   },
   {
     "id": "pdl-44-2027-01-10-bike-run-de-saint-nazaire",
@@ -73,13 +78,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2768,
+      -2.2392
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44184"
   },
   {
     "id": "pdl-44-2027-01-24-bike-run-de-la-gournerie",
@@ -112,13 +122,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2246,
+      -1.6306
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44162"
   },
   {
     "id": "pdl-44-2027-01-31-bike-run-des-iles-de-loire",
@@ -153,13 +168,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2065,
+      -1.5023
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44190"
   },
   {
     "id": "pdl-44-2027-04-04-duathlon-nozeen",
@@ -195,13 +215,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.5727,
+      -1.6027
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44113"
   },
   {
     "id": "pdl-44-2027-04-24-aquathlon-de-vertou",
@@ -234,13 +259,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.1532,
+      -1.4679
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44215"
   },
   {
     "id": "pdl-44-2027-04-25-triathlon-de-vertou",
@@ -275,13 +305,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.1532,
+      -1.4679
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44215"
   },
   {
     "id": "pdl-44-2027-05-22-swimrun-de-pornic",
@@ -315,13 +350,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.1302,
+      -2.0569
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44131"
   },
   {
     "id": "pdl-44-2027-06-12-swimrun-du-pays-blanc",
@@ -355,13 +395,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.3991,
+      -2.4693
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44097"
   },
   {
     "id": "pdl-44-2027-06-13-triathlon-de-mesquer-quimiac",
@@ -396,13 +441,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.3991,
+      -2.4693
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44097"
   },
   {
     "id": "pdl-44-2027-06-16-duathlon-des-dervallieres",
@@ -436,13 +486,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2382,
+      -1.5603
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44109"
   },
   {
     "id": "pdl-44-2027-06-25-triathlon-au-feminin",
@@ -475,13 +530,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2918,
+      -1.8349
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44045"
   },
   {
     "id": "pdl-44-2027-09-10-triathlon-sois-fier-de-toi",
@@ -512,13 +572,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2768,
+      -2.2392
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44184"
   },
   {
     "id": "pdl-44-2027-09-11-aquathlon-de-saint-nazaire",
@@ -553,13 +618,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2768,
+      -2.2392
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44184"
   },
   {
     "id": "pdl-44-2027-09-12-triathlon-de-saint-nazaire",
@@ -594,13 +664,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2768,
+      -2.2392
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44184"
   },
   {
     "id": "pdl-44-2027-09-25-triathlon-audencia-la-baule",
@@ -635,13 +710,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2925,
+      -2.3622
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44055"
   },
   {
     "id": "pdl-44-2027-09-26-triathlon-audencia-la-baule",
@@ -678,13 +758,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2925,
+      -2.3622
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44055"
   },
   {
     "id": "pdl-44-2027-10-03-duathlon-de-coueron",
@@ -720,13 +805,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2391,
+      -1.7472
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44047"
   },
   {
     "id": "pdl-44-2027-10-17-triathlon-des-roses",
@@ -760,13 +850,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2382,
+      -1.5603
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44109"
   },
   {
     "id": "pdl-44-2027-10-17-triathlon-de-nantes",
@@ -797,15 +892,20 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2382,
+      -1.5603
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 2,
     "sourceReferenceDate": "2026-11-13",
     "notes": [
       "Formats à confirmer : référence au tableau p. 32 de la publication d’origine."
-    ]
+    ],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "44109"
   },
   {
     "id": "pdl-49-2027-03-21-bike-run-des-vignes",
@@ -840,13 +940,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.2645,
+      -0.0837
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49328"
   },
   {
     "id": "pdl-49-2027-05-02-anjou-swimrun-hyundai-ocean-auto",
@@ -881,13 +986,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.524,
+      -0.519
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49129"
   },
   {
     "id": "pdl-49-2027-05-15-triathlon-dangers-entre-loire-et-maine",
@@ -921,13 +1031,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.4819,
+      -0.5629
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49007"
   },
   {
     "id": "pdl-49-2027-05-16-triathlon-dangers",
@@ -963,13 +1078,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.4819,
+      -0.5629
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49007"
   },
   {
     "id": "pdl-49-2027-06-05-aquathlon-de-montreuil-juigne",
@@ -1005,13 +1125,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.5451,
+      -0.6178
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49214"
   },
   {
     "id": "pdl-49-2027-06-06-triathlon-de-montreuil-juigne",
@@ -1047,13 +1172,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.5451,
+      -0.6178
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49214"
   },
   {
     "id": "pdl-49-2027-07-03-aquathlon-de-segre",
@@ -1089,13 +1219,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.7111,
+      -0.854
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49331"
   },
   {
     "id": "pdl-49-2027-09-05-triathlon-de-villeveque",
@@ -1129,13 +1264,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.5572,
+      -0.4448
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49377"
   },
   {
     "id": "pdl-49-2027-09-19-triathlon-de-cholet",
@@ -1169,13 +1309,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.0358,
+      -0.875
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49099"
   },
   {
     "id": "pdl-49-2027-10-31-bike-run-de-segre",
@@ -1210,13 +1355,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.7111,
+      -0.854
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 3,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "49331"
   },
   {
     "id": "pdl-53-2027-01-17-run-bike-la-rincerie-pays-de-craon",
@@ -1251,13 +1401,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.8446,
+      -1.0591
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53258"
   },
   {
     "id": "pdl-53-2027-01-31-run-bike-du-chateau-de-mayenne",
@@ -1292,13 +1447,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.3066,
+      -0.614
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53147"
   },
   {
     "id": "pdl-53-2027-03-14-duathlon-de-juvigne",
@@ -1333,13 +1493,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.2342,
+      -1.028
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53123"
   },
   {
     "id": "pdl-53-2027-05-29-triathlon-des-etangs",
@@ -1372,13 +1537,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.124,
+      -0.9662
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53182"
   },
   {
     "id": "pdl-53-2027-05-30-triathlon-des-etangs",
@@ -1413,13 +1583,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.124,
+      -0.9662
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53182"
   },
   {
     "id": "pdl-53-2027-06-06-le-northmay",
@@ -1455,13 +1630,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.2013,
+      -0.4547
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53153"
   },
   {
     "id": "pdl-53-2027-06-19-triathlon-de-laval",
@@ -1494,13 +1674,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.0578,
+      -0.7692
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53130"
   },
   {
     "id": "pdl-53-2027-06-20-triathlon-de-laval",
@@ -1534,13 +1719,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.0578,
+      -0.7692
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53130"
   },
   {
     "id": "pdl-53-2027-07-04-triathlon-de-la-rincerie-pays-de-craon",
@@ -1575,13 +1765,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.9026,
+      -1.0561
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53018"
   },
   {
     "id": "pdl-53-2027-07-14-triathlon-de-la-base-de-la-chesnaie",
@@ -1616,13 +1811,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.9807,
+      -0.5224
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53212"
   },
   {
     "id": "pdl-53-2027-07-24-triathlon-v-b-de-chateau-gontier",
@@ -1656,13 +1856,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.821,
+      -0.701
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53062"
   },
   {
     "id": "pdl-53-2027-07-24-endurathlon",
@@ -1695,13 +1900,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.3449,
+      -0.8738
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53211"
   },
   {
     "id": "pdl-53-2027-07-25-triathlon-v-b-de-chateau-gontier",
@@ -1735,13 +1945,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.821,
+      -0.701
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53062"
   },
   {
     "id": "pdl-53-2027-07-25-endurathlon",
@@ -1774,13 +1989,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.3449,
+      -0.8738
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53211"
   },
   {
     "id": "pdl-53-2027-09-19-duathlon-de-chateau-gontier",
@@ -1815,13 +2035,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.821,
+      -0.701
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 4,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "53062"
   },
   {
     "id": "pdl-72-2027-03-07-duathlon-du-mans",
@@ -1856,13 +2081,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.9819,
+      0.1957
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72181"
   },
   {
     "id": "pdl-72-2027-05-05-aquathlon-de-brulon",
@@ -1897,13 +2127,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.9811,
+      -0.2314
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72050"
   },
   {
     "id": "pdl-72-2027-05-29-triathlon-du-mans",
@@ -1938,13 +2173,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.9819,
+      0.1957
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72181"
   },
   {
     "id": "pdl-72-2027-05-30-triathlon-du-mans",
@@ -1979,13 +2219,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.9819,
+      0.1957
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72181"
   },
   {
     "id": "pdl-72-2027-06-19-triathlon-de-saint-calais",
@@ -2020,13 +2265,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.932,
+      0.7418
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72269"
   },
   {
     "id": "pdl-72-2027-06-20-triathlon-de-saint-calais",
@@ -2061,13 +2311,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.932,
+      0.7418
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72269"
   },
   {
     "id": "pdl-72-2027-08-21-triathlon-de-la-ferte-bernard",
@@ -2103,13 +2358,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.1847,
+      0.6366
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72132"
   },
   {
     "id": "pdl-72-2027-08-22-triathlon-de-la-ferte-bernard",
@@ -2144,13 +2404,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.1847,
+      0.6366
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72132"
   },
   {
     "id": "pdl-72-2027-09-12-cross-triathlon-de-la-fleche",
@@ -2186,13 +2451,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.6908,
+      -0.0605
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72154"
   },
   {
     "id": "pdl-72-2027-09-19-spaycific-races",
@@ -2227,13 +2497,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.9215,
+      0.1501
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72344"
   },
   {
     "id": "pdl-72-2027-10-02-triathlon-de-sable-sur-sarthe",
@@ -2268,13 +2543,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.8397,
+      -0.3542
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72264"
   },
   {
     "id": "pdl-72-2027-10-03-triathlon-de-sable-sur-sarthe",
@@ -2309,13 +2589,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      47.8397,
+      -0.3542
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72264"
   },
   {
     "id": "pdl-72-2027-10-10-bike-run-de-la-ferte-bernard",
@@ -2350,13 +2635,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      48.1847,
+      0.6366
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 5,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "72132"
   },
   {
     "id": "pdl-85-2026-11-08-bike-run-pays-du-gois",
@@ -2391,13 +2681,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.9047,
+      -2.0648
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85018"
   },
   {
     "id": "pdl-85-2026-11-15-leclerc-bike-run",
@@ -2432,13 +2727,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.5264,
+      -1.7611
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85194"
   },
   {
     "id": "pdl-85-2027-03-07-duathlon-de-lagglomeration-des-sables-dolonne",
@@ -2473,13 +2773,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.5316,
+      -1.6989
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85214"
   },
   {
     "id": "pdl-85-2027-03-28-duathlon-de-lagglomeration-des-sables-dolonne",
@@ -2518,7 +2823,9 @@
     "sourceReferenceDate": "2026-11-13",
     "notes": [
       "Le 28 mars ne figure que dans le récapitulatif régional ; commune à confirmer."
-    ]
+    ],
+    "coordsSource": null,
+    "communeCode": null
   },
   {
     "id": "pdl-85-2027-05-02-planete-racing-aquarun",
@@ -2553,13 +2860,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.833,
+      -1.8422
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85047"
   },
   {
     "id": "pdl-85-2027-05-23-triathlon-de-la-roche-sur-yon",
@@ -2596,13 +2908,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.6659,
+      -1.4162
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85191"
   },
   {
     "id": "pdl-85-2027-05-29-swimrun-de-xanton",
@@ -2636,15 +2953,20 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.453,
+      -0.7027
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
     "notes": [
       "Intitulé swimrun de Xanton à confirmer auprès de l’organisateur."
-    ]
+    ],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85306"
   },
   {
     "id": "pdl-85-2027-05-30-triathlon-de-xanton",
@@ -2681,13 +3003,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.453,
+      -0.7027
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85306"
   },
   {
     "id": "pdl-85-2027-06-05-triathlon-de-noirmoutier",
@@ -2721,13 +3048,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.9799,
+      -2.2616
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85083"
   },
   {
     "id": "pdl-85-2027-06-06-triathlon-de-noirmoutier",
@@ -2761,13 +3093,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.9799,
+      -2.2616
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85083"
   },
   {
     "id": "pdl-85-2027-06-06-triathlon-nature-et-famille-des-sables-dolonne",
@@ -2803,13 +3140,20 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.5264,
+      -1.7611
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [
+      "Olonne-sur-Mer est une commune déléguée des Sables-d’Olonne : le point de carte est le centre de la commune des Sables-d’Olonne, pas le site de course."
+    ],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85194"
   },
   {
     "id": "pdl-85-2027-06-12-swimrun-du-chant-du-loup",
@@ -2843,13 +3187,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.6699,
+      -1.045
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85051"
   },
   {
     "id": "pdl-85-2027-06-19-triathlon-de-saint-jean-de-monts",
@@ -2884,13 +3233,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.8009,
+      -2.0527
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85234"
   },
   {
     "id": "pdl-85-2027-06-20-triathlon-de-saint-jean-de-monts",
@@ -2925,13 +3279,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.8009,
+      -2.0527
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85234"
   },
   {
     "id": "pdl-85-2027-06-26-iron-kids-les-sables-dolonne",
@@ -2965,13 +3324,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.5264,
+      -1.7611
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85194"
   },
   {
     "id": "pdl-85-2027-06-27-ironman-les-sables-dolonne",
@@ -3004,13 +3368,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.5264,
+      -1.7611
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85194"
   },
   {
     "id": "pdl-85-2027-08-29-triathlon-de-saint-gilles-croix-de-vie",
@@ -3047,13 +3416,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.688,
+      -1.9207
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85222"
   },
   {
     "id": "pdl-85-2027-09-25-triathlon-sud-vendee",
@@ -3087,13 +3461,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.31,
+      -1.2801
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85001"
   },
   {
     "id": "pdl-85-2027-09-26-triathlon-sud-vendee",
@@ -3128,13 +3507,18 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.31,
+      -1.2801
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85001"
   },
   {
     "id": "pdl-85-2027-11-14-bike-run-pays-du-gois",
@@ -3169,12 +3553,17 @@
     "lastCheckedAt": null,
     "changedAt": null,
     "registrationEvidence": null,
-    "coords": null,
-    "locationAccuracy": "non_geocode",
+    "coords": [
+      46.9047,
+      -2.0648
+    ],
+    "locationAccuracy": "centre_commune",
     "raceStartLocation": null,
     "raceStartLatLon": null,
     "sourcePage": 6,
     "sourceReferenceDate": "2026-11-13",
-    "notes": []
+    "notes": [],
+    "coordsSource": "API Géo (geo.api.gouv.fr) — centre de commune, relevé le 2026-11-13",
+    "communeCode": "85018"
   }
 ]

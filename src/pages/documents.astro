@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import { PDF_REFERENCE_DATE, events, outOfRegion } from '../lib/events';
+import { formatParis } from '../lib/format';
+---
+<Base title="Documents" description="Calendrier PDF de la Ligue de triathlon des Pays de la Loire, millésime 2027, et carte de référence.">
+  <section class="section wrap">
+    <p class="eyebrow">Sources</p>
+    <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Documents</h1>
+    <div class="grid grid-2">
+      <article class="card">
+        <h2 style="font-size:1.6rem">Calendrier 2027 (PDF)</h2>
+        <dl class="facts">
+          <div><dt>Millésime</dt><dd>Saison novembre 2026 → novembre 2027</dd></div>
+          <div><dt>Vérifié le</dt><dd><time datetime={PDF_REFERENCE_DATE}>{formatParis(PDF_REFERENCE_DATE, 'date')}</time></dd></div>
+          <div><dt>Contenu</dt><dd>20 pages : carte et listes par département (p. 1–7), calendrier chronologique (p. 8–14), transports depuis Nantes (p. 15–20)</dd></div>
+          <div><dt>Repris sur ce site</dt><dd>{events.length} rendez-vous régionaux et {outOfRegion.length} hors région</dd></div>
+        </dl>
+        <div class="actions" style="margin-top:16px">
+          <a class="btn btn-primary" href="/documents/calendrier-2027.pdf">Consulter le PDF</a>
+          <a class="btn btn-secondary" href="/documents/calendrier-2027.pdf" download>Télécharger</a>
+        </div>
+      </article>
+      <article class="card">
+        <h2 style="font-size:1.6rem">Carte du PDF</h2>
+        <p>Image de référence extraite du document. Elle ne remplace pas la <a href="/carte/">carte interactive</a>.</p>
+        <a href="/documents/carte-pdf.png"><img src="/documents/carte-pdf.png" alt="Carte des épreuves 2027 des Pays de la Loire, telle qu’imprimée dans le PDF de la Ligue" loading="lazy" style="width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--line)" /></a>
+      </article>
+    </div>
+  </section>
+</Base>
