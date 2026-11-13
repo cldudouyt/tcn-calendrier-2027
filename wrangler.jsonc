@@ -14,7 +14,7 @@
   // Les deux déclenchements existent ; le Worker n'exécute que celui qui tombe à 08 h 30 à Paris.
   "triggers": { "crons": ["30 6 * * MON", "30 7 * * MON"] },
   "observability": { "enabled": true },
-  // Base D1 : l'identifiant ci-dessous est un marqueur. Il suffit pour le développement local ;
-  // avant le déploiement, le remplacer par celui renvoyé par « wrangler d1 create » (voir README).
-  "d1_databases": [{ "binding": "DB", "database_name": "tcn-calendrier-2027", "database_id": "A-REMPLACER-AVANT-DEPLOIEMENT" }]
+  // Base D1 dédiée à ce projet (créée le 13/11/2026, schéma worker/schema.sql appliqué).
+  // Un identifiant de base n'est pas un secret ; le jeton d'administration, lui, reste un secret Cloudflare.
+  "d1_databases": [{ "binding": "DB", "database_name": "tcn-calendrier-2027", "database_id": "aeb5c775-5c52-4321-bffe-4a49a220d0a2" }]
 }

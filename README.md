@@ -68,17 +68,23 @@ seulement que les liens officiels publiés répondent encore ; il ne modifie auc
 Planification : deux déclenchements UTC le lundi (06:30 et 07:30) ; le Worker n'exécute que celui qui
 tombe à 08 h 30 à Paris, été comme hiver.
 
-## Déploiement Cloudflare (étape séparée, non effectuée)
+## Déploiement Cloudflare
 
-1. `npx wrangler login`
-2. `npx wrangler d1 create tcn-calendrier-2027`, puis reporter l'identifiant dans `wrangler.jsonc`
-   (`database_id`, à la place du marqueur).
-3. `npm run worker:schema:remote`
-4. `npx wrangler secret put ADMIN_TOKEN`
-5. `npm run build && npx wrangler deploy`
-6. Vérifier le site déployé (pages, PDF, `/api/events`) avant de diffuser l'URL.
+Déjà fait : la base D1 `tcn-calendrier-2027` existe sur le compte Cloudflare, son schéma est appliqué et
+son identifiant est dans `wrangler.jsonc`. Le Worker lui-même n'est pas encore déployé.
 
-Aucun identifiant ni secret ne doit être committé (`.dev.vars` et `.env*` sont ignorés par git).
+Par l'intégration GitHub de Cloudflare (Workers Builds) :
+
+1. Tableau de bord Cloudflare → Workers & Pages → Créer → Importer un dépôt → `cldudouyt/tcn-calendrier-2027`.
+2. Nom du projet : `tcn-calendrier-2027` · commande de build : `npm run build` · commande de déploiement :
+   `npx wrangler deploy` · branche : `main`.
+3. Paramètres du Worker → Variables et secrets → ajouter le secret `ADMIN_TOKEN` (16 caractères au moins).
+4. Vérifier le site déployé (pages, PDF, carte, `/api/events`) avant de diffuser l'URL.
+
+Ou en ligne de commande : `npx wrangler login`, `npx wrangler secret put ADMIN_TOKEN`,
+`npm run build && npx wrangler deploy`.
+
+Aucun secret ne doit être committé (`.dev.vars` et `.env*` sont ignorés par git).
 
 ## Points restant inconnus
 
