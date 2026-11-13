@@ -128,6 +128,45 @@ test('carte : positions indicatives, repères et filtres synchronisés avec la l
   await page.close();
 });
 
+test('carte : statut d’inscription visible sur les repères et filtrable en un geste', async () => {
+  const page = await open('/carte/');
+  await page.waitForSelector('.leaflet-marker-icon');
+  const n = (g) => page.locator(`.status-pill[data-status-group="${g}"] [data-n]`).innerText();
+  assert.deepEqual([await n('ouvert'), await n('annonce'), await n('non_verifie'), await n('clos')], ['0', '0', '78', '0']);
+  // Aucun statut inventé : tous les repères isolés portent le symbole « non vérifié ».
+  assert.ok(await page.locator('.leaflet-marker-icon .pin-wrap .pin + .st-non_verifie').count() > 0);
+  assert.equal(await page.locator('.leaflet-marker-icon .st-ouvert, .leaflet-marker-icon .st-annonce, .leaflet-marker-icon .st-clos').count(), 0);
+  assert.match(await page.locator('.leaflet-marker-icon:has(.pin)').first().getAttribute('title'), /inscriptions non vérifiées, position indicative/);
+
+  await page.locator('.status-pill[data-status-group="ouvert"]').click();
+  assert.equal(await page.locator('#result-count').innerText(), '0');
+  assert.equal(await page.locator('.leaflet-marker-icon').count(), 0);
+  assert.match(page.url(), /status=ouvert/);
+  assert.equal(await page.locator('.status-pill[data-status-group="ouvert"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await n('non_verifie'), '78'); // les compteurs restent ceux de la sélection hors statut
+  await page.locator('.status-pill[data-status-group="ouvert"]').click();
+  assert.equal(await page.locator('#result-count').innerText(), '78');
+  await page.close();
+
+  // Avec des statuts publiés (API simulée), les repères et regroupements les reflètent.
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await context.route('**/api/status', async (route) => {
+    const ids = { 'pdl-49-2027-09-19-triathlon-de-cholet': ['ouvert', 'Inscriptions ouvertes'], 'pdl-85-2027-05-02-planete-racing-aquarun': ['annonce', 'Ouverture annoncée'], 'pdl-72-2027-03-07-duathlon-du-mans': ['complet', 'Complet'] };
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ statuses: Object.entries(ids).map(([id, [status, label]]) => ({ id, status, label, tone: 'neutral' })) }) });
+  });
+  const live = await context.newPage();
+  await live.goto(BASE + '/carte/');
+  await live.waitForFunction(() => document.querySelector('.status-pill[data-status-group="ouvert"] [data-n]').textContent === '1');
+  const m = (g) => live.locator(`.status-pill[data-status-group="${g}"] [data-n]`).innerText();
+  assert.deepEqual([await m('ouvert'), await m('annonce'), await m('non_verifie'), await m('clos')], ['1', '1', '75', '1']);
+  await live.locator('.status-pill[data-status-group="ouvert"]').click();
+  assert.equal(await live.locator('#result-count').innerText(), '1');
+  assert.equal(await live.locator('.leaflet-marker-icon .pin + .st-ouvert').count(), 1);
+  await live.locator('.leaflet-marker-icon').first().click();
+  assert.match(await live.locator('.leaflet-popup-content').innerText(), /Triathlon de Cholet[\s\S]*Inscriptions ouvertes/);
+  await context.close();
+});
+
 test('fiche : transports séparant commune, départ et vélo, sans rien garantir', async () => {
   const page = await open('/epreuves/pdl-44-2027-06-13-triathlon-de-mesquer-quimiac/');
   const text = await page.locator('main').innerText();

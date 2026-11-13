@@ -8,7 +8,7 @@ import { TRANSPORT_META } from '../lib/transport';
 
 const points = events.map((e) => ({
   id: e.id, name: e.name, town: e.town, dep: e.department, date: formatDay(e.date), formats: e.formats,
-  status: STATUS_META[effectiveStatus(e)].label, transport: TRANSPORT_META[e.transport].short,
+  status: STATUS_META[effectiveStatus(e)].label, statusKey: effectiveStatus(e), transport: TRANSPORT_META[e.transport].short,
   url: eventUrl(e), coords: e.coords, verified: e.locationAccuracy === 'depart_verifie',
 }));
 const unlocated = events.filter((e) => !e.coords);
@@ -26,6 +26,13 @@ const unlocated = events.filter((e) => !e.coords);
     <div class="toolbar">
       <p class="count" role="status" aria-live="polite"><strong id="result-count">{events.length}</strong> <span id="result-label">rendez-vous régionaux</span></p>
     </div>
+    <div class="status-bar" role="group" aria-label="Statut des inscriptions dans la sélection — activer pour filtrer">
+      <button type="button" class="status-pill" data-status-group="ouvert" data-keys="ouvert" aria-pressed="false"><i class="st st-ouvert" aria-hidden="true">✓</i><b data-n>0</b> Inscriptions ouvertes</button>
+      <button type="button" class="status-pill" data-status-group="annonce" data-keys="annonce" aria-pressed="false"><i class="st st-annonce" aria-hidden="true">…</i><b data-n>0</b> Ouverture annoncée</button>
+      <button type="button" class="status-pill" data-status-group="non_verifie" data-keys="non_verifie" aria-pressed="false"><i class="st st-non_verifie" aria-hidden="true">?</i><b data-n>0</b> Non vérifiées</button>
+      <button type="button" class="status-pill" data-status-group="clos" data-keys="complet ferme annule" aria-pressed="false"><i class="st st-clos" aria-hidden="true">×</i><b data-n>0</b> Complet, fermé ou annulé</button>
+    </div>
+    <p class="small muted" style="margin:0 0 10px">Chaque repère porte le symbole du statut d’inscription ; un regroupement affiche en vert le nombre d’inscriptions ouvertes qu’il contient. « Non vérifiées » ne veut pas dire « fermées ».</p>
     <div id="map" role="application" aria-label="Carte des épreuves. La même sélection est disponible en liste."></div>
     <ul class="legend-list" aria-label="Légende des repères">
       {Object.entries(DEPARTMENT_NAMES).map(([d, n]) => <li><span class="swatch" style={`background:var(--dep-${d})`}></span>{d} · {n}</li>)}
@@ -50,17 +57,51 @@ const unlocated = events.filter((e) => !e.coords);
 <script>
   import { initFilters, readEventsData } from '../client/filters-ui';
   import { applyFilters } from '../lib/filters';
-  import { createMap, type MapPoint } from '../client/map';
+  import { createMap, statusGroup, type MapPoint } from '../client/map';
 
   const data = readEventsData();
   const points = JSON.parse(document.getElementById('map-data')!.textContent!) as MapPoint[];
   const map = createMap(document.getElementById('map')!, points);
 
-  initFilters((f) => {
-    const visible = new Set(applyFilters(data, f).map((e) => e.id));
+  const form = document.getElementById('filters') as HTMLFormElement;
+  const pills = [...document.querySelectorAll<HTMLButtonElement>('.status-pill')];
+  const statusBoxes = (keys: string): HTMLInputElement[] =>
+    keys.split(' ').map((k) => form.querySelector<HTMLInputElement>(`input[name="status"][value="${k}"]`)!).filter(Boolean);
+  // Un clic sur un statut coche les filtres correspondants : liste et carte restent synchronisées.
+  pills.forEach((pill) => pill.addEventListener('click', () => {
+    const boxes = statusBoxes(pill.dataset.keys!);
+    const on = !boxes.every((b) => b.checked);
+    boxes.forEach((b) => { b.checked = on; });
+    form.dispatchEvent(new Event('input', { bubbles: true }));
+  }));
+
+  let lastFilters: Parameters<typeof applyFilters>[1] | null = null;
+  const refresh = (f: Parameters<typeof applyFilters>[1]): void => {
+    lastFilters = f;
+    const selected = applyFilters(data, f);
+    const visible = new Set(selected.map((e) => e.id));
+    // Compteurs par statut : sur la sélection hors filtre de statut, pour pouvoir passer de l'un à l'autre.
+    const pool = applyFilters(data, { ...f, status: [] });
+    pills.forEach((pill) => {
+      pill.querySelector('[data-n]')!.textContent = String(pool.filter((e) => statusGroup(e.status) === pill.dataset.statusGroup).length);
+      pill.setAttribute('aria-pressed', String(statusBoxes(pill.dataset.keys!).every((b) => b.checked)));
+    });
     map.show(visible);
     document.querySelectorAll<HTMLElement>('[data-event-id]').forEach((el) => { el.hidden = !visible.has(el.dataset.eventId!); });
     document.getElementById('result-count')!.textContent = String(visible.size);
     document.getElementById('result-label')!.textContent = visible.size === data.length ? 'rendez-vous régionaux' : `rendez-vous sur ${data.length}`;
-  });
+  };
+  initFilters(refresh);
+
+  // Statuts validés côté serveur (s'il répond) : la carte reflète la veille sans attendre un nouveau build.
+  fetch('/api/status', { headers: { accept: 'application/json' } })
+    .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? (r.json() as Promise<{ statuses: { id: string; status: string; label: string }[] }>) : null))
+    .then((body) => {
+      if (!body) return;
+      const byId = new Map(body.statuses.map((s) => [s.id, s]));
+      for (const p of points) { const s = byId.get(p.id); if (s) { p.statusKey = s.status; p.status = s.label; } }
+      for (const e of data) { const s = byId.get(e.id); if (s) e.status = s.status; }
+      if (lastFilters) refresh(lastFilters);
+    })
+    .catch(() => { /* API indisponible : statuts du build */ });
 </script>

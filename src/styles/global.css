@@ -125,6 +125,18 @@ a.day.is-empty { background: var(--sunk); border-color: var(--line); color: var(
 .pin b { transform: rotate(45deg); font-family: var(--cond); font-weight: 800; font-size: .8rem; }
 .pin-44 { background: var(--dep-44); } .pin-49 { background: var(--dep-49); } .pin-53 { background: var(--dep-53); } .pin-72 { background: var(--dep-72); } .pin-85 { background: var(--dep-85); }
 .cluster { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--ink); color: var(--white); border: 3px solid var(--orange); font-family: var(--display); font-size: 1.05rem; }
+.pin-wrap { position: relative; display: inline-block; }
+.st { position: absolute; top: -7px; right: -9px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 999px; display: grid; place-items: center; font-style: normal; font-family: var(--cond); font-weight: 800; font-size: .8rem; line-height: 1; border: 2px solid var(--white); box-shadow: var(--shadow-pin); }
+.st-ouvert { background: var(--success); color: var(--white); }
+.st-annonce { background: var(--warning); color: var(--white); }
+.st-non_verifie { background: var(--white); color: var(--ink-3); border-color: var(--grey); }
+.st-clos { background: var(--ink); color: var(--white); }
+.status-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.status-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px 6px 10px; border-radius: 999px; border: 1px solid var(--line-input); background: var(--white); color: var(--body); font: inherit; font-size: .95rem; font-weight: 500; cursor: pointer; }
+.status-pill .st { position: static; box-shadow: none; }
+.status-pill b { font-family: var(--display); font-weight: 400; font-size: 1.15rem; color: var(--ink); }
+.status-pill[aria-pressed='true'] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); font-weight: 700; }
+.status-pill:hover { border-color: var(--ink); }
 .legend-list { display: flex; flex-wrap: wrap; gap: 8px 18px; list-style: none; padding: 0; margin: 10px 0 0; font-size: .92rem; }
 .legend-list li { display: flex; align-items: center; gap: 8px; }
 .swatch { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--white); box-shadow: 0 0 0 1px var(--line-input); }
