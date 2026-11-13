@@ -80,7 +80,8 @@ Par l'intégration GitHub de Cloudflare (Workers Builds) :
 1. Tableau de bord Cloudflare → Workers & Pages → Créer → Importer un dépôt → `cldudouyt/tcn-calendrier-2027`.
 2. Nom du projet : `tcn-calendrier-2027` · commande de build : `npm run build` · commande de déploiement :
    `npx wrangler deploy` · branche : `main`.
-3. Paramètres du Worker → Variables et secrets → ajouter le secret `ADMIN_TOKEN` (16 caractères au moins).
+3. Paramètres du Worker → Variables et secrets → ajouter `ADMIN_TOKEN` avec le type **Secret**
+   (16 caractères au moins). Une variable en texte clair serait lisible dans le tableau de bord.
 4. Vérifier le site déployé (pages, PDF, carte, `/api/events`) avant de diffuser l'URL.
 
 Ou en ligne de commande : `npx wrangler login`, `npx wrangler secret put ADMIN_TOKEN`,

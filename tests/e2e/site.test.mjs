@@ -199,9 +199,9 @@ test('veille, documents et hors région', async () => {
 
   const docs = await open('/documents/');
   const href = await docs.locator('a.btn-primary').getAttribute('href');
-  const res = await docs.request.get(BASE + href);
-  assert.equal(res.status(), 200);
-  assert.match(res.headers()['content-type'], /pdf/);
+  const res = await docs.evaluate(async (url) => { const r = await fetch(url, { method: 'HEAD' }); return { status: r.status, type: r.headers.get('content-type') }; }, href);
+  assert.equal(res.status, 200);
+  assert.match(res.type, /pdf/);
   assert.match(await docs.locator('main').innerText(), /13 novembre 2026/);
   await docs.close();
 

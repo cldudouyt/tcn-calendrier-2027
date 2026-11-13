@@ -4,6 +4,9 @@
   "name": "tcn-calendrier-2027",
   "main": "worker/index.ts",
   "compatibility_date": "2026-11-01",
+  // Conserve les variables définies dans le tableau de bord lors d'un déploiement
+  // (sans cela, « wrangler deploy » efface celles qui ne sont pas de type « Secret »).
+  "keep_vars": true,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
