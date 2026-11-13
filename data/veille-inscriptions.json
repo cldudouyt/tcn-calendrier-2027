@@ -4,12 +4,12 @@
     "changes": [
       {
         "eventId": "pdl-85-2027-05-23-triathlon-de-la-roche-sur-yon",
-        "summary": "La billetterie TimePulse propose le formulaire d’inscription pour le 23 mai 2027.",
+        "summary": "TimePulse confirme l’ouverture des inscriptions pour le 23 mai 2027. Le format M est affiché à 72 € et clôture le 15 mai 2027 à 7 h, selon la billetterie.",
         "patch": {
           "registrationStatus": "ouvert",
           "officialUrl": "https://triathlon-larochesuryon.fr/",
-          "registrationEvidence": "La billetterie TimePulse propose le formulaire d’inscription pour le 23 mai 2027.",
-          "registrationUrl": "https://www.timepulse.fr/inscription/17246?proche=1"
+          "registrationEvidence": "TimePulse confirme l’ouverture des inscriptions pour le 23 mai 2027. Le format M est affiché à 72 € et clôture le 15 mai 2027 à 7 h, selon la billetterie.",
+          "registrationUrl": "https://www.timepulse.fr/evenements/voir/3573/triathlon-la-roche-sur-yon-la-roche-sur-yon"
         }
       },
       {
