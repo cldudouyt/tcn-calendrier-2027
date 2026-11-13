@@ -1,10 +1,11 @@
-// Worker Cloudflare : API publique, administration protégée et contrôle hebdomadaire.
+// Worker Cloudflare : API publique, administration protégée et contrôle quotidien.
 // Les pages statiques (dist/) sont servies par la liaison ASSETS.
 import type { RaceEvent } from '../src/lib/types';
 import { STATUS_META, effectiveStatus } from '../src/lib/status';
 import { eventsWithRegistrations, REGISTRATION_FIELDS } from '../src/lib/registration-surveys';
+import { surveys } from '../src/lib/events';
 import {
-  CATEGORY_LABELS, applyPatch, checkBearer, dedupeKey, isNoop, isWeeklySlot, mergeOverrides, validateChange,
+  CATEGORY_LABELS, applyPatch, checkBearer, dedupeKey, isNoop, isDailySlot, mergeOverrides, validateChange,
   type EventPatch,
 } from './lib';
 
@@ -12,7 +13,7 @@ export interface Env { ASSETS: Fetcher; DB?: D1Database; ADMIN_TOKEN?: string }
 
 const BASE = eventsWithRegistrations;
 const BASE_BY_ID = new Map(BASE.map((e) => [e.id, e]));
-const USER_AGENT = 'tcn-calendrier-2027-veille/1.0 (controle hebdomadaire de liens officiels)';
+const USER_AGENT = 'tcn-calendrier-2027-veille/1.0 (controle quotidien de liens officiels)';
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', ...headers } });
@@ -172,7 +173,7 @@ async function adminApi(request: Request, url: URL, env: Env, ctx: ExecutionCont
     return publishChange(db, id, events, 'correction manuelle');
   }
   if (method === 'POST' && path === '/check') {
-    ctx.waitUntil(runWeeklyCheck(env, 'manuel'));
+    ctx.waitUntil(runDailyCheck(env, 'manuel'));
     return json({ started: true }, 202);
   }
   if (method === 'GET' && path === '/runs') {
@@ -203,11 +204,11 @@ async function checkLink(link: string): Promise<{ ok: boolean; message: string; 
 }
 
 /**
- * Contrôle hebdomadaire : vérifie que les liens officiels publiés répondent encore.
+ * Contrôle quotidien : vérifie que les liens officiels publiés répondent encore.
  * Il ne modifie aucun statut : un lien en erreur est journalisé pour vérification humaine,
  * jamais interprété comme « fermé ».
  */
-export async function runWeeklyCheck(env: Env, trigger: 'planifie' | 'manuel'): Promise<void> {
+export async function runDailyCheck(env: Env, trigger: 'planifie' | 'manuel'): Promise<void> {
   if (!env.DB) { console.warn('Contrôle ignoré : base D1 non configurée'); return; }
   const db = env.DB;
   const started = await db.prepare('INSERT INTO check_runs (started_at, trigger_kind) VALUES (?, ?)').bind(now(), trigger).run();
@@ -234,10 +235,51 @@ export async function runWeeklyCheck(env: Env, trigger: 'planifie' | 'manuel'): 
   }
 }
 
+const escXml = (value: string): string => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** Flux RSS combiné : relevés Git + nouveautés approuvées dans D1. */
+async function rssFeed(url: URL, env: Env): Promise<Response> {
+  const base = url.origin;
+  const entries: { id: string; title: string; summary: string; at: string; link: string }[] = [];
+  if (env.DB) {
+    try {
+      const { results } = await env.DB.prepare(
+        "SELECT id, event_id, category, summary, decided_at FROM changes WHERE state = 'publie' ORDER BY decided_at DESC LIMIT 100",
+      ).all<{ id: number; event_id: string; category: string; summary: string; decided_at: string }>();
+      for (const change of results) {
+        entries.push({
+          id: `d1-change-${change.id}`,
+          title: `${BASE_BY_ID.get(change.event_id)?.name ?? change.event_id} — ${CATEGORY_LABELS[change.category] ?? 'Mise à jour'}`,
+          summary: change.summary,
+          at: change.decided_at,
+          link: `${base}/epreuves/${change.event_id}/`,
+        });
+      }
+    } catch (error) {
+      console.error('RSS: lecture D1 indisponible', error);
+    }
+  }
+  for (const survey of surveys) {
+    const groupSet = new Set<string>();
+    const summaries = survey.changes.filter((c) => {
+      const group = BASE_BY_ID.get(c.eventId)?.eventGroupId ?? c.eventId;
+      if (groupSet.has(group)) return false;
+      groupSet.add(group);
+      return true;
+    }).map((c) => `${BASE_BY_ID.get(c.eventId)?.name ?? c.eventId} : ${c.summary}`);
+    entries.push({ id: survey.id, title: survey.title, summary: `${survey.summary} ${summaries.join(' ')}`.trim(), at: survey.checkedAt, link: `${base}/veille/` });
+  }
+  entries.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  const items = entries.map((e) => `<item><title>${escXml(e.title)}</title><link>${escXml(e.link)}</link><guid isPermaLink="false">${escXml(e.id)}</guid><pubDate>${new Date(e.at).toUTCString()}</pubDate><description>${escXml(e.summary)}</description></item>`).join('');
+  const xml = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Veille des inscriptions — Triathlon Pays de la Loire 2027</title><link>${base}/veille/</link><description>Informations vérifiées sur les inscriptions 2027.</description><language>fr</language>${items}</channel></rss>`;
+  return new Response(xml, { headers: { 'content-type': 'application/rss+xml; charset=utf-8', 'cache-control': 'no-store' } });
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     try {
+      if (url.pathname === '/veille/rss.xml' && (request.method === 'GET' || request.method === 'HEAD')) return await rssFeed(url, env);
       if (url.pathname.startsWith('/api/admin/')) return await adminApi(request, url, env, ctx);
       if (url.pathname.startsWith('/api/')) {
         if (request.method !== 'GET' && request.method !== 'HEAD') return json({ error: 'Méthode non autorisée' }, 405, { allow: 'GET, HEAD' });
@@ -251,8 +293,8 @@ export default {
   },
 
   async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    // Deux déclenchements UTC le lundi ; un seul correspond à 08 h 30 à Paris selon la saison.
-    if (!isWeeklySlot(new Date(controller.scheduledTime))) return;
-    ctx.waitUntil(runWeeklyCheck(env, 'planifie'));
+    // Deux déclenchements UTC chaque jour ; un seul correspond à 08 h 30 à Paris selon la saison.
+    if (!isDailySlot(new Date(controller.scheduledTime))) return;
+    ctx.waitUntil(runDailyCheck(env, 'planifie'));
   },
 } satisfies ExportedHandler<Env>;

@@ -1,6 +1,6 @@
 export type Department = '44' | '49' | '53' | '72' | '85';
 export type TransportCode = 'D' | 'C' | 'M' | 'B' | 'L' | '?';
-export type RegistrationStatus = 'non_verifie' | 'ouvert' | 'annonce' | 'complet' | 'ferme' | 'annule';
+export type RegistrationStatus = 'non_verifie' | 'ouvert' | 'annonce' | 'a_confirmer' | 'complet' | 'ferme' | 'annule';
 export type LocationAccuracy = 'non_geocode' | 'centre_commune' | 'depart_verifie';
 
 /** Règle d'emport du vélo, renseignée uniquement après vérification auprès de l'opérateur. */
@@ -12,6 +12,9 @@ export interface BikePolicy {
   confirmedForDate: boolean;
 }
 
+/** Un statut sourcé indépendamment pour une distance ou catégorie. */
+export interface FormatAvailability { format: string; status: 'ouvert' | 'complet' | 'non_verifie'; evidence: string; sourceUrl: string }
+export interface ConflictingSource { label: string; url: string }
 export interface RaceEvent {
   id: string;
   eventGroupId: string;
@@ -42,6 +45,8 @@ export interface RaceEvent {
   lastCheckedAt: string | null;
   changedAt: string | null;
   registrationEvidence: string | null;
+  formatAvailability?: FormatAvailability[];
+  sourceConflict?: ConflictingSource | null;
   /** [latitude, longitude] — attention, ordre inverse de GeoJSON. */
   coords: [number, number] | null;
   coordsSource: string | null;
@@ -73,7 +78,7 @@ export interface OutOfRegionEvent {
 }
 
 export type ChangeCategory =
-  | 'ouvert_confirme' | 'ouverture_annoncee' | 'non_confirme' | 'complet' | 'ferme' | 'annule' | 'modification';
+  | 'ouvert_confirme' | 'ouverture_annoncee' | 'non_confirme' | 'source_contradictoire' | 'complet' | 'ferme' | 'annule' | 'modification';
 
 export interface SurveyChange {
   eventId: string;

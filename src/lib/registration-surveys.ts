@@ -5,7 +5,7 @@ import { effectiveStatus, STATUS_META } from './status';
 import type { RaceEvent, Survey, SurveyChange } from './types';
 
 export const REGISTRATION_FIELDS = [
-  'registrationStatus', 'registrationEvidence', 'registrationUrl', 'officialUrl', 'registrationOpenAt', 'price',
+  'registrationStatus', 'registrationEvidence', 'registrationUrl', 'officialUrl', 'registrationOpenAt', 'price', 'formatAvailability', 'sourceConflict',
 ] as const satisfies readonly (keyof EventPatch)[];
 
 const eventsById = new Map((rawEvents as RaceEvent[]).map((event) => [event.id, event]));

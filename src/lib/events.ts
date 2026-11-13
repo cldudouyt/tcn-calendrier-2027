@@ -41,7 +41,7 @@ export interface Kpis { total: number; open: number; announced: number; toConfir
 
 /** Indicateurs calculés depuis les données, jamais figés. */
 export function computeKpis(list: RaceEvent[]): Kpis {
-  const byStatus: Record<RegistrationStatus, number> = { non_verifie: 0, ouvert: 0, annonce: 0, complet: 0, ferme: 0, annule: 0 };
+  const byStatus: Record<RegistrationStatus, number> = { non_verifie: 0, ouvert: 0, annonce: 0, a_confirmer: 0, complet: 0, ferme: 0, annule: 0 };
   for (const e of list) byStatus[effectiveStatus(e)] += 1;
   return { total: list.length, open: byStatus.ouvert, announced: byStatus.annonce, toConfirm: byStatus.non_verifie, byStatus };
 }

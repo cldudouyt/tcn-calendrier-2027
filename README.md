@@ -33,7 +33,7 @@ npm run build && npm run worker:schema:local && npm run worker:dev
 | `src/lib/` | Schéma, statuts, transports, filtres, dates, export `.ics` |
 | `src/pages/` | Accueil, calendrier, carte, fiches, veille, documents, hors région, charte (`/composants/`) |
 | `src/client/map.ts` | Seul module dépendant de Leaflet / OpenStreetMap |
-| `worker/` | Worker Cloudflare : API, administration, contrôle hebdomadaire, schéma D1 |
+| `worker/` | Worker Cloudflare : API, administration, contrôle quotidien, schéma D1 |
 | `tests/` | Tests unitaires (Vitest) et de bout en bout (Playwright) |
 
 ## Règles éditoriales appliquées par le code
@@ -61,13 +61,12 @@ npm run build && npm run worker:schema:local && npm run worker:dev
 Les routes `/api/admin/*` exigent `Authorization: Bearer <ADMIN_TOKEN>`. Sans secret configuré, elles
 répondent 503.
 
-La veille quotidienne ajoute les changements d’inscription confirmés dans `data/veille-inscriptions.json`
+L’import des informations vérifiées ajoute les changements d’inscription confirmés dans `data/veille-inscriptions.json`
 sur `main`. Le build vérifie chaque relevé et applique les changements au calendrier, au journal et à
 l’API. Cloudflare Workers Builds publie ces données à chaque commit. Les routes d’administration
-restent disponibles pour les corrections ponctuelles. Le contrôle planifié du Worker vérifie que les
-liens officiels publiés répondent encore.
+restent disponibles pour les corrections ponctuelles. Le contrôle planifié du Worker vérifie chaque jour que les liens officiels déjà publiés répondent encore. Il ne découvre pas automatiquement de nouvelles ouvertures : les résultats de la veille ChatGPT doivent être importés et validés avant publication.
 
-Planification : deux déclenchements UTC le lundi (06:30 et 07:30) ; le Worker n'exécute que celui qui
+Planification : deux déclenchements UTC chaque jour (06:30 et 07:30) ; le Worker n'exécute que celui qui
 tombe à 08 h 30 à Paris, été comme hiver.
 
 ## Déploiement Cloudflare

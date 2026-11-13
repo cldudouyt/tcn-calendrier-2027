@@ -3,9 +3,12 @@ import type { RaceEvent } from '../lib/types';
 import { DEPARTMENT_NAMES, eventUrl } from '../lib/events';
 import { dayNumber, formatDay, monthShort, weekdayShort } from '../lib/format';
 import StatusBadge from './StatusBadge.astro';
+import { effectiveStatus, verifiedRegistrationUrl } from '../lib/status';
 import TransportBadge from './TransportBadge.astro';
 interface Props { event: RaceEvent; heading?: 'h3' | 'h4' }
 const { event } = Astro.props;
+const registrationStatus = effectiveStatus(event);
+const registrationLink = verifiedRegistrationUrl(event);
 ---
 <li class="event-card" data-event-id={event.id} id={`e-${event.id}`}>
   <div class="event-date" aria-hidden="true">
@@ -22,5 +25,8 @@ const { event } = Astro.props;
       <StatusBadge event={event} />
       <TransportBadge code={event.transport} />
     </div>
+    {registrationStatus === 'ouvert' && registrationLink && <p class="small" style="margin:8px 0 0"><a href={registrationLink} rel="noopener">S’inscrire</a></p>}
+    {registrationStatus === 'annonce' && event.officialUrl && <p class="small" style="margin:8px 0 0"><a href={event.officialUrl} rel="noopener">Voir l’annonce de l’organisateur</a></p>}
+    {event.sourceConflict && <p class="small" style="margin:8px 0 0"><a href={event.sourceConflict.url} rel="noopener">Vérifier les informations contradictoires</a></p>
   </div>
 </li>

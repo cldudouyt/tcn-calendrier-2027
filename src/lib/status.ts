@@ -4,6 +4,7 @@ export interface StatusMeta { label: string; tone: 'success' | 'warning' | 'neut
 
 export const STATUS_META: Record<RegistrationStatus, StatusMeta> = {
   ouvert: { label: 'Inscriptions ouvertes', tone: 'success', description: 'Ouverture attestée par une source officielle identifiée.' },
+  a_confirmer: { label: 'Sources contradictoires', tone: 'warning', description: 'Deux sources ne donnent pas la même information. Vérifiez auprès de l’organisateur avant toute inscription.' },
   annonce: { label: 'Ouverture annoncée', tone: 'warning', description: 'Une date ou une fenêtre d’ouverture est annoncée par l’organisateur.' },
   non_verifie: { label: 'Inscriptions non vérifiées', tone: 'neutral', description: 'Aucune vérification n’a encore été faite : cela ne veut pas dire « fermé ».' },
   complet: { label: 'Complet', tone: 'dark', description: 'L’organisateur indique que l’épreuve est complète.' },
@@ -15,6 +16,7 @@ export const CATEGORY_LABEL: Record<ChangeCategory, string> = {
   ouvert_confirme: 'Ouvert confirmé',
   ouverture_annoncee: 'Ouverture annoncée',
   non_confirme: 'Non confirmé',
+  source_contradictoire: 'Sources contradictoires',
   complet: 'Complet',
   ferme: 'Fermé',
   annule: 'Annulé',
@@ -40,5 +42,5 @@ export function effectiveStatus(e: Evidence): RegistrationStatus {
 
 /** Le lien d'inscription n'est proposé que s'il est vérifié. */
 export function verifiedRegistrationUrl(e: Evidence): string | null {
-  return hasOfficialEvidence(e) && e.registrationUrl ? e.registrationUrl : null;
+  return e.registrationStatus === 'ouvert' && hasOfficialEvidence(e) && e.registrationUrl ? e.registrationUrl : null;
 }

@@ -13,7 +13,7 @@ const points = events.map((e) => ({
 }));
 const unlocated = events.filter((e) => !e.coords);
 ---
-<Base title="Carte" description="Carte interactive des épreuves multisports des Pays de la Loire 2027. Positions indicatives : centre de la commune.">
+<Base title="Carte" description="Carte interactive des épreuves de triathlon et disciplines associées des Pays de la Loire 2027. Positions indicatives : centre de la commune.">
   <section class="section wrap">
     <p class="eyebrow">Pays de la Loire</p>
     <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Carte des épreuves</h1>
@@ -29,6 +29,7 @@ const unlocated = events.filter((e) => !e.coords);
     <div class="status-bar" role="group" aria-label="Statut des inscriptions dans la sélection — activer pour filtrer">
       <button type="button" class="status-pill" data-status-group="ouvert" data-keys="ouvert" aria-pressed="false"><i class="st st-ouvert" aria-hidden="true">✓</i><b data-n>0</b> Inscriptions ouvertes</button>
       <button type="button" class="status-pill" data-status-group="annonce" data-keys="annonce" aria-pressed="false"><i class="st st-annonce" aria-hidden="true">…</i><b data-n>0</b> Ouverture annoncée</button>
+      <button type="button" class="status-pill" data-status-group="a_confirmer" data-keys="a_confirmer" aria-pressed="false"><i class="st st-a_confirmer" aria-hidden="true">!</i><b data-n>0</b> À vérifier : sources contradictoires</button>
       <button type="button" class="status-pill" data-status-group="non_verifie" data-keys="non_verifie" aria-pressed="false"><i class="st st-non_verifie" aria-hidden="true">?</i><b data-n>0</b> Non vérifiées</button>
       <button type="button" class="status-pill" data-status-group="clos" data-keys="complet ferme annule" aria-pressed="false"><i class="st st-clos" aria-hidden="true">×</i><b data-n>0</b> Complet, fermé ou annulé</button>
     </div>

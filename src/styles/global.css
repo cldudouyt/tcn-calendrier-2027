@@ -129,6 +129,7 @@ a.day.is-empty { background: var(--sunk); border-color: var(--line); color: var(
 .st { position: absolute; top: -7px; right: -9px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 999px; display: grid; place-items: center; font-style: normal; font-family: var(--cond); font-weight: 800; font-size: .8rem; line-height: 1; border: 2px solid var(--white); box-shadow: var(--shadow-pin); }
 .st-ouvert { background: var(--success); color: var(--white); }
 .st-annonce { background: var(--warning); color: var(--white); }
+.st-a_confirmer { background: var(--warning); color: var(--white); }
 .st-non_verifie { background: var(--white); color: var(--ink-3); border-color: var(--grey); }
 .st-clos { background: var(--ink); color: var(--white); }
 .status-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }

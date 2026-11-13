@@ -14,7 +14,7 @@ const daysOf = (m: string) => {
 };
 const icsData = events.map((e) => ({ id: e.id, date: e.date, name: e.name, town: e.town, formats: e.formats, url: eventUrl(e) }));
 ---
-<Base title="Calendrier" description="Calendrier filtrable des 78 rendez-vous multisports des Pays de la Loire, de novembre 2026 à novembre 2027.">
+<Base title="Calendrier" description="Calendrier filtrable des 78 journées de compétition de triathlon et disciplines associées des Pays de la Loire, de novembre 2026 à novembre 2027.">
   <section class="section wrap">
     <p class="eyebrow">Novembre 2026 → novembre 2027</p>
     <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Calendrier</h1>
@@ -127,7 +127,7 @@ const icsData = events.map((e) => ({ id: e.id, date: e.date, name: e.name, town:
     const all = JSON.parse(document.getElementById('ics-data')!.textContent!) as IcsEvent[];
     const selected = all.filter((e) => visible.has(e.id)).map((e) => ({ ...e, url: new URL(e.url, location.origin).href }));
     const blob = new Blob([buildIcs(selected)], { type: 'text/calendar;charset=utf-8' });
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'multisports-pdl-2027.ics' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'triathlon-pdl-2027.ics' });
     a.click();
     URL.revokeObjectURL(a.href);
   });

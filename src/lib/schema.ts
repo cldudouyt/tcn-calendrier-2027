@@ -2,7 +2,7 @@ import type { RaceEvent } from './types';
 
 export const DEPARTMENTS = ['44', '49', '53', '72', '85'] as const;
 export const TRANSPORT_CODES = ['D', 'C', 'M', 'B', 'L', '?'] as const;
-export const REGISTRATION_STATUSES = ['non_verifie', 'ouvert', 'annonce', 'complet', 'ferme', 'annule'] as const;
+export const REGISTRATION_STATUSES = ['non_verifie', 'ouvert', 'annonce', 'a_confirmer', 'complet', 'ferme', 'annule'] as const;
 export const LOCATION_ACCURACIES = ['non_geocode', 'centre_commune', 'depart_verifie'] as const;
 export const EXPECTED_TOTAL = 78;
 export const EXPECTED_BY_DEPARTMENT: Record<string, number> = { '44': 20, '49': 10, '53': 15, '72': 13, '85': 20 };
@@ -41,6 +41,15 @@ export function validateEvent(raw: unknown): string[] {
   check((REGISTRATION_STATUSES as readonly unknown[]).includes(e.registrationStatus), `registrationStatus invalide : ${String(e.registrationStatus)}`);
   check(isHttps(e.registrationUrl) && isHttps(e.officialUrl), 'URL officielle ou d’inscription non https');
   check(e.price === null || (typeof e.price === 'number' && e.price >= 0), 'prix invalide');
+  if (e.sourceConflict !== undefined && e.sourceConflict !== null) {
+    const c = e.sourceConflict as { label?: unknown; url?: unknown };
+    check(isStr(c.label) && typeof c.url === 'string' && isHttps(c.url), 'source contradictoire invalide');
+  }
+  if (e.formatAvailability !== undefined) {
+    check(Array.isArray(e.formatAvailability) && e.formatAvailability.every((f: Record<string, unknown>) =>
+      isStr(f.format) && ['ouvert', 'complet', 'non_verifie'].includes(String(f.status)) &&
+      isStr(f.evidence) && typeof f.sourceUrl === 'string' && isHttps(f.sourceUrl)), 'disponibilités par format invalides');
+  }
   check(e.coords === null || isLatLon(e.coords), 'coords doit être [latitude, longitude]');
   check(e.raceStartLatLon === null || isLatLon(e.raceStartLatLon), 'raceStartLatLon doit être [latitude, longitude]');
   check((LOCATION_ACCURACIES as readonly unknown[]).includes(e.locationAccuracy), 'locationAccuracy invalide');

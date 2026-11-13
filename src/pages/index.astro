@@ -2,20 +2,25 @@
 import Base from '../layouts/Base.astro';
 import EventCard from '../components/EventCard.astro';
 import { events, surveys, computeKpis, outOfRegion, DEPARTMENT_NAMES, PDF_REFERENCE_DATE } from '../lib/events';
-import { formatParis } from '../lib/format';
+import { formatDay, formatParis } from '../lib/format';
 import { CATEGORY_LABEL } from '../lib/status';
 
 const kpis = computeKpis(events);
 const latest = surveys[0];
+const byId = new Map(events.map(e => [e.id, e]));
+const changes = latest?.changes.filter((c, i, all) => {
+  const event = byId.get(c.eventId);
+  return !event || all.findIndex(other => byId.get(other.eventId)?.eventGroupId === event.eventGroupId) === i;
+}) ?? [];
 const today = new Date().toISOString().slice(0, 10);
 const upcoming = events.filter((e) => e.date >= today).slice(0, 4);
 const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e) => e.department === d).length }));
 ---
-<Base title="Épreuves multisports Pays de la Loire 2027">
+<Base title="Triathlon Pays de la Loire 2027">
   <section class="hero wrap">
     <p class="eyebrow">Triathlon Club Nantais · Novembre 2026 → novembre 2027</p>
-    <h1>Épreuves multisports <span>Pays de la Loire 2027</span></h1>
-    <p class="lead">Triathlon, duathlon, aquathlon, cross-triathlon, swimrun, Bike &amp; Run et endurathlon : choisir une épreuve, savoir quand s’inscrire et comment rejoindre le départ depuis Nantes, y compris avec un vélo.</p>
+    <h1>Triathlon <span>Pays de la Loire 2027</span></h1>
+    <p class="lead">Toutes les compétitions du calendrier régional de triathlon et disciplines associées : triathlon, duathlon, aquathlon, swimrun et Bike &amp; Run. Retrouvez les dates, les inscriptions et les transports depuis Nantes.</p>
     <div class="actions">
       <a class="btn btn-primary" href="/calendrier/">Voir le calendrier</a>
       <a class="btn btn-dark" href="/carte/">Ouvrir la carte</a>
@@ -23,30 +28,39 @@ const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e
       <a class="btn btn-secondary" href="/documents/calendrier-2027.pdf">PDF original</a>
     </div>
     <ul class="kpis" aria-label="Chiffres clés">
-      <li class="kpi"><span class="kpi-value" data-kpi="total">{kpis.total}</span><span class="kpi-label">Rendez-vous régionaux suivis</span></li>
-      <li class="kpi"><span class="kpi-value" data-kpi="open">{kpis.open}</span><span class="kpi-label">Inscriptions ouvertes vérifiées</span></li>
+      <li class="kpi"><span class="kpi-value" data-kpi="total">{kpis.total}</span><span class="kpi-label">Journées de compétition</span></li>
+      <li class="kpi"><span class="kpi-value" data-kpi="open">{kpis.open}</span><span class="kpi-label">Journées avec inscriptions ouvertes</span></li>
       <li class="kpi"><span class="kpi-value" data-kpi="announced">{kpis.announced}</span><span class="kpi-label">Ouvertures annoncées</span></li>
-      <li class="kpi"><span class="kpi-value" data-kpi="toConfirm">{kpis.toConfirm}</span><span class="kpi-label">Informations à confirmer</span></li>
+      <li class="kpi"><span class="kpi-value" data-kpi="toConfirm">{kpis.toConfirm}</span><span class="kpi-label">Inscriptions non vérifiées</span></li>
     </ul>
     <p class="small muted" style="margin-top:12px">
       Répartition : {byDep.map((x, i) => <>{i > 0 && ' · '}<a href={`/calendrier/?dep=${x.d}`}>{DEPARTMENT_NAMES[x.d]} {x.n}</a></>)}.
-      Les {outOfRegion.length} <a href="/hors-region/">rendez-vous hors région</a> sont comptés à part.
+      Une compétition sur plusieurs jours compte une fois par journée. Les {outOfRegion.length} <a href="/hors-region/">rendez-vous hors région</a> sont comptés à part.
     </p>
   </section>
 
   <section class="section wrap">
     <p class="eyebrow">Veille des inscriptions</p>
-    <h2>Dernières nouveautés</h2>
+    <h2>Dernières informations sur les inscriptions</h2>
     {latest && (
       <article class="card">
-        <p class="small muted" style="margin:0 0 4px">Dernier relevé : <time datetime={latest.checkedAt}>{formatParis(latest.checkedAt, latest.checkedAtPrecision)}</time></p>
+        <p class="small muted" style="margin:0 0 4px">Dernière mise à jour publiée : <time datetime={latest.checkedAt}>{formatParis(latest.checkedAt, latest.checkedAtPrecision)}</time></p>
         <h3>{latest.title}</h3>
         <p>{latest.summary}</p>
-        {latest.changes.length > 0 ? (
+        {changes.length > 0 ? (
           <ul>
-            {latest.changes.slice(0, 5).map((c) => (
-              <li><strong>{CATEGORY_LABEL[c.category]}</strong> — {c.summary}{c.sourceUrl && <> · <a href={c.sourceUrl} rel="noopener">source officielle</a></>}</li>
-            ))}
+            {changes.slice(0, 6).map((c) => {
+              const e = byId.get(c.eventId);
+              const days = e ? events.filter(x => x.eventGroupId === e.eventGroupId).map(x => formatDay(x.date)) : [];
+              const isOpen = e?.registrationStatus === 'ouvert' && Boolean(e.registrationUrl);
+              const link = isOpen ? e?.registrationUrl : (e?.officialUrl ?? c.sourceUrl);
+              return <li style="margin-bottom:18px">
+                <strong>{e ? <a href={`/epreuves/${e.id}/`}>{e.name}</a> : c.eventId}</strong>
+                {e && <div class="small muted">{e.town ?? 'Lieu à confirmer'} · {days.join(' et ')} · {e.formats}</div>}
+                <div><span class="badge">{CATEGORY_LABEL[c.category]}</span> {c.summary}</div>
+                {link && <p class="small" style="margin:6px 0 0"><a href={link} rel="noopener">{isOpen ? 'S’inscrire' : e?.registrationStatus === 'annonce' ? 'Voir l’annonce de l’organisateur' : 'Consulter la source officielle'}</a></p>}
+              </li>;
+            })}
           </ul>
         ) : <p class="muted">Aucun changement de statut constaté depuis ce relevé.</p>}
         <div class="actions">

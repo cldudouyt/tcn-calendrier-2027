@@ -11,7 +11,7 @@ import '@fontsource/barlow-semi-condensed/latin-800.css';
 import '../styles/global.css';
 
 interface Props { title: string; description?: string }
-const { title, description = 'Calendrier, carte et veille des épreuves multisports des Pays de la Loire, de novembre 2026 à novembre 2027.' } = Astro.props;
+const { title, description = 'Calendrier, carte et veille des épreuves de triathlon et disciplines associées des Pays de la Loire, de novembre 2026 à novembre 2027.' } = Astro.props;
 const path = Astro.url.pathname;
 const nav = [
   { href: '/', label: 'Accueil' },
@@ -27,9 +27,9 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} — Multisports Pays de la Loire 2027</title>
+    <title>{title} — Triathlon Pays de la Loire 2027</title>
     <meta name="description" content={description} />
-    <meta property="og:title" content={`${title} — Multisports Pays de la Loire 2027`} />
+    <meta property="og:title" content={`${title} — Triathlon Pays de la Loire 2027`} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fr_FR" />
@@ -41,8 +41,8 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     <a class="skip" href="#contenu">Aller au contenu</a>
     <header class="site-header">
       <div class="wrap">
-        <a class="brand" href="/" aria-label="Accueil — Multisports Pays de la Loire 2027">
-          <span class="brand-mark">TCN</span><span>Multisports 2027</span>
+        <a class="brand" href="/" aria-label="Accueil — Triathlon Pays de la Loire 2027">
+          <span class="brand-mark">TCN</span><span>Triathlon 2027</span>
         </a>
         <nav class="nav" aria-label="Navigation principale">
           {nav.map((item) => <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>)}

@@ -12,10 +12,10 @@ export const TRANSPORT_META: Record<TransportCode, { label: string; short: strin
 };
 
 export const ACCESS_LABEL: Record<AccessCategory, string> = {
-  direct: 'Train direct',
-  correspondance: 'Transport public possible (correspondance, car ou réseau local)',
-  velo: 'Avec vélo (règle confirmée)',
-  inconnu: 'Accès inconnu',
+  direct: 'Train direct vers la commune',
+  correspondance: 'Train avec correspondance, car ou transport local',
+  velo: 'Vélo accepté à bord (confirmé)',
+  inconnu: 'Trajet pas encore précisé',
 };
 
 /** « Vélo autorisé » uniquement après confirmation de la règle applicable à la date. */

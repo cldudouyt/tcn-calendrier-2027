@@ -13,17 +13,18 @@ export interface MapPoint {
   verified: boolean;
 }
 
-export type StatusGroup = 'ouvert' | 'annonce' | 'non_verifie' | 'clos';
+export type StatusGroup = 'ouvert' | 'annonce' | 'a_confirmer' | 'non_verifie' | 'clos';
 /** Regroupement pour la carte : complet, fermé et annulé partagent le même symbole (le libellé exact reste dans la fenêtre). */
 export const statusGroup = (key: string): StatusGroup =>
-  key === 'ouvert' || key === 'annonce' || key === 'non_verifie' ? key : 'clos';
+  key === 'ouvert' || key === 'annonce' || key === 'a_confirmer' || key === 'non_verifie' ? key : 'clos';
 export const STATUS_GROUPS: Record<StatusGroup, { symbol: string; label: string }> = {
   ouvert: { symbol: '✓', label: 'Inscriptions ouvertes' },
   annonce: { symbol: '…', label: 'Ouverture annoncée' },
+  a_confirmer: { symbol: '!', label: 'Sources contradictoires' },
   non_verifie: { symbol: '?', label: 'Inscriptions non vérifiées' },
   clos: { symbol: '×', label: 'Complet, fermé ou annulé' },
 };
-const ORDER: StatusGroup[] = ['ouvert', 'annonce', 'non_verifie', 'clos'];
+const ORDER: StatusGroup[] = ['ouvert', 'annonce', 'a_confirmer', 'non_verifie', 'clos'];
 /** Statut mis en avant pour un repère regroupant plusieurs épreuves : le plus favorable. */
 const leadGroup = (group: MapPoint[]): StatusGroup => ORDER.find((g) => group.some((p) => statusGroup(p.statusKey) === g)) ?? 'non_verifie';
 const statusBadge = (g: StatusGroup, text = STATUS_GROUPS[g].symbol): string => `<i class="st st-${g}" aria-hidden="true">${text}</i>`;

@@ -10,7 +10,8 @@ const reports = JSON.parse(readFileSync(new URL('../../data/veille-inscriptions.
 const published = new Map(reports.flatMap((r) => r.changes.map((c) => [c.eventId, c.patch.registrationStatus])));
 const openCount = [...published.values()].filter((status) => status === 'ouvert').length;
 const announcedCount = [...published.values()].filter((status) => status === 'annonce').length;
-const closedCount = published.size - openCount - announcedCount;
+const closedCount = [...published.values()].filter(status => ['complet', 'ferme', 'annule'].includes(status)).length;
+const conflictingCount = [...published.values()].filter(status => status === 'a_confirmer').length;
 let browser;
 before(async () => { browser = await chromium.launch(); });
 after(async () => { await browser?.close(); });
@@ -25,7 +26,7 @@ const visibleCards = (page) => page.locator('#view-liste .event-card:visible').c
 
 test('accueil : 78 rendez-vous et indicateurs calculés', async () => {
   const page = await open('/');
-  assert.match(await page.locator('h1').innerText(), /ÉPREUVES MULTISPORTS\s+PAYS DE LA LOIRE 2027/i);
+  assert.match(await page.locator('h1').innerText(), /TRIATHLON\s+PAYS DE LA LOIRE 2027/i);
   assert.equal(await page.locator('[data-kpi="total"]').innerText(), '78');
   assert.equal(await page.locator('[data-kpi="open"]').innerText(), String(openCount));
   assert.equal(await page.locator('[data-kpi="toConfirm"]').innerText(), String(78 - published.size));
@@ -194,7 +195,9 @@ test('veille, documents et hors région', async () => {
   const veille = await open('/veille/');
   assert.ok(await veille.locator('#last-check time').getAttribute('datetime'));
   assert.match(await veille.locator('#timeline').innerText(), /Relevé initial/);
-  assert.doesNotMatch(await veille.locator('main').innerText(), /ChatGPT/);
+  assert.match(await veille.locator('main').innerText(), /ChatGPT/);
+  assert.match(await veille.locator('#timeline').innerText(), /Triathlon de La Roche-sur-Yon/);
+  assert.ok(await veille.getByRole('link', { name: 'S’inscrire' }).count() > 0);
   await veille.close();
 
   const docs = await open('/documents/');

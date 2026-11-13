@@ -12,17 +12,17 @@ export function parisParts(date: Date): { weekday: string; hour: number; minute:
 }
 
 /**
- * Le cron Cloudflare est en UTC : il est déclenché à 06:30 et 07:30 UTC le lundi, et
+ * Le cron Cloudflare est en UTC : il est déclenché à 06:30 et 07:30 UTC chaque jour, et
  * seul le déclenchement qui tombe à 08 h 30 à Paris est exécuté.
  */
-export function isWeeklySlot(date: Date): boolean {
+export function isDailySlot(date: Date): boolean {
   const p = parisParts(date);
-  return p.weekday === 'Mon' && p.hour === 8 && p.minute >= 30;
+  return p.hour === 8 && p.minute === 30;
 }
 
 export const PATCH_FIELDS = [
   'registrationStatus', 'registrationUrl', 'officialUrl', 'registrationOpenAt', 'registrationEvidence',
-  'price', 'date', 'formats', 'raceStartLocation', 'raceStartLatLon', 'transportBikePolicy',
+  'price', 'formatAvailability', 'sourceConflict', 'date', 'formats', 'raceStartLocation', 'raceStartLatLon', 'transportBikePolicy',
 ] as const;
 export type PatchField = (typeof PATCH_FIELDS)[number];
 export type EventPatch = Partial<Pick<RaceEvent, PatchField>>;
@@ -31,11 +31,12 @@ export interface ChangeInput { eventId: string; checkedAt: string; summary: stri
 export interface ValidChange extends ChangeInput { category: string; evidence: string | null; sourceUrl: string | null }
 
 const CATEGORY_BY_STATUS: Record<RegistrationStatus, string> = {
-  ouvert: 'ouvert_confirme', annonce: 'ouverture_annoncee', non_verifie: 'non_confirme',
+  ouvert: 'ouvert_confirme', annonce: 'ouverture_annoncee', non_verifie: 'non_confirme', a_confirmer: 'source_contradictoire',
   complet: 'complet', ferme: 'ferme', annule: 'annule',
 };
 export const CATEGORY_LABELS: Record<string, string> = {
   ouvert_confirme: 'Ouvert confirmé', ouverture_annoncee: 'Ouverture annoncée', non_confirme: 'Non confirmé',
+  source_contradictoire: 'Sources contradictoires',
   complet: 'Complet', ferme: 'Fermé', annule: 'Annulé', modification: 'Modification de date ou de format',
   information: 'Information complétée',
 };
@@ -95,6 +96,19 @@ export function validateChange(raw: unknown, base: Map<string, RaceEvent>): { ok
     if (!link) errors.push(`statut « ${status} » refusé sans lien officiel (registrationUrl ou officialUrl)`);
   }
   if ('price' in p && p.price !== null && !link) errors.push('prix refusé sans lien officiel');
+  if ('sourceConflict' in p && p.sourceConflict != null) {
+    if (!p.sourceConflict.label?.trim() || !isHttps(p.sourceConflict.url)) errors.push('sourceConflict invalide');
+  }
+  if (status === 'a_confirmer' && !p.sourceConflict && !event?.sourceConflict) {
+    errors.push('un statut contradictoire exige une seconde source identifiée');
+  }
+  if ('formatAvailability' in p && p.formatAvailability !== undefined) {
+    if (!Array.isArray(p.formatAvailability) || p.formatAvailability.some((f) =>
+      !f.format?.trim() || !['ouvert', 'complet', 'non_verifie'].includes(f.status) ||
+      !f.evidence?.trim() || !isHttps(f.sourceUrl))) {
+      errors.push('formatAvailability invalide : source officielle et preuve par format requises');
+    }
+  }
   if (errors.length || !event) return { ok: false, errors };
 
   const category = status ? CATEGORY_BY_STATUS[status] : 'date' in p || 'formats' in p ? 'modification' : 'information';

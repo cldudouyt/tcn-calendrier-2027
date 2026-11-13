@@ -1,21 +1,29 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { events, surveys, computeKpis, eventUrl } from '../../lib/events';
-import { formatParis } from '../../lib/format';
+import { formatDay, formatParis } from '../../lib/format';
 import { CATEGORY_LABEL, STATUS_META } from '../../lib/status';
 import { REGISTRATION_STATUSES } from '../../lib/schema';
 
 const kpis = computeKpis(events);
 const latest = surveys[0];
 const find = (id: string) => events.find((e) => e.id === id);
+const uniqueChanges = (changes: typeof surveys[number]['changes']) => changes.filter((change, index, all) => {
+  const e = find(change.eventId);
+  return !e || all.findIndex(other => find(other.eventId)?.eventGroupId === e.eventGroupId) === index;
+});
+const days = (id: string) => {
+  const event = find(id);
+  return event ? events.filter(e => e.eventGroupId === event.eventGroupId).map(e => formatDay(e.date)).join(' et ') : '';
+};
 ---
-<Base title="Veille des inscriptions" description="Journal des relevés d’inscriptions : ce qui est ouvert, annoncé, complet ou encore à confirmer, avec sources et dates de vérification.">
+<Base title="Veille des inscriptions" description="Suivi des inscriptions d’inscriptions : ce qui est ouvert, annoncé, complet ou encore à confirmer, avec sources et dates de vérification.">
   <section class="section wrap">
     <p class="eyebrow">Journal des relevés</p>
     <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Veille des inscriptions</h1>
-    <p class="lead">Chaque relevé compare l’état des inscriptions à celui du relevé précédent. Une information n’est publiée qu’avec sa source officielle et sa date de vérification.</p>
+    <p class="lead">Pour chaque compétition, découvrez si les inscriptions sont ouvertes, annoncées, complètes ou encore à vérifier. Les informations publiées comportent une source et une date.</p>
     <div class="card" style="margin-block:18px">
-      <p class="eyebrow">Dernier contrôle</p>
+      <p class="eyebrow">Dernière mise à jour publiée</p>
       <p style="font-family:var(--display);font-size:1.8rem;margin:0" id="last-check">
         {latest ? <time datetime={latest.checkedAt}>{formatParis(latest.checkedAt, latest.checkedAtPrecision)}</time> : 'Aucun relevé'}
       </p>
@@ -24,7 +32,7 @@ const find = (id: string) => events.find((e) => e.id === id);
     <h2>État actuel</h2>
     <div class="card" style="overflow-x:auto">
       <table class="plain">
-        <thead><tr><th scope="col">Statut</th><th scope="col">Rendez-vous</th><th scope="col">Signification</th></tr></thead>
+        <thead><tr><th scope="col">Statut</th><th scope="col">Journées</th><th scope="col">Signification</th></tr></thead>
         <tbody>
           {REGISTRATION_STATUSES.map((s) => (
             <tr><th scope="row" style="font-family:var(--text);text-transform:none;letter-spacing:0;font-size:1rem;color:var(--ink)">{STATUS_META[s].label}</th>
@@ -35,7 +43,7 @@ const find = (id: string) => events.find((e) => e.id === id);
     </div>
     <p class="small muted" style="margin-top:8px">L’absence de page d’inscription ne permet jamais de conclure « fermé » : la fiche reste « non vérifiée ».</p>
 
-    <h2 style="margin-top:32px">Historique des différences</h2>
+    <h2 style="margin-top:32px">Dernières informations par compétition</h2>
     <ol class="timeline" id="timeline">
       {surveys.map((s) => (
         <li class="card">
@@ -46,15 +54,15 @@ const find = (id: string) => events.find((e) => e.id === id);
             ? <p class="muted" style="margin:0">Aucune différence avec le relevé précédent{s.kind === 'initial' ? ' (premier relevé)' : ''}.</p>
             : (
               <ul>
-                {s.changes.map((c) => {
+                {uniqueChanges(s.changes).map((c) => {
                   const ev = find(c.eventId);
                   return (
                     <li>
-                      <span class="badge">{CATEGORY_LABEL[c.category]}</span>{' '}
-                      {ev ? <a href={eventUrl(ev)}>{ev.name}</a> : c.eventId} — {c.summary}
-                      {c.previous && <span class="muted"> (auparavant : {c.previous})</span>}
-                      {c.evidence && <><br /><span class="small">Fait vérifié : {c.evidence}</span></>}
-                      {c.sourceUrl && <> · <a href={c.sourceUrl} rel="noopener">source officielle</a></>}
+                      <strong>{ev ? <a href={eventUrl(ev)}>{ev.name}</a> : c.eventId}</strong>
+                      {ev && <div class="small muted">{ev.town ?? 'Lieu à confirmer'} · {days(ev.id)} · {ev.formats}</div>}
+                      <div><span class="badge">{CATEGORY_LABEL[c.category]}</span> {c.summary}</div>
+                      {c.previous && <span class="small muted">Statut précédent : {c.previous}</span>}
+                      {c.sourceUrl && <p class="small" style="margin:5px 0 0"><a href={ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? ev.registrationUrl : ev?.officialUrl ?? c.sourceUrl} rel="noopener">{ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? 'S’inscrire' : ev?.registrationStatus === 'annonce' ? 'Voir l’annonce de l’organisateur' : 'Voir la source officielle'}</a></p>}
                     </li>
                   );
                 })}
@@ -65,11 +73,11 @@ const find = (id: string) => events.find((e) => e.id === id);
       ))}
     </ol>
 
-    <h2 style="margin-top:32px">Comment la veille alimente le site</h2>
+    <h2 style="margin-top:32px">Comment les informations sont-elles vérifiées ?</h2>
     <div class="card-sunk">
       <ul style="margin:0;padding-left:18px">
-        <li>Le relevé des inscriptions est planifié <strong>chaque jour à 8 h 30 (heure de Paris)</strong>.</li>
-        <li>Les changements confirmés par une source officielle sont publiés automatiquement.</li>
+        <li>Un contrôle automatique des liens déjà connus est programmé chaque jour à 8 h 30 (heure de Paris). Il ne recherche pas à lui seul les nouvelles ouvertures.</li>
+        <li>La recherche quotidienne des ouvertures dans ChatGPT est indépendante du site. Les informations doivent être transmises et validées avant leur publication ici.</li>
         <li>Catégories suivies : {Object.values(CATEGORY_LABEL).join(', ').toLowerCase()}.</li>
         <li>Suivre les nouveautés : <a href="/veille/rss.xml">flux RSS</a>.</li>
       </ul>
@@ -94,7 +102,7 @@ const find = (id: string) => events.find((e) => e.id === id);
         h.append(Object.assign(document.createElement('a'), { href: `/epreuves/${u.eventId}/`, textContent: u.eventName }));
         li.append(h, text('p', u.summary));
         if (u.evidence) li.append(text('p', `Fait vérifié : ${u.evidence}`, 'small'));
-        if (u.sourceUrl?.startsWith('https://')) li.append(Object.assign(document.createElement('a'), { href: u.sourceUrl, textContent: 'Source officielle', rel: 'noopener' }));
+        if (u.sourceUrl?.startsWith('https://')) li.append(Object.assign(document.createElement('a'), { href: u.sourceUrl, textContent: u.categoryLabel === 'Ouvert confirmé' ? 'Voir les inscriptions' : u.categoryLabel === 'Ouverture annoncée' ? 'Voir l’annonce de l’organisateur' : 'Voir la source officielle', rel: 'noopener' }));
         list.prepend(li);
       }
     })

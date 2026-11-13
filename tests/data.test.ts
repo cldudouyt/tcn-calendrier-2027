@@ -89,7 +89,7 @@ describe('statuts', () => {
   it('calcule les indicateurs depuis les données', () => {
     const k = computeKpis(events);
     expect(k.total).toBe(78);
-    expect(k.open + k.announced + k.toConfirm + k.byStatus.complet + k.byStatus.ferme + k.byStatus.annule).toBe(78);
+    expect(k.open + k.announced + k.toConfirm + k.byStatus.a_confirmer + k.byStatus.complet + k.byStatus.ferme + k.byStatus.annule).toBe(78);
     const withOpen = [sample({ registrationStatus: 'ouvert', registrationEvidence: 'Page d’inscription en ligne', lastCheckedAt: '2026-11-16T08:30:00+01:00', registrationUrl: 'https://exemple.org/inscription' }), ...events.slice(1)];
     expect(computeKpis(withOpen).open).toBe(k.open + Number(effectiveStatus(events[0]!) !== 'ouvert'));
   });
@@ -148,5 +148,18 @@ describe('charte graphique', () => {
     ['white', 'dep-44'], ['white', 'dep-49'], ['white', 'dep-53'], ['white', 'dep-72'], ['white', 'dep-85'],
   ])('contraste %s sur %s ≥ 4,5', (fg, bg) => {
     expect(ratio(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('informations contradictoires et statuts par format', () => {
+  it('signale les informations non concordantes sans proposer d’inscription ouverte', () => {
+    const e = events.find(x => x.id === 'pdl-85-2027-09-26-triathlon-sud-vendee')!;
+    expect(effectiveStatus(e)).toBe('a_confirmer');
+    expect(verifiedRegistrationUrl(e)).toBeNull();
+    expect(e.formatAvailability?.find(f => f.format === 'S')?.status).toBe('complet');
+    expect(e.formatAvailability?.find(f => f.format === 'M')?.status).toBe('complet');
+    expect(e.sourceConflict?.url).toContain('fftri.t2area.com');
+    expect(validateEvent(e)).toEqual([]);
+    expect(events).toHaveLength(78);
   });
 });

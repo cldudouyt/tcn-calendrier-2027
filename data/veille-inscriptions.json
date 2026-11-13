@@ -24,22 +24,45 @@
       },
       {
         "eventId": "pdl-85-2027-09-25-triathlon-sud-vendee",
-        "summary": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
+        "summary": "Les informations sur le Triathlon Sud Vendée sont contradictoires : inscription annoncée par l’organisateur, mais statut « Annulé » sur le calendrier FFTRI.",
         "patch": {
-          "registrationStatus": "ouvert",
+          "registrationStatus": "a_confirmer",
           "officialUrl": "https://triathlonsudvendee.fr/inscriptions/",
-          "registrationEvidence": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
-          "registrationUrl": "https://in.inscriptions-tiel.com/triathlon-sud-vendee-20261790260765381?currentPage=select-competition"
+          "registrationEvidence": "Le site de l’organisateur présente des inscriptions pour l’édition 2027, tandis que le calendrier FFTRI indique « Annulé ». La situation doit être confirmée.",
+          "registrationUrl": null,
+          "sourceConflict": {
+            "label": "Calendrier FFTRI : mention « Annulé »",
+            "url": "https://fftri.t2area.com/calendrier/triathlon-sud-vendee.html"
+          },
+          "formatAvailability": []
         }
       },
       {
         "eventId": "pdl-85-2027-09-26-triathlon-sud-vendee",
-        "summary": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
+        "summary": "Les épreuves S et M sont annoncées complètes pour le 26 septembre 2027. Le calendrier FFTRI indique toutefois « Annulé » pour la manifestation : confirmation nécessaire.",
         "patch": {
-          "registrationStatus": "ouvert",
+          "registrationStatus": "a_confirmer",
           "officialUrl": "https://triathlonsudvendee.fr/inscriptions/",
-          "registrationEvidence": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
-          "registrationUrl": "https://in.inscriptions-tiel.com/triathlon-sud-vendee-20261790260765381?currentPage=select-competition"
+          "registrationEvidence": "Le site de l’organisateur présente des inscriptions pour l’édition 2027, tandis que le calendrier FFTRI indique « Annulé ». La situation doit être confirmée.",
+          "registrationUrl": null,
+          "sourceConflict": {
+            "label": "Calendrier FFTRI : mention « Annulé »",
+            "url": "https://fftri.t2area.com/calendrier/triathlon-sud-vendee.html"
+          },
+          "formatAvailability": [
+            {
+              "format": "S",
+              "status": "complet",
+              "evidence": "L'organisateur indique que le format S du 26 septembre 2027 est complet.",
+              "sourceUrl": "https://triathlonsudvendee.fr/epreuve/open-distance-s/"
+            },
+            {
+              "format": "M",
+              "status": "complet",
+              "evidence": "L'organisateur indique que le format M du 26 septembre 2027 est complet.",
+              "sourceUrl": "https://triathlonsudvendee.fr/epreuve/open-distance-m/"
+            }
+          ]
         }
       },
       {

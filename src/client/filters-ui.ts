@@ -48,7 +48,7 @@ export function initFilters(onChange: (f: Filters) => void): void {
   const update = (): void => {
     const f = readForm(form);
     const n = activeFilterCount(f) - (f.q.trim() ? 1 : 0);
-    if (badge) { badge.hidden = n === 0; badge.textContent = `${n} actif${n > 1 ? 's' : ''}`; }
+    if (badge) { badge.hidden = n === 0; badge.textContent = `${n} choix`; }
     syncUrl(f);
     onChange(f);
   };

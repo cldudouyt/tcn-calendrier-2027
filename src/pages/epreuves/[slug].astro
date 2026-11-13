@@ -16,6 +16,7 @@ const { event: e } = Astro.props;
 const status = effectiveStatus(e);
 const regUrl = verifiedRegistrationUrl(e);
 const transport = TRANSPORT_META[e.transport];
+const announcementUrl = status === 'annonce' ? e.officialUrl : null;
 const others = siblings(e);
 const uncertain = e.transport === '?';
 const TO_CHECK = 'Horaires à vérifier';
@@ -32,7 +33,8 @@ const TO_CHECK = 'Horaires à vérifier';
     <div class="actions" style="margin-bottom:24px">
       {regUrl
         ? <a class="btn btn-primary" href={regUrl} rel="noopener">S’inscrire (site officiel)</a>
-        : <span class="btn btn-secondary" aria-disabled="true" style="cursor:default">Lien d’inscription non vérifié</span>}
+        : announcementUrl ? <a class="btn btn-secondary" href={announcementUrl} rel="noopener">Voir l’annonce de l’organisateur</a>
+        : <span class="btn btn-secondary" aria-disabled="true" style="cursor:default">Lien d’inscription non vérifié</span>
       {e.officialUrl && <a class="btn btn-secondary" href={e.officialUrl} rel="noopener">Site de l’organisateur</a>}
       <button type="button" class="btn btn-secondary" id="share" data-title={e.name}>Partager</button>
     </div>
@@ -74,6 +76,11 @@ const TO_CHECK = 'Horaires à vérifier';
           <div><dt>Tarif</dt><dd>{e.price !== null && regUrl ? `${e.price} ${e.currency}` : <span class="muted">Non communiqué (aucun tarif sourcé)</span>}</dd></div>
           {e.registrationEvidence && status !== 'non_verifie' && <div><dt>Fait vérifié</dt><dd>{e.registrationEvidence}</dd></div>}
         </dl>
+        {e.formatAvailability && e.formatAvailability.length > 0 && <>
+          <h3 style="font-size:1.15rem;margin-top:14px">Disponibilité par format</h3>
+          <ul>{e.formatAvailability.map((f) => <li><strong>{f.format} : {f.status === 'complet' ? 'Complet' : f.status === 'ouvert' ? 'Inscriptions ouvertes' : 'À vérifier'}</strong> — <a href={f.sourceUrl} rel="noopener">Voir l’information officielle</a></li>)}</ul>
+        </>}
+        {e.sourceConflict && <div class="notice" style="margin-top:12px"><p><strong>Les sources se contredisent.</strong> Avant de vous inscrire, vérifiez le maintien de la course auprès de l’organisateur. <a href={e.sourceConflict.url} rel="noopener">Autre source : {e.sourceConflict.label}</a></p></div>}
         <p class="small muted" style="margin:12px 0 0">{e.statusDetail}</p>
       </section>
     </div>

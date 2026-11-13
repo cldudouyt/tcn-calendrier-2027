@@ -8,21 +8,23 @@ import { REGISTRATION_STATUSES } from '../lib/schema';
 const filterable = events.map(toFilterable);
 const uniq = (values: string[]) => [...new Set(values)];
 const groups = [
-  { key: 'dep', legend: 'Département', options: Object.entries(DEPARTMENT_NAMES).map(([v, l]) => ({ v, l: `${l} (${v})` })) },
-  { key: 'kind', legend: 'Discipline', options: uniq(filterable.map((e) => e.kind)).sort((a, b) => a.localeCompare(b, 'fr')).map((v) => ({ v, l: v })) },
-  { key: 'format', legend: 'Distance ou format', options: Object.entries(FORMAT_LABELS).filter(([v]) => filterable.some((e) => e.formatTags.includes(v))).map(([v, l]) => ({ v, l })) },
-  { key: 'month', legend: 'Mois', options: uniq(filterable.map((e) => e.month)).sort().map((v) => ({ v, l: formatMonth(v) })) },
-  { key: 'status', legend: 'Statut d’inscription', options: REGISTRATION_STATUSES.map((v) => ({ v, l: STATUS_META[v].label })) },
-  { key: 'access', legend: 'Accès en transports depuis Nantes', options: Object.entries(ACCESS_LABEL).map(([v, l]) => ({ v, l })) },
+  { key: 'dep', legend: 'Dans quel département ?', options: Object.entries(DEPARTMENT_NAMES).map(([v, l]) => ({ v, l: `${l} (${v})` })) },
+  { key: 'kind', legend: 'Quel sport ?', options: uniq(filterable.map((e) => e.kind)).sort((a, b) => a.localeCompare(b, 'fr')).map((v) => ({ v, l: v })) },
+  { key: 'format', legend: 'Quelle distance ?', options: Object.entries(FORMAT_LABELS).filter(([v]) => filterable.some((e) => e.formatTags.includes(v))).map(([v, l]) => ({ v, l })) },
+  { key: 'month', legend: 'Quand souhaitez-vous courir ?', options: uniq(filterable.map((e) => e.month)).sort().map((v) => ({ v, l: formatMonth(v) })) },
+  { key: 'status', legend: 'Où en sont les inscriptions ?', options: REGISTRATION_STATUSES.map((v) => ({ v, l: STATUS_META[v].label })) },
+  { key: 'access', legend: 'Comment rejoindre la commune depuis Nantes ?', options: Object.entries(ACCESS_LABEL).map(([v, l]) => ({ v, l })) },
 ];
 ---
 <form class="card filters" id="filters" role="search" aria-label="Filtrer les épreuves" onsubmit="return false">
   <div class="field">
-    <label for="q">Rechercher une course ou une commune</label>
+    <label for="q">Rechercher une compétition ou une ville</label>
     <input type="search" id="q" name="q" placeholder="Ex. : Vertou, swimrun, Laval…" autocomplete="off" />
   </div>
+  <p class="small muted" style="margin:0">Choisissez un ou plusieurs critères. Les résultats s’actualisent automatiquement.</p>
   <details id="filter-details">
-    <summary>Filtres <span class="badge badge-brand" id="filter-count" hidden></span></summary>
+    <summary>Choisir mes filtres (sport, lieu, date, transports) <span class="badge badge-brand" id="filter-count" hidden></span></summary>
+    <p class="small muted" style="margin-top:8px">Par exemple : « Triathlon » + « Vendée » + « septembre ». Plusieurs choix peuvent être combinés.</p>
     <div class="filter-groups">
       {groups.map((g) => (
         <fieldset>
@@ -36,12 +38,12 @@ const groups = [
       ))}
     </div>
     <p class="small muted" style="margin:12px 0 0">
-      « Avec vélo » ne retient que les épreuves dont la règle d’emport du vélo a été confirmée pour la date : aucune ne l’est encore.
+      Le transport indiqué concerne l’accès à la commune, pas forcément le départ. Le transport du vélo n’est proposé que lorsqu’il est confirmé pour le jour de la course.
     </p>
   </details>
   <div class="actions">
-    <button type="reset" class="btn btn-secondary" id="filters-reset">Réinitialiser</button>
-    <button type="button" class="btn btn-secondary" id="share-url">Partager cette sélection</button>
+    <button type="reset" class="btn btn-secondary" id="filters-reset">Effacer les filtres</button>
+    <button type="button" class="btn btn-secondary" id="share-url">Partager les résultats</button>
     <slot />
   </div>
   <p class="sr-only" role="status" aria-live="polite" id="share-feedback"></p>

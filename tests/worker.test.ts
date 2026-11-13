@@ -1,30 +1,31 @@
 import { describe, expect, it, vi } from 'vitest';
 import { events } from '../src/lib/events';
 import { effectiveStatus } from '../src/lib/status';
-import { applyPatch, isInFuture, checkBearer, dedupeKey, isNoop, isWeeklySlot, mergeOverrides, validateChange } from '../worker/lib';
+import { applyPatch, isInFuture, checkBearer, dedupeKey, isNoop, isDailySlot, mergeOverrides, validateChange } from '../worker/lib';
 
 const base = new Map(events.map((e) => [e.id, e]));
 const id = events[0]!.id;
 const change = (patch: Record<string, unknown>, over: Record<string, unknown> = {}) => ({ eventId: id, checkedAt: '2026-11-13T09:00:00+01:00', summary: 'Relevé de test', patch, ...over });
 
-describe('planification du lundi 08:30 Europe/Paris', () => {
+describe('planification quotidienne à 08:30 Europe/Paris', () => {
   it('retient 07:30 UTC en hiver et 06:30 UTC en été', () => {
-    expect(isWeeklySlot(new Date('2027-01-04T07:30:00Z'))).toBe(true);  // lundi, heure d’hiver
-    expect(isWeeklySlot(new Date('2027-01-04T06:30:00Z'))).toBe(false);
-    expect(isWeeklySlot(new Date('2027-07-05T06:30:00Z'))).toBe(true);  // lundi, heure d’été
-    expect(isWeeklySlot(new Date('2027-07-05T07:30:00Z'))).toBe(false);
+    expect(isDailySlot(new Date('2027-01-04T07:30:00Z'))).toBe(true);  // lundi, heure d’hiver
+    expect(isDailySlot(new Date('2027-01-04T06:30:00Z'))).toBe(false);
+    expect(isDailySlot(new Date('2027-07-05T06:30:00Z'))).toBe(true);  // lundi, heure d’été
+    expect(isDailySlot(new Date('2027-07-05T07:30:00Z'))).toBe(false);
   });
   it('gère les semaines de changement d’heure', () => {
-    expect(isWeeklySlot(new Date('2027-03-29T06:30:00Z'))).toBe(true);  // lendemain du passage à l’heure d’été
-    expect(isWeeklySlot(new Date('2027-11-01T07:30:00Z'))).toBe(true);  // lendemain du retour à l’heure d’hiver
+    expect(isDailySlot(new Date('2027-03-29T06:30:00Z'))).toBe(true);  // lendemain du passage à l’heure d’été
+    expect(isDailySlot(new Date('2027-11-01T07:30:00Z'))).toBe(true);  // lendemain du retour à l’heure d’hiver
   });
-  it('ignore les autres jours', () => {
-    expect(isWeeklySlot(new Date('2027-01-05T07:30:00Z'))).toBe(false);
+  it('déclenche aussi les autres jours à 08:30', () => {
+    expect(isDailySlot(new Date('2027-01-05T07:30:00Z'))).toBe(true);
+    expect(isDailySlot(new Date('2027-01-05T07:31:00Z'))).toBe(false);
   });
-  it('se déclenche exactement une fois par lundi sur toute la saison', () => {
-    for (let d = new Date('2026-11-16T00:00:00Z'); d < new Date('2027-12-01T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 7)) {
+  it('se déclenche exactement une fois par jour sur toute la saison', () => {
+    for (let d = new Date('2026-11-16T00:00:00Z'); d < new Date('2027-12-01T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 1)) {
       const day = d.toISOString().slice(0, 10);
-      const fired = ['06:30', '07:30'].filter((t) => isWeeklySlot(new Date(`${day}T${t}:00Z`)));
+      const fired = ['06:30', '07:30'].filter((t) => isDailySlot(new Date(`${day}T${t}:00Z`)));
       expect(fired, day).toHaveLength(1);
     }
   });
