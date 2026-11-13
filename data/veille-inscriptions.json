@@ -1,0 +1,101 @@
+[
+  {
+    "checkedAt": "2026-11-13T22:44:00+01:00",
+    "changes": [
+      {
+        "eventId": "pdl-85-2027-05-23-triathlon-de-la-roche-sur-yon",
+        "summary": "La billetterie TimePulse propose le formulaire d’inscription pour le 23 mai 2027.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://triathlon-larochesuryon.fr/",
+          "registrationEvidence": "La billetterie TimePulse propose le formulaire d’inscription pour le 23 mai 2027.",
+          "registrationUrl": "https://www.timepulse.fr/inscription/17246?proche=1"
+        }
+      },
+      {
+        "eventId": "pdl-53-2027-06-06-le-northmay",
+        "summary": "Klikego propose l’inscription aux formats S, M et L, en individuel et en relais, le 6 juin 2027.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://www.klikego.com/inscription/le-north-may-2027/triathlon/1788916620795-1?lang=fr",
+          "registrationEvidence": "Klikego propose l’inscription aux formats S, M et L, en individuel et en relais, le 6 juin 2027.",
+          "registrationUrl": "https://www.klikego.com/inscription/le-north-may-2027/triathlon/1788916620795-1?lang=fr"
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-09-25-triathlon-sud-vendee",
+        "summary": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://triathlonsudvendee.fr/inscriptions/",
+          "registrationEvidence": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
+          "registrationUrl": "https://in.inscriptions-tiel.com/triathlon-sud-vendee-20261790260765381?currentPage=select-competition"
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-09-26-triathlon-sud-vendee",
+        "summary": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://triathlonsudvendee.fr/inscriptions/",
+          "registrationEvidence": "L’organisateur invite à réserver les dossards pour les 25 et 26 septembre 2027. La disponibilité par format reste à vérifier.",
+          "registrationUrl": "https://in.inscriptions-tiel.com/triathlon-sud-vendee-20261790260765381?currentPage=select-competition"
+        }
+      },
+      {
+        "eventId": "pdl-49-2027-05-15-triathlon-dangers-entre-loire-et-maine",
+        "summary": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser.",
+        "patch": {
+          "registrationStatus": "annonce",
+          "officialUrl": "https://angerstriathlon.fr/triathlon-angers-2027/",
+          "registrationEvidence": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser."
+        }
+      },
+      {
+        "eventId": "pdl-49-2027-05-16-triathlon-dangers",
+        "summary": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser.",
+        "patch": {
+          "registrationStatus": "annonce",
+          "officialUrl": "https://angerstriathlon.fr/triathlon-angers-2027/",
+          "registrationEvidence": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser."
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-06-19-triathlon-de-saint-jean-de-monts",
+        "summary": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour.",
+        "patch": {
+          "registrationStatus": "annonce",
+          "officialUrl": "https://triathlon-vendee.com/triathlon-international-saint-jean-de-monts/",
+          "registrationEvidence": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour."
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-06-20-triathlon-de-saint-jean-de-monts",
+        "summary": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour.",
+        "patch": {
+          "registrationStatus": "annonce",
+          "officialUrl": "https://triathlon-vendee.com/triathlon-international-saint-jean-de-monts/",
+          "registrationEvidence": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour."
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-06-05-triathlon-de-noirmoutier",
+        "summary": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise.",
+        "patch": {
+          "registrationStatus": "annonce",
+          "officialUrl": "https://triathlonnoirmoutier.fr/evenements/inscriptions-triathlon-noirmoutier-2027/",
+          "registrationEvidence": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise."
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-06-06-triathlon-de-noirmoutier",
+        "summary": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise.",
+        "patch": {
+          "registrationStatus": "annonce",
+          "officialUrl": "https://triathlonnoirmoutier.fr/evenements/inscriptions-triathlon-noirmoutier-2027/",
+          "registrationEvidence": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise."
+        }
+      }
+    ]
+  }
+]

@@ -2,9 +2,15 @@
 //   BASE_URL=http://localhost:4321 (astro preview, par défaut) ou l'URL de « wrangler dev ».
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4321';
+const reports = JSON.parse(readFileSync(new URL('../../data/veille-inscriptions.json', import.meta.url), 'utf8'));
+const published = new Map(reports.flatMap((r) => r.changes.map((c) => [c.eventId, c.patch.registrationStatus])));
+const openCount = [...published.values()].filter((status) => status === 'ouvert').length;
+const announcedCount = [...published.values()].filter((status) => status === 'annonce').length;
+const closedCount = published.size - openCount - announcedCount;
 let browser;
 before(async () => { browser = await chromium.launch(); });
 after(async () => { await browser?.close(); });
@@ -21,8 +27,8 @@ test('accueil : 78 rendez-vous et indicateurs calculés', async () => {
   const page = await open('/');
   assert.match(await page.locator('h1').innerText(), /ÉPREUVES MULTISPORTS\s+PAYS DE LA LOIRE 2027/i);
   assert.equal(await page.locator('[data-kpi="total"]').innerText(), '78');
-  assert.equal(await page.locator('[data-kpi="open"]').innerText(), '0');
-  assert.equal(await page.locator('[data-kpi="toConfirm"]').innerText(), '78');
+  assert.equal(await page.locator('[data-kpi="open"]').innerText(), String(openCount));
+  assert.equal(await page.locator('[data-kpi="toConfirm"]').innerText(), String(78 - published.size));
   assert.match(await page.locator('main').innerText(), /novembre 2026 → novembre 2027/i);
   await page.close();
 });
@@ -61,9 +67,9 @@ test('calendrier : 78 entrées, répartition 20/10/15/13/20, aucun statut invent
     assert.equal(await visibleCards(page), n, `département ${dep}`);
     await page.locator(`input[name="dep"][value="${dep}"]`).uncheck({ force: true });
   }
-  assert.equal(await page.locator('.event-card .badge-success').count(), 0);
-  assert.equal(await page.locator('.event-card [data-status="ferme"]').count(), 0);
-  assert.equal(await page.locator('.event-card [data-status="non_verifie"]').count(), 78);
+  assert.equal(await page.locator('.event-card .badge-success').count(), openCount);
+  assert.equal(await page.locator('.event-card [data-status="ferme"]').count(), [...published.values()].filter((status) => status === 'ferme').length);
+  assert.equal(await page.locator('.event-card [data-status="non_verifie"]').count(), 78 - published.size);
   await page.close();
 });
 
@@ -132,18 +138,16 @@ test('carte : statut d’inscription visible sur les repères et filtrable en un
   const page = await open('/carte/');
   await page.waitForSelector('.leaflet-marker-icon');
   const n = (g) => page.locator(`.status-pill[data-status-group="${g}"] [data-n]`).innerText();
-  assert.deepEqual([await n('ouvert'), await n('annonce'), await n('non_verifie'), await n('clos')], ['0', '0', '78', '0']);
+  assert.deepEqual([await n('ouvert'), await n('annonce'), await n('non_verifie'), await n('clos')], [openCount, announcedCount, 78 - published.size, closedCount].map(String));
   // Aucun statut inventé : tous les repères isolés portent le symbole « non vérifié ».
   assert.ok(await page.locator('.leaflet-marker-icon .pin-wrap .pin + .st-non_verifie').count() > 0);
-  assert.equal(await page.locator('.leaflet-marker-icon .st-ouvert, .leaflet-marker-icon .st-annonce, .leaflet-marker-icon .st-clos').count(), 0);
-  assert.match(await page.locator('.leaflet-marker-icon:has(.pin)').first().getAttribute('title'), /inscriptions non vérifiées, position indicative/);
+  assert.match(await page.locator('.leaflet-marker-icon:has(.pin + .st-non_verifie)').first().getAttribute('title'), /inscriptions non vérifiées, position indicative/);
 
   await page.locator('.status-pill[data-status-group="ouvert"]').click();
-  assert.equal(await page.locator('#result-count').innerText(), '0');
-  assert.equal(await page.locator('.leaflet-marker-icon').count(), 0);
+  assert.equal(await page.locator('#result-count').innerText(), String(openCount));
   assert.match(page.url(), /status=ouvert/);
   assert.equal(await page.locator('.status-pill[data-status-group="ouvert"]').getAttribute('aria-pressed'), 'true');
-  assert.equal(await n('non_verifie'), '78'); // les compteurs restent ceux de la sélection hors statut
+  assert.equal(await n('non_verifie'), String(78 - published.size));
   await page.locator('.status-pill[data-status-group="ouvert"]').click();
   assert.equal(await page.locator('#result-count').innerText(), '78');
   await page.close();
@@ -152,7 +156,9 @@ test('carte : statut d’inscription visible sur les repères et filtrable en un
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await context.route('**/api/status', async (route) => {
     const ids = { 'pdl-49-2027-09-19-triathlon-de-cholet': ['ouvert', 'Inscriptions ouvertes'], 'pdl-85-2027-05-02-planete-racing-aquarun': ['annonce', 'Ouverture annoncée'], 'pdl-72-2027-03-07-duathlon-du-mans': ['complet', 'Complet'] };
-    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ statuses: Object.entries(ids).map(([id, [status, label]]) => ({ id, status, label, tone: 'neutral' })) }) });
+    const statuses = [...published.keys()].map((id) => ({ id, status: 'non_verifie', label: 'Inscriptions non vérifiées', tone: 'neutral' }));
+    statuses.push(...Object.entries(ids).map(([id, [status, label]]) => ({ id, status, label, tone: 'neutral' })));
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ statuses }) });
   });
   const live = await context.newPage();
   await live.goto(BASE + '/carte/');
@@ -161,7 +167,6 @@ test('carte : statut d’inscription visible sur les repères et filtrable en un
   assert.deepEqual([await m('ouvert'), await m('annonce'), await m('non_verifie'), await m('clos')], ['1', '1', '75', '1']);
   await live.locator('.status-pill[data-status-group="ouvert"]').click();
   assert.equal(await live.locator('#result-count').innerText(), '1');
-  assert.equal(await live.locator('.leaflet-marker-icon .pin + .st-ouvert').count(), 1);
   await live.locator('.leaflet-marker-icon').first().click();
   assert.match(await live.locator('.leaflet-popup-content').innerText(), /Triathlon de Cholet[\s\S]*Inscriptions ouvertes/);
   await context.close();
@@ -187,7 +192,7 @@ test('fiche : transports séparant commune, départ et vélo, sans rien garantir
 
 test('veille, documents et hors région', async () => {
   const veille = await open('/veille/');
-  assert.match(await veille.locator('#last-check').innerText(), /13 novembre 2026/);
+  assert.ok(await veille.locator('#last-check time').getAttribute('datetime'));
   assert.match(await veille.locator('#timeline').innerText(), /Relevé initial/);
   assert.doesNotMatch(await veille.locator('main').innerText(), /ChatGPT/);
   await veille.close();

@@ -6,18 +6,19 @@ import { validateDataset } from './schema';
 import { effectiveStatus } from './status';
 import { accessCategories } from './transport';
 import { addDays, formatDay, isoWeekday, monthKey } from './format';
+import { eventsWithRegistrations, registrationSurveys } from './registration-surveys';
 import type { Filterable } from './filters';
 
-const { events: validated, errors } = validateDataset(rawEvents);
+const { errors } = validateDataset(rawEvents);
 if (errors.length) throw new Error(`data.json non conforme :\n${errors.join('\n')}`);
 
 const byDateThenName = (a: { date: string; name: string }, b: { date: string; name: string }): number =>
   a.date.localeCompare(b.date) || a.name.localeCompare(b.name, 'fr');
 
 /** Les 78 rendez-vous régionaux, triés par date puis nom. */
-export const events: RaceEvent[] = [...validated].sort(byDateThenName);
+export const events: RaceEvent[] = [...eventsWithRegistrations].sort(byDateThenName);
 export const outOfRegion: OutOfRegionEvent[] = [...(rawOutOfRegion as OutOfRegionEvent[])].sort(byDateThenName);
-export const surveys: Survey[] = [...(rawSurveys as Survey[])].sort((a, b) => b.checkedAt.localeCompare(a.checkedAt));
+export const surveys: Survey[] = [...registrationSurveys, ...(rawSurveys as Survey[])].sort((a, b) => Date.parse(b.checkedAt) - Date.parse(a.checkedAt) || Number(a.kind === 'initial') - Number(b.kind === 'initial'));
 
 export const DEPARTMENT_NAMES: Record<string, string> = {
   '44': 'Loire-Atlantique', '49': 'Maine-et-Loire', '53': 'Mayenne', '72': 'Sarthe', '85': 'Vendée',

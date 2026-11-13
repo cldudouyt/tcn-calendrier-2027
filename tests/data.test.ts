@@ -58,11 +58,15 @@ describe('data.json', () => {
       expect(e.raceStartLatLon).toBeNull();
     }
   });
-  it('n’invente ni prix, ni lien, ni statut, ni règle vélo', () => {
-    for (const e of events) {
+  it('conserve les données du PDF et exige une preuve pour les statuts publiés', () => {
+    for (const e of raw) {
       expect(e.price).toBeNull();
       expect(e.registrationUrl).toBeNull();
-      expect(effectiveStatus(e)).toBe('non_verifie');
+      expect(e.registrationStatus).toBe('non_verifie');
+    }
+    for (const e of events) {
+      expect(validateEvent(e)).toEqual([]);
+      expect(effectiveStatus(e)).toBe(e.registrationStatus);
       expect(bikeConfirmed(e)).toBe(false);
       expect(accessCategories(e)).not.toContain('velo');
     }
@@ -87,7 +91,7 @@ describe('statuts', () => {
     expect(k.total).toBe(78);
     expect(k.open + k.announced + k.toConfirm + k.byStatus.complet + k.byStatus.ferme + k.byStatus.annule).toBe(78);
     const withOpen = [sample({ registrationStatus: 'ouvert', registrationEvidence: 'Page d’inscription en ligne', lastCheckedAt: '2026-11-16T08:30:00+01:00', registrationUrl: 'https://exemple.org/inscription' }), ...events.slice(1)];
-    expect(computeKpis(withOpen).open).toBe(1);
+    expect(computeKpis(withOpen).open).toBe(k.open + Number(effectiveStatus(events[0]!) !== 'ouvert'));
   });
   it('n’affiche « ouvert » que si une source officielle l’atteste', () => {
     expect(effectiveStatus(sample({ registrationStatus: 'ouvert' }))).toBe('non_verifie');

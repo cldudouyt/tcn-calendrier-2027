@@ -39,9 +39,9 @@ const find = (id: string) => events.find((e) => e.id === id);
     <ol class="timeline" id="timeline">
       {surveys.map((s) => (
         <li class="card">
-          <p class="small muted" style="margin:0 0 4px"><time datetime={s.checkedAt}>{formatParis(s.checkedAt, s.checkedAtPrecision)}</time> · {s.kind === 'initial' ? 'Relevé initial' : s.kind === 'correction' ? 'Correction manuelle' : 'Relevé hebdomadaire'}</p>
+          <p class="small muted" style="margin:0 0 4px"><time datetime={s.checkedAt}>{formatParis(s.checkedAt, s.checkedAtPrecision)}</time> · {s.kind === 'initial' ? 'Relevé initial' : s.kind === 'correction' ? 'Correction manuelle' : s.kind === 'quotidien' ? 'Relevé quotidien' : 'Relevé hebdomadaire'}</p>
           <h3>{s.title}</h3>
-          <p>{s.summary}</p>
+          {s.summary && <p>{s.summary}</p>}
           {s.changes.length === 0
             ? <p class="muted" style="margin:0">Aucune différence avec le relevé précédent{s.kind === 'initial' ? ' (premier relevé)' : ''}.</p>
             : (
@@ -68,8 +68,8 @@ const find = (id: string) => events.find((e) => e.id === id);
     <h2 style="margin-top:32px">Comment la veille alimente le site</h2>
     <div class="card-sunk">
       <ul style="margin:0;padding-left:18px">
-        <li>Un contrôle est planifié chaque <strong>lundi à 8 h 30 (heure de Paris)</strong>, été comme hiver.</li>
-        <li>Les changements sont importés par un administrateur puis <strong>validés avant publication</strong> ; rien n’est publié automatiquement depuis un outil tiers.</li>
+        <li>Le relevé des inscriptions est planifié <strong>chaque jour à 8 h 30 (heure de Paris)</strong>.</li>
+        <li>Les changements confirmés par une source officielle sont publiés automatiquement.</li>
         <li>Catégories suivies : {Object.values(CATEGORY_LABEL).join(', ').toLowerCase()}.</li>
         <li>Suivre les nouveautés : <a href="/veille/rss.xml">flux RSS</a>.</li>
       </ul>
@@ -84,9 +84,8 @@ const find = (id: string) => events.find((e) => e.id === id);
   const text = (tag: string, value: string, cls = ''): HTMLElement => Object.assign(document.createElement(tag), { textContent: value, className: cls });
   fetch('/api/updates', { headers: { accept: 'application/json' } })
     .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? r.json() : null))
-    .then((body: { updates?: ApiUpdate[]; lastCheck?: string | null } | null) => {
+    .then((body: { updates?: ApiUpdate[] } | null) => {
       if (!body) return;
-      if (body.lastCheck) document.getElementById('last-check')!.textContent = `${fmt.format(new Date(body.lastCheck))} (heure de Paris)`;
       const list = document.getElementById('timeline')!;
       for (const u of [...(body.updates ?? [])].reverse()) {
         const li = text('li', '', 'card');

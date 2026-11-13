@@ -1,8 +1,8 @@
 // Worker Cloudflare : API publique, administration protégée et contrôle hebdomadaire.
 // Les pages statiques (dist/) sont servies par la liaison ASSETS.
-import baseData from '../data.json';
 import type { RaceEvent } from '../src/lib/types';
 import { STATUS_META, effectiveStatus } from '../src/lib/status';
+import { eventsWithRegistrations, REGISTRATION_FIELDS } from '../src/lib/registration-surveys';
 import {
   CATEGORY_LABELS, applyPatch, checkBearer, dedupeKey, isNoop, isWeeklySlot, mergeOverrides, validateChange,
   type EventPatch,
@@ -10,7 +10,7 @@ import {
 
 export interface Env { ASSETS: Fetcher; DB?: D1Database; ADMIN_TOKEN?: string }
 
-const BASE = baseData as unknown as RaceEvent[];
+const BASE = eventsWithRegistrations;
 const BASE_BY_ID = new Map(BASE.map((e) => [e.id, e]));
 const USER_AGENT = 'tcn-calendrier-2027-veille/1.0 (controle hebdomadaire de liens officiels)';
 
@@ -25,7 +25,16 @@ async function loadEvents(env: Env): Promise<{ events: RaceEvent[]; source: 'd1'
   if (!env.DB) return { events: BASE, source: 'statique' };
   try {
     const { results } = await env.DB.prepare('SELECT event_id, patch FROM event_overrides').all<{ event_id: string; patch: string }>();
-    const overrides = new Map(results.map((r) => [r.event_id, JSON.parse(r.patch) as Override]));
+    const overrides = new Map(results.map((r) => {
+      const patch = JSON.parse(r.patch) as Override;
+      const baseline = BASE_BY_ID.get(r.event_id);
+      if (baseline?.lastCheckedAt && (!patch.lastCheckedAt || Date.parse(baseline.lastCheckedAt) > Date.parse(patch.lastCheckedAt))) {
+        for (const field of REGISTRATION_FIELDS) delete patch[field];
+        delete patch.lastCheckedAt;
+        delete patch.changedAt;
+      }
+      return [r.event_id, patch] as const;
+    }));
     return { events: mergeOverrides(BASE, overrides), source: 'd1' };
   } catch (err) {
     console.error('Lecture D1 impossible, repli sur la référence', err);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { events, toFilterable } from '../src/lib/events';
+import { computeKpis, events, toFilterable } from '../src/lib/events';
 import { applyFilters, emptyFilters, parseFilters, serializeFilters, activeFilterCount } from '../src/lib/filters';
 import { buildIcs } from '../src/lib/ics';
 import { formatDay, formatParis, listMonths, normalizeText } from '../src/lib/format';
@@ -30,9 +30,10 @@ describe('filtres', () => {
     expect(applyFilters(all, f({ access: ['velo'] }))).toHaveLength(0);
   });
   it('filtre par statut sans jamais inventer de statut', () => {
-    expect(applyFilters(all, f({ status: ['non_verifie'] }))).toHaveLength(78);
-    expect(applyFilters(all, f({ status: ['ouvert'] }))).toHaveLength(0);
-    expect(applyFilters(all, f({ status: ['ferme'] }))).toHaveLength(0);
+    const { byStatus } = computeKpis(events);
+    for (const status of ['non_verifie', 'ouvert', 'ferme'] as const) {
+      expect(applyFilters(all, f({ status: [status] }))).toHaveLength(byStatus[status]);
+    }
   });
   it('recherche par nom et commune, sans accents ni casse', () => {
     expect(applyFilters(all, f({ q: 'coueron' })).map((e) => e.name)).toEqual(['Duathlon de Couëron']);

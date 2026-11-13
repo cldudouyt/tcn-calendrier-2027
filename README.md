@@ -61,17 +61,19 @@ npm run build && npm run worker:schema:local && npm run worker:dev
 Les routes `/api/admin/*` exigent `Authorization: Bearer <ADMIN_TOKEN>`. Sans secret configuré, elles
 répondent 503.
 
-La veille ChatGPT du lundi n'est pas reliée au site : ses résultats doivent être importés par un
-administrateur via `POST /api/admin/import`, puis validés. Le contrôle planifié du Worker vérifie
-seulement que les liens officiels publiés répondent encore ; il ne modifie aucun statut.
+La veille quotidienne ajoute les changements d’inscription confirmés dans `data/veille-inscriptions.json`
+sur `main`. Le build vérifie chaque relevé et applique les changements au calendrier, au journal et à
+l’API. Cloudflare Workers Builds publie ces données à chaque commit. Les routes d’administration
+restent disponibles pour les corrections ponctuelles. Le contrôle planifié du Worker vérifie que les
+liens officiels publiés répondent encore.
 
 Planification : deux déclenchements UTC le lundi (06:30 et 07:30) ; le Worker n'exécute que celui qui
 tombe à 08 h 30 à Paris, été comme hiver.
 
 ## Déploiement Cloudflare
 
-Déjà fait : la base D1 `tcn-calendrier-2027` existe sur le compte Cloudflare, son schéma est appliqué et
-son identifiant est dans `wrangler.jsonc`. Le Worker lui-même n'est pas encore déployé.
+La base D1 `tcn-calendrier-2027` existe sur le compte Cloudflare, son schéma est appliqué et son
+identifiant est dans `wrangler.jsonc`.
 
 Par l'intégration GitHub de Cloudflare (Workers Builds) :
 
@@ -88,7 +90,6 @@ Aucun secret ne doit être committé (`.dev.vars` et `.env*` sont ignorés par g
 
 ## Points restant inconnus
 
-- Aucune billetterie vérifiée : les 78 fiches sont « non vérifiées ».
 - Aucun lieu de départ exact, aucun horaire ni règle d'emport du vélo confirmés.
 - Duathlon des Sables du 28 mars 2027 : commune non confirmée, donc absent de la carte.
 - Swimrun de Xanton (29 mai) et Triathlon de Nantes (17 octobre) : libellé et formats à confirmer.

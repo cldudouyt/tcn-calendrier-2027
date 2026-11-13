@@ -90,7 +90,7 @@ export interface Survey {
   checkedAt: string;
   /** 'date' si seule la journée du relevé est connue. */
   checkedAtPrecision: 'date' | 'minute';
-  kind: 'initial' | 'hebdomadaire' | 'correction';
+  kind: 'initial' | 'hebdomadaire' | 'quotidien' | 'correction';
   title: string;
   summary: string;
   source: { label: string; url: string } | null;
