@@ -11,7 +11,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/veille/rss.xml"]
   },
   // Tous les jours 08:30 Europe/Paris = 07:30 UTC en hiver, 06:30 UTC en été.
   // Les deux déclenchements existent ; le Worker n'exécute que celui qui tombe à 08 h 30 à Paris.
