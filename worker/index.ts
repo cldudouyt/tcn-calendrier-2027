@@ -15,7 +15,7 @@ const BASE_BY_ID = new Map(BASE.map((e) => [e.id, e]));
 const USER_AGENT = 'tcn-calendrier-2027-veille/1.0 (controle hebdomadaire de liens officiels)';
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}): Response =>
-  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers } });
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', ...headers } });
 const now = (): string => new Date().toISOString();
 
 type Override = EventPatch & { lastCheckedAt?: string; changedAt?: string };

@@ -40,6 +40,14 @@ export const CATEGORY_LABELS: Record<string, string> = {
   information: 'Information complétée',
 };
 
+/**
+ * Au chargement d'un Worker Cloudflare (hors requête), l'horloge est figée à 0 : toute date paraîtrait
+ * future. Le contrôle n'a de sens que si l'horloge est réelle (build, tests, requête en cours).
+ */
+export function isInFuture(iso: string, nowMs: number = Date.now()): boolean {
+  return nowMs > 0 && Date.parse(iso) > nowMs + 60_000;
+}
+
 const isHttps = (v: unknown): v is string => typeof v === 'string' && /^https:\/\/[^\s]+$/.test(v);
 const isIsoDateTime = (v: unknown): v is string => typeof v === 'string' && v.length >= 10 && !Number.isNaN(Date.parse(v));
 
@@ -51,7 +59,7 @@ export function validateChange(raw: unknown, base: Map<string, RaceEvent>): { ok
   const event = base.get(eventId);
   if (!event) errors.push(`épreuve inconnue : ${eventId || '(vide)'}`);
   if (!isIsoDateTime(input.checkedAt)) errors.push('checkedAt (date de vérification ISO 8601) requis');
-  else if (Date.parse(input.checkedAt) > Date.now() + 60_000) errors.push('checkedAt ne peut pas être dans le futur');
+  else if (isInFuture(input.checkedAt)) errors.push('checkedAt ne peut pas être dans le futur');
   if (typeof input.summary !== 'string' || input.summary.trim().length < 5) errors.push('summary requis');
   const patchRaw = (typeof input.patch === 'object' && input.patch !== null ? input.patch : {}) as Record<string, unknown>;
   const keys = Object.keys(patchRaw);

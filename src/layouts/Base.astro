@@ -29,6 +29,12 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title} — Multisports Pays de la Loire 2027</title>
     <meta name="description" content={description} />
+    <meta property="og:title" content={`${title} — Multisports Pays de la Loire 2027`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    {Astro.site && <link rel="canonical" href={new URL(path, Astro.site).href} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title="Veille des inscriptions" href="/veille/rss.xml" />
   </head>
   <body>

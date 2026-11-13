@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { events } from '../src/lib/events';
 import { effectiveStatus } from '../src/lib/status';
-import { applyPatch, checkBearer, dedupeKey, isNoop, isWeeklySlot, mergeOverrides, validateChange } from '../worker/lib';
+import { applyPatch, isInFuture, checkBearer, dedupeKey, isNoop, isWeeklySlot, mergeOverrides, validateChange } from '../worker/lib';
 
 const base = new Map(events.map((e) => [e.id, e]));
 const id = events[0]!.id;
@@ -94,5 +94,21 @@ describe('accès administrateur', () => {
     expect(checkBearer(null, token)).toBe(false);
     expect(checkBearer(`Bearer ${token}`, undefined)).toBe(false);
     expect(checkBearer('Bearer court', 'court')).toBe(false);
+  });
+});
+
+describe('chargement dans le Worker Cloudflare', () => {
+  it('ne rejette pas les relevés quand l’horloge est figée à 0 (hors requête)', async () => {
+    expect(isInFuture('2026-11-13T22:44:00+01:00', 0)).toBe(false);
+    expect(isInFuture('2999-01-01T00:00:00Z', Date.parse('2026-11-13T00:00:00Z'))).toBe(true);
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    vi.resetModules();
+    try {
+      const mod = await import('../src/lib/registration-surveys');
+      expect(mod.eventsWithRegistrations).toHaveLength(78);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

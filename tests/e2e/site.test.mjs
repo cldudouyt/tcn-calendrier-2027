@@ -117,7 +117,7 @@ test('carte : positions indicatives, repères et filtres synchronisés avec la l
   assert.equal(await page.locator('#result-count').innerText(), '20');
   assert.equal(await page.locator('input[name="dep"][value="85"]').isChecked(), true);
   await page.waitForSelector('.leaflet-marker-icon');
-  const shown = await page.evaluate(() => [...document.querySelectorAll('.leaflet-marker-icon')].reduce((n, el) => n + (el.querySelector('.cluster') ? Number(el.textContent) : 1), 0));
+  const shown = await page.evaluate(() => [...document.querySelectorAll('.leaflet-marker-icon')].reduce((n, el) => n + (el.querySelector('.cluster') ? Number(el.querySelector('.cluster').textContent) : 1), 0));
   assert.ok(shown > 0 && shown <= 20, `repères affichés : ${shown}`);
   assert.match(await page.locator('.leaflet-control-attribution').innerText(), /OpenStreetMap/);
   assert.match(await page.locator('a[data-keep-filters="/calendrier/"]').getAttribute('href'), /dep=85/);

@@ -27,7 +27,7 @@ a:hover { color: var(--ink); }
 .site-header { background: var(--white); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 1100; }
 .site-header .wrap { display: flex; align-items: center; gap: 8px 24px; flex-wrap: wrap; padding-block: 10px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-family: var(--display); font-size: 1.25rem; text-transform: uppercase; }
-.brand-mark { background: var(--orange); color: var(--white); padding: 2px 8px; border-radius: 6px; }
+.brand-mark { background: var(--orange-deep); color: var(--white); padding: 2px 8px; border-radius: 6px; }
 .nav { display: flex; gap: 2px; overflow-x: auto; margin-inline: -6px; padding: 2px 6px; scrollbar-width: none; max-width: 100%; }
 .nav a { font-family: var(--cond); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .95rem; color: var(--ink-2); text-decoration: none; padding: 10px 12px; border-radius: 8px; white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; }
 .nav a:hover { background: var(--orange-10); color: var(--orange-deeper); }
@@ -113,11 +113,11 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* Vue mois */
 .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-block: 10px 14px; }
 .month-grid .dow { font-family: var(--cond); font-weight: 700; font-size: .75rem; text-transform: uppercase; text-align: center; color: var(--muted); }
-.day { aspect-ratio: 1 / 1; max-height: 64px; display: grid; place-items: center; border-radius: 10px; font-family: var(--cond); font-weight: 600; color: var(--grey); background: var(--sunk); position: relative; width: 100%; border: 0; font-size: 1rem; }
+.day { aspect-ratio: 1 / 1; max-height: 64px; display: grid; place-items: center; border-radius: 10px; font-family: var(--cond); font-weight: 600; color: var(--muted); background: var(--sunk); position: relative; width: 100%; border: 0; font-size: 1rem; }
 a.day { text-decoration: none; background: var(--orange-10); color: var(--orange-deeper); border: 1px solid var(--orange-200); font-weight: 800; }
 a.day:hover { background: var(--orange-deep); color: var(--white); }
 a.day sup { position: absolute; top: 2px; right: 5px; font-size: .68rem; }
-a.day.is-empty { background: var(--sunk); border-color: var(--line); color: var(--grey); }
+a.day.is-empty { background: var(--sunk); border-color: var(--line); color: var(--muted); }
 
 /* Carte */
 #map { height: min(68vh, 620px); min-height: 380px; border-radius: var(--radius); border: 1px solid var(--line); z-index: 0; background: var(--line-faint); }

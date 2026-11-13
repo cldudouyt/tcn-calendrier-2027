@@ -1,6 +1,6 @@
 import rawEvents from '../../data.json';
 import rawReports from '../../data/veille-inscriptions.json';
-import { applyPatch, isNoop, validateChange, type EventPatch } from '../../worker/lib';
+import { applyPatch, isInFuture, isNoop, validateChange, type EventPatch } from '../../worker/lib';
 import { effectiveStatus, STATUS_META } from './status';
 import type { RaceEvent, Survey, SurveyChange } from './types';
 
@@ -14,7 +14,7 @@ let previousDate = -Infinity;
 
 for (const report of rawReports) {
   const reportDate = Date.parse(report.checkedAt);
-  if (!Number.isFinite(reportDate) || reportDate <= previousDate || reportDate > Date.now() + 60_000) {
+  if (!Number.isFinite(reportDate) || reportDate <= previousDate || isInFuture(report.checkedAt)) {
     throw new Error(`Date de relevé invalide ou hors ordre : ${report.checkedAt}`);
   }
   previousDate = reportDate;
