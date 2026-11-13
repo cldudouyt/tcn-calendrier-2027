@@ -34,7 +34,7 @@ const TO_CHECK = 'Horaires à vérifier';
       {regUrl
         ? <a class="btn btn-primary" href={regUrl} rel="noopener">S’inscrire (site officiel)</a>
         : announcementUrl ? <a class="btn btn-secondary" href={announcementUrl} rel="noopener">Voir l’annonce de l’organisateur</a>
-        : <span class="btn btn-secondary" aria-disabled="true" style="cursor:default">Lien d’inscription non vérifié</span>
+        : <span class="btn btn-secondary" aria-disabled="true" style="cursor:default">Lien d’inscription non vérifié</span>}
       {e.officialUrl && <a class="btn btn-secondary" href={e.officialUrl} rel="noopener">Site de l’organisateur</a>}
       <button type="button" class="btn btn-secondary" id="share" data-title={e.name}>Partager</button>
     </div>

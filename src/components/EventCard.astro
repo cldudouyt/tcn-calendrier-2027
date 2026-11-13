@@ -27,6 +27,6 @@ const registrationLink = verifiedRegistrationUrl(event);
     </div>
     {registrationStatus === 'ouvert' && registrationLink && <p class="small" style="margin:8px 0 0"><a href={registrationLink} rel="noopener">S’inscrire</a></p>}
     {registrationStatus === 'annonce' && event.officialUrl && <p class="small" style="margin:8px 0 0"><a href={event.officialUrl} rel="noopener">Voir l’annonce de l’organisateur</a></p>}
-    {event.sourceConflict && <p class="small" style="margin:8px 0 0"><a href={event.sourceConflict.url} rel="noopener">Vérifier les informations contradictoires</a></p>
+    {event.sourceConflict && <p class="small" style="margin:8px 0 0"><a href={event.sourceConflict.url} rel="noopener">Vérifier les informations contradictoires</a></p>}
   </div>
 </li>
