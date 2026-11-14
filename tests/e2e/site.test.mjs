@@ -139,7 +139,7 @@ test('filtre « avec vélo » présent (§5) mais désactivé tant qu’aucune r
   const velo = page.locator('input[name="access"][value="velo"]');
   assert.equal(await velo.count(), 1);
   assert.equal(await velo.isDisabled(), true);
-  assert.match(await velo.locator('xpath=..').innerText(), /aucune règle confirmée/);
+  assert.match(await velo.locator('xpath=..').textContent(), /aucune règle confirmée/);
   await page.close();
 });
 
