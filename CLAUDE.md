@@ -196,3 +196,58 @@ Chaque fiche doit séparer : (1) gare ou arrêt d'arrivée, (2) correspondances 
 - Rendre un résultat vérifiable à chaque étape : fichiers modifiés, tests exécutés, points restant inconnus.
 - Ne jamais inventer prix, horaires, statut d'ouverture, coordonnées exactes ou capacités de transport des vélos.
 - **La publication Cloudflare est une étape séparée** : construire/tester localement d'abord ; déployer seulement lorsque la configuration et l'accès au compte sont confirmés.
+
+
+---
+
+## Fonctionnalité à développer — Signalements communautaires des inscriptions (14 novembre 2026)
+
+### Objectif
+Permettre à un membre du TCN de signaler une information d'inscription **depuis la fiche d'une compétition déjà référencée**, sans compte utilisateur et sans intervention manuelle systématique. Cette section est une **spécification**, pas une fonctionnalité déjà déployée.
+
+### Périmètre strict
+- Afficher « Signaler une info d'inscription » sur chaque fiche d'événement existante.
+- Accepter uniquement trois types de signalement : `inscriptions_ouvertes`, `complet`, `ouverture_annoncee`.
+- Demander une URL source (organisateur, Klikego, TimePulse, Inscriptions-Tiel ou autre billetterie) ; pour `ouverture_annoncee`, relever la date annoncée seulement si elle figure explicitement dans la source.
+- Ne permettre **aucune** création/suppression d'épreuve, ni modification de date, distance, lieu, format ou autre donnée sportive par ce canal.
+- Préserver les identifiants et les 78 rendez-vous régionaux du référentiel ; ne pas confondre les 11 rendez-vous hors région avec les 78.
+
+### Parcours utilisateur
+1. Depuis une fiche, cliquer sur le bouton ; l'identifiant de l'événement est fixé par la fiche, non saisi librement.
+2. Choisir l'un des trois types, coller l'URL de preuve, puis envoyer.
+3. Afficher un accusé de réception clair : `reçu`, `déjà signalé` ou `impossible à traiter`. Ne jamais afficher « confirmé » avant vérification.
+4. Lancer une vérification asynchrone ; ne pas bloquer l'interface sur le scraping.
+5. Afficher dans la fiche et l'historique les changements effectivement confirmés, avec source et horodatage.
+
+### Vérification et règles de publication
+- Priorité aux sites officiels des organisateurs et aux pages réelles de billetterie (Klikego, TimePulse, Inscriptions-Tiel), y compris pages dynamiques lorsque techniquement possible.
+- Confirmer explicitement l'**édition 2027**, l'épreuve et le format concernés ; une fiche 2026 ou un simple bouton sans état de disponibilité ne suffit pas.
+- Distinguer `ouvert`, `complet`, `ouverture_annoncee`, `non_ouvert`, `non_verifie` et `contradictoire` selon les états déjà pris en charge par le code ; ne pas écraser des données plus précises par un état générique.
+- « Fermé » ne signifie pas nécessairement « complet » : exiger une preuve explicite pour `complet`.
+- Pour les formats multiples, conserver les disponibilités par format et éviter de déclarer toute la manifestation complète si un seul format l'est.
+- En cas de contradiction, de page inaccessible, de contenu dynamique non lisible ou de confiance insuffisante : enregistrer `a_verifier`, sans publier de changement.
+- Ne jamais annoncer de places restantes, de tarif ou de date d'ouverture sans preuve.
+- Éviter les régressions : contrôler l'état actuel et la fraîcheur de la preuve avant toute écriture ; conserver la provenance et l'historique.
+
+### Architecture cible à adapter au dépôt
+- Réutiliser l'application Astro et le Worker Cloudflare existants ; inspecter le code, les routes API, le schéma D1 et les traitements de veille avant de modifier quoi que ce soit.
+- Prévoir une table D1 `registration_reports` (identifiant, event_id, type, source_url, état, date de réception, date de vérification, preuve/raison, empreinte anti-doublon) et une migration additive. Ne pas écraser les données existantes.
+- Endpoint POST côté Worker avec validation stricte de l'identifiant d'événement, des valeurs autorisées, du format et de la longueur de l'URL.
+- Vérification en tâche différée via le mécanisme déjà présent (cron/queue si disponible) ; idempotence et déduplication par événement + type + URL normalisée.
+- Pour éviter le SSRF, ne jamais récupérer arbitrairement une URL fournie : bloquer IP privées, localhost, redirections vers réseaux internes, protocoles non HTTP(S), ports inhabituels et domaines interdits ; privilégier une liste de domaines connus et une revue des domaines inconnus.
+- Prévoir limitation de débit par IP/empreinte avec durée de conservation minimale, contrôle anti-bot adapté (Turnstile si nécessaire), taille maximale, timeout et journalisation sans données personnelles inutiles.
+- Ne pas exposer les secrets Cloudflare, jetons GitHub ni les clés d'administration au navigateur. Ne pas autoriser une mise à jour directe de GitHub depuis un signalement public.
+- Accessibilité clavier, états de chargement/erreur, affichage mobile et respect de la charte TCN existante.
+
+### Critères d'acceptation
+- Un membre sans compte peut signaler une ouverture, un complet ou une ouverture annoncée depuis une fiche existante.
+- Les signalements en double ne créent pas plusieurs mises à jour.
+- Une preuve officielle 2027 explicite peut déclencher une mise à jour automatique du **bon événement et du bon format**.
+- Une preuve ambiguë, périmée ou contradictoire ne modifie jamais le calendrier public.
+- Impossible de modifier les dates, distances ou le nombre d'épreuves via cette fonctionnalité.
+- Tests unitaires pour validation, déduplication, correspondance édition/format, contradictions, sécurité URL et transitions d'état ; tests d'intégration Worker/D1 et tests E2E du parcours mobile.
+- Exécuter les commandes de test, vérification TypeScript et build existantes avant déploiement ; documenter les migrations D1 et variables Cloudflare requises.
+- **Ne pas déployer automatiquement** à partir de cette seule spécification : implémentation, tests et déploiement sont des étapes distinctes.
+
+### Consigne de travail
+Avant de coder, identifier les composants de fiche, le modèle des 78 événements, le stockage D1, les routes Worker et la veille quotidienne. Proposer ensuite les changements minimaux compatibles avec l'existant. Ne pas remplacer la veille automatique : les signalements des membres constituent une source supplémentaire.
