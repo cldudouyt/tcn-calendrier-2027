@@ -134,6 +134,15 @@ test('épreuves passées : masquées par défaut, affichables, fiche conservée'
   await Promise.all([page.close(), home.close(), future.close()]);
 });
 
+test('filtre « avec vélo » présent (§5) mais désactivé tant qu’aucune règle n’est confirmée', async () => {
+  const page = await open('/calendrier/');
+  const velo = page.locator('input[name="access"][value="velo"]');
+  assert.equal(await velo.count(), 1);
+  assert.equal(await velo.isDisabled(), true);
+  assert.match(await velo.locator('xpath=..').innerText(), /aucune règle confirmée/);
+  await page.close();
+});
+
 test('calendrier : week-end regroupé, entrées distinctes', async () => {
   const page = await open('/calendrier/?q=baule');
   assert.equal(await visibleCards(page), 2);
