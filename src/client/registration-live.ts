@@ -16,7 +16,7 @@ function externalLink(url: string | null | undefined, label: string): HTMLAnchor
   return a;
 }
 
-function fact(list: HTMLElement, label: string, value: string, detail?: string): void {
+function fact(list: DocumentFragment | HTMLElement, label: string, value: string, detail?: string): void {
   const row = document.createElement('div');
   const term = document.createElement('dt');
   const description = document.createElement('dd');
@@ -47,10 +47,10 @@ export function updateRegistrationPanel(event: RaceEvent): void {
   const registrationUrl = verifiedRegistrationUrl(event);
 
   const newFacts = document.createDocumentFragment();
-  fact(newFacts as unknown as HTMLElement, 'Statut', display.label, display.description);
-  fact(newFacts as unknown as HTMLElement, 'Dernière vérification', event.lastCheckedAt ? formatParis(event.lastCheckedAt) : 'Jamais vérifié');
+  fact(newFacts, 'Statut', display.label, display.description);
+  fact(newFacts, 'Dernière vérification', event.lastCheckedAt ? formatParis(event.lastCheckedAt) : 'Jamais vérifié');
   if (event.registrationOpenAt && status === 'annonce') {
-    fact(newFacts as unknown as HTMLElement, 'Ouverture annoncée', formatParis(event.registrationOpenAt));
+    fact(newFacts, 'Ouverture annoncée', formatParis(event.registrationOpenAt));
   }
   const hasPriceInEvidence = /\d\s?€/.test(event.registrationEvidence ?? '');
   const tariff = event.price !== null && registrationUrl
@@ -58,8 +58,8 @@ export function updateRegistrationPanel(event: RaceEvent): void {
     : hasPriceInEvidence && status !== 'non_verifie'
       ? 'Selon le format : voir le fait vérifié ci-dessous et la billetterie'
       : 'Non communiqué (aucun tarif sourcé)';
-  fact(newFacts as unknown as HTMLElement, 'Tarif', tariff);
-  if (event.registrationEvidence && status !== 'non_verifie') fact(newFacts as unknown as HTMLElement, 'Fait vérifié', event.registrationEvidence);
+  fact(newFacts, 'Tarif', tariff);
+  if (event.registrationEvidence && status !== 'non_verifie') fact(newFacts, 'Fait vérifié', event.registrationEvidence);
   facts.replaceChildren(newFacts);
 
   const newLinks = document.createDocumentFragment();
