@@ -6,7 +6,7 @@ import { events, DEPARTMENT_NAMES, eventUrl, siblings } from '../../lib/events';
 import type { RaceEvent } from '../../lib/types';
 import { formatDay, formatParis } from '../../lib/format';
 import { STATUS_META, effectiveStatus, verifiedRegistrationUrl } from '../../lib/status';
-import { TRANSPORT_META, operatorLinks, bikeConfirmed, BIKE_GENERAL_NOTE } from '../../lib/transport';
+
 
 export function getStaticPaths() {
   return events.map((event) => ({ params: { slug: event.id }, props: { event } }));
@@ -15,12 +15,10 @@ interface Props { event: RaceEvent }
 const { event: e } = Astro.props;
 const status = effectiveStatus(e);
 const regUrl = verifiedRegistrationUrl(e);
-const transport = TRANSPORT_META[e.transport];
 const announcementUrl = status === 'annonce' ? e.officialUrl : null;
 const others = siblings(e);
-const uncertain = e.transport === '?';
-const TO_CHECK = 'Horaires à vérifier';
 import ReportForm from '../../components/ReportForm.astro';
+import TransportAccess from '../../components/TransportAccess.astro';
 ---
 <Base title={e.name} description={`${e.name}, ${formatDay(e.date)}${e.town ? ` à ${e.town}` : ''} : formats, statut d’inscription et accès depuis Nantes.`}>
   <article class="section wrap">
@@ -92,35 +90,7 @@ import ReportForm from '../../components/ReportForm.astro';
 
     <ReportForm event={e} />
 
-    <section style="margin-top:28px" aria-labelledby="t-acces">
-      <p class="eyebrow">Depuis la {e.transportOrigin.toLowerCase()}</p>
-      <h2 id="t-acces">Accès en transports</h2>
-      <div class="notice" style="margin-bottom:14px">
-        <p>Itinéraire <strong>indicatif</strong> relevé le {e.transportLastCheckedAt ? formatParis(e.transportLastCheckedAt, 'date') : '13 novembre 2026'} (<a href={`/documents/calendrier-2027.pdf#page=${e.transportSourcePage}`}>PDF p. {e.transportSourcePage}</a>) : service connu en 2026, <strong>pas un horaire 2027 validé</strong>. Atteindre la commune ne garantit pas d’atteindre le départ, encore moins avec un vélo.</p>
-      </div>
-      <ol class="steps">
-        <li><div><h3>Atteindre la commune : gare ou arrêt d’arrivée</h3>
-          <p>{uncertain ? <span class="unknown">Itinéraire à préciser — non garanti.</span> : transport.label} {e.town && <>· destination : {e.town}</>}</p></div></li>
-        <li><div><h3>Correspondances et moyens de transport</h3><p>{e.journey}</p></div></li>
-        <li><div><h3>Dernier kilomètre jusqu’au départ exact</h3>
-          <p>{e.lastMile}</p>
-          <p class="small"><span class="unknown">Lieu de départ {e.raceStartLocation ? 'indiqué' : 'non vérifié'} : le trajet entre l’arrêt et le départ reste à confirmer.</span></p></div></li>
-        <li><div><h3>Arriver avant le départ de la course</h3><p><span class="unknown">{TO_CHECK}</span> — heure de départ de l’épreuve et premier service du jour non confirmés.</p></div></li>
-        <li><div><h3>Retour le même jour</h3><p><span class="unknown">{TO_CHECK}</span> — dernier retour non confirmé pour la date de la course.</p></div></li>
-        <li><div><h3>Atteindre le départ avec un vélo</h3>
-          {bikeConfirmed(e) && e.transportBikePolicy
-            ? <p>{e.transportBikePolicy.summary} (<a href={e.transportBikePolicy.sourceUrl} rel="noopener">source</a>, vérifié le {formatParis(e.transportBikePolicy.checkedAt, 'date')})</p>
-            : <><p><span class="unknown">Emport du vélo non confirmé pour cette date.</span> Vélo monté ou plié, réservation, capacité et règles un jour de compétition restent à vérifier auprès de l’opérateur.</p>
-               <p class="small muted">{BIKE_GENERAL_NOTE}</p></>}
-        </div></li>
-        <li><div><h3>Incertitudes</h3>
-          <p>{uncertain ? 'Itinéraire incomplet : aucun trajet de bout en bout n’est établi. ' : ''}Horaires, tarifs et durées non relevés : aucun n’est affiché tant qu’il n’est pas sourcé auprès de l’opérateur pour la date du déplacement.</p></div></li>
-      </ol>
-      <h3 style="margin-top:18px;font-family:var(--cond);font-weight:800">Vérifier auprès des opérateurs</h3>
-      <ul>
-        {operatorLinks(e).map((l) => <li><a href={l.url} rel="noopener">{l.label}</a></li>)}
-      </ul>
-    </section>
+    <TransportAccess event={e} />
 
     {others.length > 0 && (
       <section class="card-sunk" style="margin-top:24px">

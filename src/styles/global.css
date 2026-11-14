@@ -178,3 +178,13 @@ table.plain th { font-family: var(--cond); text-transform: uppercase; letter-spa
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* Accès sans voiture (fiche d'épreuve) */
+.transport-answer { display: grid; gap: 4px; border-left: 6px solid var(--ink); }
+.transport-answer.is-uncertain { border-left-color: var(--warning-border); background: var(--warning-bg); }
+.transport-kind { margin: 0; font-family: var(--display); font-size: 1.6rem; line-height: 1.1; text-transform: uppercase; color: var(--ink); }
+.transport-summary { margin: 0; font-weight: 500; }
+.transport-legs { margin: 14px 0 0; display: grid; gap: 10px; }
+.transport-legs > div { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; }
+.transport-legs dt { font-family: var(--cond); font-weight: 800; font-size: 1.02rem; color: var(--ink); margin-bottom: 2px; }
+.transport-legs dd { margin: 0; color: var(--body); }

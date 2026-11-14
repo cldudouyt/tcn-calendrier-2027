@@ -206,11 +206,22 @@ test('fiche : transports séparant commune, départ et vélo, sans rien garantir
   const page = await open('/epreuves/pdl-44-2027-06-13-triathlon-de-mesquer-quimiac/');
   const text = await page.locator('main').innerText();
   for (const expected of [/dimanche 13 juin 2027/, /Atteindre la commune/i, /Dernier kilomètre jusqu’au départ exact/i, /Atteindre le départ avec un vélo/i,
-    /Emport du vélo non confirmé/, /Horaires à vérifier/, /Retour le même jour/i, /indicatif/i, /pas un horaire 2027 validé/, /position indicative/i,
+    /Emport du vélo non confirmé/i, /Horaires à vérifier/, /dernier retour possible le jour même/i, /indicatif/i, /pas un horaire 2027 validé/, /position indicative/i,
+    /Train puis bus ou vélo/i, /réservation des places vélo dans les TER Aléop de mai à septembre 2027, ce qui concerne cette date/,
     /Lien d’inscription non vérifié/i, /Aucun tarif sourcé/i, /Jamais vérifié/]) assert.match(text, expected);
   assert.equal(await page.locator('a:has-text("S’inscrire")').count(), 0);
   assert.doesNotMatch(text, /\d+\s?(€|EUR)|\d+\s?min\b|\d{1,2}\s?h\s?\d{2}/); // ni tarif, ni durée, ni horaire
+
+  // Lecture rapide : une réponse, trois étapes, une liste de vérifications (plus de liste numérotée de 7 blocs).
+  assert.equal(await page.locator('section.transport .transport-legs > div').count(), 3);
+  assert.equal(await page.locator('section.transport .steps').count(), 0);
   await page.close();
+
+  const winter = await open('/epreuves/pdl-44-2027-01-10-bike-run-de-saint-nazaire/');
+  const tw = await winter.locator('section.transport').innerText();
+  assert.match(tw, /vérifiez les règles d’emport du vélo pour votre TER à cette date/);
+  assert.doesNotMatch(tw, /ce qui concerne cette date/);
+  await winter.close();
 
   const unknown = await open('/epreuves/pdl-85-2027-03-28-duathlon-de-lagglomeration-des-sables-dolonne/');
   const t2 = await unknown.locator('main').innerText();

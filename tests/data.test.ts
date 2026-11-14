@@ -4,7 +4,7 @@ import raw from '../data.json';
 import { events, outOfRegion, surveys, computeKpis, groupByWeekend, weekendKey } from '../src/lib/events';
 import { EXPECTED_BY_DEPARTMENT, EXPECTED_TOTAL, validateDataset, validateEvent } from '../src/lib/schema';
 import { effectiveStatus, verifiedRegistrationUrl } from '../src/lib/status';
-import { accessCategories, bikeConfirmed } from '../src/lib/transport';
+import { accessCategories, bikeAdvice, bikeConfirmed } from '../src/lib/transport';
 import type { RaceEvent } from '../src/lib/types';
 
 const sample = (over: Partial<RaceEvent> = {}): RaceEvent => ({ ...events[0]!, ...over });
@@ -160,5 +160,24 @@ describe('informations contradictoires et statuts par format', () => {
     expect(e.formatAvailability?.find(f => f.format === 'M')?.status).toBe('complet');
     expect(validateEvent(e)).toEqual([]);
     expect(events).toHaveLength(78);
+  });
+});
+
+describe('accès sans voiture', () => {
+  it('donne un conseil vélo propre à chaque épreuve, sans rien affirmer de confirmé', () => {
+    for (const e of events) {
+      const advice = bikeAdvice(e);
+      expect(advice.confirmed).toBe(false);
+      expect(advice.text.length).toBeGreaterThan(20);
+    }
+  });
+  it('ne cite la réservation vélo des TER que pour les épreuves de mai à septembre 2027 en train', () => {
+    const summer = events.find((e) => e.id === 'pdl-44-2027-06-13-triathlon-de-mesquer-quimiac')!;
+    const winter = events.find((e) => e.id === 'pdl-44-2027-01-10-bike-run-de-saint-nazaire')!;
+    const coach = events.find((e) => e.id === 'pdl-85-2027-06-06-triathlon-de-noirmoutier')!;
+    expect(bikeAdvice(summer).text).toMatch(/mai à septembre 2027, ce qui concerne cette date/);
+    expect(bikeAdvice(winter).text).not.toMatch(/ce qui concerne cette date/);
+    expect(bikeAdvice(coach).text).toMatch(/En car/);
+    expect(bikeAdvice(coach).text).not.toMatch(/En train/);
   });
 });

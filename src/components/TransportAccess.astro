@@ -1,0 +1,55 @@
+---
+import type { RaceEvent } from '../lib/types';
+import { formatParis } from '../lib/format';
+import { TRANSPORT_META, TRAVEL_CHECKLIST, bikeAdvice, operatorLinks } from '../lib/transport';
+interface Props { event: RaceEvent }
+const { event: e } = Astro.props;
+const meta = TRANSPORT_META[e.transport];
+const uncertain = e.transport === '?';
+const bike = bikeAdvice(e);
+const [primary, ...others] = operatorLinks(e);
+const checkedOn = e.transportLastCheckedAt ? formatParis(e.transportLastCheckedAt, 'date') : '13 novembre 2026';
+---
+<section class="transport" aria-labelledby="t-acces" style="margin-top:28px">
+  <p class="eyebrow">Sans voiture</p>
+  <h2 id="t-acces">Y aller depuis la gare de Nantes</h2>
+
+  <div class:list={['card', 'transport-answer', uncertain && 'is-uncertain']}>
+    <p class="transport-kind">{meta.short}</p>
+    <p class="transport-summary">{meta.summary}</p>
+  </div>
+
+  <dl class="transport-legs">
+    <div>
+      <dt>Atteindre la commune{e.town ? ` (${e.town})` : ''}</dt>
+      <dd>{uncertain ? <><span class="unknown">Itinéraire à préciser — non garanti.</span> {e.journey}</> : e.journey}</dd>
+    </div>
+    <div>
+      <dt>Dernier kilomètre jusqu’au départ exact</dt>
+      <dd>{e.lastMile}{!e.raceStartLocation && <span class="small unknown"> Le lieu exact du départ n’est pas encore vérifié.</span>}</dd>
+    </div>
+    <div>
+      <dt>Atteindre le départ avec un vélo</dt>
+      <dd>
+        {!bike.confirmed && <span class="badge badge-warning" style="margin-bottom:6px">Emport du vélo non confirmé</span>}
+        <span style="display:block">{bike.text}</span>
+      </dd>
+    </div>
+  </dl>
+
+  <div class="card-sunk" style="margin-top:14px">
+    <h3 style="font-family:var(--cond);font-weight:800;font-size:1.05rem;margin:0 0 6px">À vérifier avant de partir</h3>
+    <p class="small" style="margin:0 0 6px">Horaires à vérifier pour la date de la course, en particulier :</p>
+    <ul class="small" style="margin:0;padding-left:18px">
+      {TRAVEL_CHECKLIST.map((item) => <li>{item}</li>)}
+    </ul>
+    <p class="small muted" style="margin:10px 0 0">
+      Itinéraire indicatif relevé le {checkedOn} dans le calendrier de la Ligue (<a href={`/documents/calendrier-2027.pdf#page=${e.transportSourcePage}`}>PDF, p. {e.transportSourcePage}</a>) : service connu en 2026, pas un horaire 2027 validé. Aucune durée, aucun horaire ni tarif n’est affiché tant qu’il n’est pas vérifié.
+    </p>
+  </div>
+
+  <div class="actions" style="margin-top:14px">
+    {primary && <a class="btn btn-dark" href={primary.url} rel="noopener">{primary.label}</a>}
+    {others.map((l) => <a class="btn btn-secondary" href={l.url} rel="noopener">{l.label}</a>)}
+  </div>
+</section>
