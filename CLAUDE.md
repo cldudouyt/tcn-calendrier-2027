@@ -251,3 +251,46 @@ Permettre à un membre du TCN de signaler une information d'inscription **depuis
 
 ### Consigne de travail
 Avant de coder, identifier les composants de fiche, le modèle des 78 événements, le stockage D1, les routes Worker et la veille quotidienne. Proposer ensuite les changements minimaux compatibles avec l'existant. Ne pas remplacer la veille automatique : les signalements des membres constituent une source supplémentaire.
+
+
+---
+
+## Audit fonctionnel du site en production — 14 novembre 2026
+
+### Contexte et portée
+Audit **en lecture seule** du site `https://tcn-calendrier-2027.cldudouyt.workers.dev/`, effectué sur l'accueil, `/calendrier/`, `/carte/`, `/veille/`, `/documents/`, `/hors-region/`, des fiches `/epreuves/...` et `/api/events`. Trois scénarios ont été exécutés en navigateur (filtres, signalement, carte). **Aucune soumission de signalement, modification de données ou publication n'a été réalisée pendant cet audit.** Distinguer les observations confirmées, les incohérences de contenu et les scénarios restant à tester.
+
+### Résultats observés
+- L'API `GET /api/events` renvoie `count: 78`, avec 78 rendez-vous régionaux. La répartition publiée est 44=20, 49=10, 53=15, 72=13, 85=20. Les 11 rendez-vous hors région sont distincts.
+- Le calendrier et la carte affichent 77 rendez-vous à venir le 14/11/2026 ; l'écart avec les 78 du référentiel correspond vraisemblablement à l'épreuve du Pays du Gois du 08/11/2026, déjà passée. **Vérifier explicitement le calcul**, afficher « 77 à venir / 78 référencés » et permettre de retrouver les épreuves passées sans ambiguïté.
+- Les filtres par département fonctionnent : le département 44 retourne 20 événements. La combinaison département + statut et la remise à zéro ont fonctionné dans le scénario navigateur.
+- Recherche « Saint-Nazaire » avec filtre 44 + « inscriptions ouvertes » : 0 résultat, **cohérent avec le statut actuellement publié** des épreuves de Saint-Nazaire. **Ne pas classer ce scénario comme bug de recherche sans démontrer qu'un événement répond à tous les critères.**
+- La carte possède une recherche, des filtres, une légende, un accès à la liste et une zone Leaflet/OpenStreetMap ; aucune erreur bloquante visible. Les positions sont indiquées comme centres de communes. Les interactions précises sur chaque marqueur, cluster et popup **ne sont pas entièrement couvertes** par cet audit et restent à tester.
+- Les fiches proposent déjà un dépliant « Signaler une info d'inscription » : trois choix (inscriptions ouvertes, complet, ouverture annoncée), URL de preuve et bouton d'envoi. Un champ piège anti-bot « Ne pas remplir » est présent. **Le POST, la validation effective, l'accusé de réception, la déduplication, le stockage et le traitement automatique n'ont pas été testés**. Aucun attribut HTML `required` n'a été observé ; vérifier la validation JS et serveur avant de conclure à un défaut.
+- L'accueil annonce 5 journées ouvertes, 6 annoncées et 67 non vérifiées ; la veille fournit l'historique et les sources. Vérifier la cohérence entre compteurs, événements, journal et affichage par format.
+- **Anomalie à reproduire, non confirmée** : une extraction textuelle a montré « Épreuve passée » sur des fiches de janvier 2027, mais un contrôle navigateur de la fiche Saint-Nazaire n'a pas reproduit l'avertissement. Tester avec horloge maîtrisée, fuseau Europe/Paris, rendu serveur/client et cache, avant de qualifier le bug.
+
+### Backlog de corrections et tests à réaliser
+
+#### P1 — Fiabilité des inscriptions et des contributions
+1. **Réconcilier les statuts publics avec les preuves officielles.** Exemple : la fiche Bike & Run de Saint-Nazaire du 10/01/2027 affiche encore « non vérifiées », alors que la billetterie BEST Run&Bike 2027 a été identifiée : `https://www.klikego.com/inscription/best-runbike-2027/triathlon/1650509676123-7`. Vérifier identité de l'épreuve, édition, formats et disponibilité au moment de l'import ; ne publier qu'après recoupement. Contrôler aussi le Leclerc Bike & Run des Sables-d'Olonne du 15/11/2026 : billetterie Inscriptions-Tiel précédemment observée complète sur ses formats ; revérifier avant mise à jour. Pour les événements multi-formats, ne jamais extrapoler un format à tous les autres.
+2. **Valider de bout en bout le signalement public.** Tester type unique requis, URL obligatoire/valide, absence de sélection, URL invalide, URL d'édition 2026, événements inexistants, soumissions répétées, erreurs réseau, délai, accusés `reçu`/`déjà signalé`/`impossible à traiter`, stockage D1, tâche différée, preuve officielle, refus des sources ambiguës et propagation correcte vers fiche + veille + API. Ne pas publier directement sur la seule déclaration d'un adhérent. Tester anti-spam, SSRF et limitation de débit.
+3. **Tester les dates et la visibilité.** Cas avant/pendant/après la course, passages minuit, changements d'année et d'heure, date locale Europe/Paris, cache et hydratation JS. Une épreuve future ne doit jamais afficher « passée » ; une épreuve passée doit rester retrouvable si l'option correspondante est activée.
+
+#### P2 — Cohérence et navigation
+4. **Carte : tests E2E des marqueurs et clusters.** Vérifier chargement réel des tuiles, clic marqueur, popup et lien vers la bonne fiche, cluster contenant plusieurs épreuves, regroupements multi-journées, absence de coordonnées, recherche, filtres, partage d'URL, bouton « voir en liste » et conservation des paramètres. Les positions indicatives doivent rester clairement identifiées.
+5. **Calendrier : clarifier les compteurs et les filtres.** Afficher séparément le total référentiel (78) et les épreuves à venir (77 au jour de l'audit) ; tester « afficher les épreuves passées », recherches avec accents et variantes orthographiques, filtres combinés avec résultat attendu, état vide, réinitialisation, URLs filtrées et navigation retour.
+6. **Veille : cohérence inter-pages.** Vérifier que les statuts, les compteurs et l'horodatage sont calculés depuis une source commune et que l'historique reflète uniquement des changements réels, avec preuve officielle, édition et format. Contrôler le cas d'une preuve contradictoire et les annonces d'ouverture sans date exacte.
+
+#### P3 — Ergonomie, accessibilité et robustesse
+7. **Mobile :** Android Chrome et iOS Safari, petits écrans, champs du formulaire, filtres repliables, carte tactile, liens externes et claviers virtuels.
+8. **Accessibilité :** labels et groupes de cases, focus clavier, navigation sans souris, contrastes, annonces d'erreur et de succès, état vide et éléments cartographiques accessibles.
+9. **Robustesse :** réponse API indisponible, lenteur de chargement, lien externe cassé, ressource cartographique bloquée, formulaire envoyé deux fois, données obsolètes et états de chargement.
+
+### Critères de recette et règles de QA
+- Pour chaque correction : documenter **préconditions, étapes, résultat attendu, résultat constaté, sévérité, preuve et environnement**. Écrire les tests automatisés adaptés (Playwright E2E + tests API/unitaires) et ne pas transformer une simple hypothèse en anomalie confirmée.
+- Les 78 entrées et leurs IDs doivent rester stables ; les événements passés restent dans le référentiel et accessibles.
+- Tout statut « ouvert », « complet », « annoncé », « fermé » ou « annulé » exige une source officielle concordante avec l'édition et les formats. L'absence de billetterie ne prouve pas une fermeture.
+- La contribution d'un membre est une **suggestion**, pas une publication immédiate ; elle ne peut modifier que les informations d'inscription après validation automatique fiable.
+- Après toute correction : tests unitaires, intégration Worker/D1, tests Playwright sur les parcours critiques, build, contrôle du site déployé et vérification de non-régression des autres pages.
+- **Cette section est un backlog de QA, pas une autorisation de modifier le code ou de déployer automatiquement.** Conserver les autres spécifications de ce fichier, notamment l'isolation du projet Quiberon.
