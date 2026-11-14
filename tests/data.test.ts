@@ -152,13 +152,12 @@ describe('charte graphique', () => {
 });
 
 describe('informations contradictoires et statuts par format', () => {
-  it('signale les informations non concordantes sans proposer d’inscription ouverte', () => {
+  it('lève une contradiction démentie par la source et garde les formats complets', () => {
     const e = events.find(x => x.id === 'pdl-85-2027-09-26-triathlon-sud-vendee')!;
-    expect(effectiveStatus(e)).toBe('a_confirmer');
-    expect(verifiedRegistrationUrl(e)).toBeNull();
+    expect(effectiveStatus(e)).toBe('ouvert');
+    expect(e.sourceConflict ?? null).toBeNull();
     expect(e.formatAvailability?.find(f => f.format === 'S')?.status).toBe('complet');
     expect(e.formatAvailability?.find(f => f.format === 'M')?.status).toBe('complet');
-    expect(e.sourceConflict?.url).toContain('fftri.t2area.com');
     expect(validateEvent(e)).toEqual([]);
     expect(events).toHaveLength(78);
   });

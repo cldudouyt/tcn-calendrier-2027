@@ -120,5 +120,42 @@
         }
       }
     ]
+  },
+  {
+    "checkedAt": "2026-11-14T09:23:00+01:00",
+    "changes": [
+      {
+        "eventId": "pdl-44-2027-01-31-bike-run-des-iles-de-loire",
+        "summary": "Inscriptions ouvertes sur le site du club Tri Véloce pour le 31 janvier 2027.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://www.triveloce.com/bike-and-run",
+          "registrationEvidence": "Le club Tri Véloce annonce le Bike & Run des Îles de Loire le 31 janvier 2027, avec des inscriptions possibles à partir du 1er novembre et un lien d’inscription en ligne pour l’édition 2027.",
+          "registrationUrl": "https://in.inscriptions-tiel.com/bikerun-des-iles-de-loire-20271791963694991?currentPage=select-competition"
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-09-25-triathlon-sud-vendee",
+        "summary": "Inscriptions 2027 ouvertes sur le site de l’organisateur pour les formats L et XS du samedi. La mention « Annulé » relevée sur le calendrier FFTRI était un libellé masqué de la page, pas une annulation : la contradiction est levée.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://triathlonsudvendee.fr/inscriptions/",
+          "registrationEvidence": "Le site de l’organisateur indique « Inscription 2027 » et invite à prendre son dossard ; les formats L et XS du samedi 25 septembre 2027 n’y sont pas signalés complets. La fiche du calendrier FFTRI ne signale aucune annulation.",
+          "registrationUrl": "https://in.inscriptions-tiel.com/triathlon-sud-vendee-20261790260765381?currentPage=select-competition",
+          "sourceConflict": null
+        }
+      },
+      {
+        "eventId": "pdl-85-2027-09-26-triathlon-sud-vendee",
+        "summary": "Formats S et M du dimanche complets selon l’organisateur ; les courses enfants restent proposées à l’inscription. La mention « Annulé » relevée sur le calendrier FFTRI était un libellé masqué de la page, pas une annulation : la contradiction est levée.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://triathlonsudvendee.fr/inscriptions/",
+          "registrationEvidence": "L’organisateur indique « Cette épreuve est complète pour l’édition 2027 » pour les formats S et M du dimanche 26 septembre 2027 ; les courses enfants 6-9 ans et 10-13 ans du même jour n’y sont pas signalées complètes. La fiche du calendrier FFTRI ne signale aucune annulation.",
+          "registrationUrl": "https://in.inscriptions-tiel.com/triathlon-sud-vendee-20261790260765381?currentPage=select-competition",
+          "sourceConflict": null
+        }
+      }
+    ]
   }
 ]
