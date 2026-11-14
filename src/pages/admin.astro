@@ -28,6 +28,10 @@ import Base from '../layouts/Base.astro';
       </div>
       <ul class="timeline" id="changes"></ul>
 
+      <h2 style="margin-top:32px">Signalements des membres à vérifier <span class="badge badge-brand" id="count-reports">0</span></h2>
+      <p class="small muted">Signalements que la vérification automatique n’a pas pu confirmer (autre édition, page illisible, domaine inconnu, contradiction). Rien n’a été publié. Si la source est probante, publiez l’information par une correction ; sinon, rejetez.</p>
+      <ul class="timeline" id="reports"></ul>
+
       <h2 style="margin-top:32px">Alertes à examiner <span class="badge badge-brand" id="count-alerts">0</span></h2>
       <p class="small muted">Les alertes ne modifient rien sur le site. Une alerte traitée n’est jamais recréée à l’identique.</p>
       <ul class="timeline" id="alerts"></ul>
@@ -50,6 +54,7 @@ import Base from '../layouts/Base.astro';
   // Toutes les données affichées viennent de pages tierces : uniquement textContent, jamais innerHTML.
   interface Change { id: number; event_id: string; category: string; patch: string; summary: string; evidence: string | null; source_url: string | null; checked_at: string; origin: string; created_at: string }
   interface Alert { id: number; event_id: string | null; kind: string; message: string; source_url: string | null; quote: string | null; created_at: string }
+  interface Report { id: number; event_id: string; type: string; format: string; source_url: string; received_at: string; attempts: number; reason: string | null; evidence: string | null }
   interface Run { started_at: string; trigger_kind: string; links_checked: number; links_failed: number; state: string; note: string | null }
   interface EventLite { id: string; name: string; date: string }
 
@@ -58,7 +63,7 @@ import Base from '../layouts/Base.astro';
   const fmtDay = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'UTC' });
   const CATEGORY: Record<string, string> = { ouvert_confirme: 'Ouverture', ouverture_annoncee: 'Ouverture annoncée', annule: 'Annulation', complet: 'Complet', ferme: 'Fermeture', modification: 'Modification', information: 'Information', non_confirme: 'Non confirmé', source_contradictoire: 'Sources contradictoires' };
   const STATUS: Record<string, string> = { ouvert: 'Inscriptions ouvertes', annonce: 'Ouverture annoncée', annule: 'Épreuve annulée', complet: 'Complet', ferme: 'Inscriptions fermées', non_verifie: 'Non vérifié', a_confirmer: 'Sources contradictoires' };
-  const ORIGIN: Record<string, string> = { veille_auto: 'veille automatique', import: 'import manuel', correction: 'correction' };
+  const ORIGIN: Record<string, string> = { signalement: 'signalement d’un membre', veille_auto: 'veille automatique', import: 'import manuel', correction: 'correction' };
   const TRIGGER: Record<string, string> = { veille_auto: 'Veille automatique', planifie: 'Contrôle des liens', manuel: 'Contrôle manuel' };
 
   const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -154,6 +159,32 @@ import Base from '../layouts/Base.astro';
     }
   }
 
+  function renderReports(reports: Report[], labels: Record<string, string>): void {
+    const list = $('reports');
+    list.replaceChildren();
+    $('count-reports').textContent = String(reports.length);
+    if (!reports.length) list.append(el('li', 'Aucun signalement à vérifier.', 'card-sunk'));
+    for (const r of reports) {
+      const li = el('li', '', 'card');
+      li.append(eventLine(r.event_id), el('h3', `${labels[r.type] ?? r.type}${r.format ? ` — format ${r.format}` : ''}`));
+      if (r.reason) li.append(el('p', `Motif : ${r.reason}`));
+      if (r.evidence) li.append(el('p', `« ${r.evidence} »`, 'small'));
+      const meta = el('p', `Reçu le ${fmt.format(new Date(r.received_at))} · ${r.attempts} lecture(s) · `, 'small muted');
+      meta.append(link(r.source_url, 'ouvrir la source'));
+      const actions = el('div', '', 'actions');
+      for (const [state, label, cls] of [['traite', 'Marquer comme traité', 'btn btn-secondary'], ['rejete', 'Rejeter', 'btn btn-secondary']] as const) {
+        const btn = Object.assign(el('button', label, cls), { type: 'button' });
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          try { await api(`/reports/${r.id}/${state}`, { method: 'POST', body: '{}' }); await load(); } catch (err) { say(`Échec : ${(err as Error).message}`); btn.disabled = false; }
+        });
+        actions.append(btn);
+      }
+      li.append(meta, actions);
+      list.append(li);
+    }
+  }
+
   function renderRuns(runs: Run[]): void {
     const body = $('runs');
     body.replaceChildren();
@@ -172,12 +203,14 @@ import Base from '../layouts/Base.astro';
         const res = await fetch('/api/events');
         if (res.ok) names = new Map(((await res.json()) as { events: EventLite[] }).events.map((e) => [e.id, e]));
       }
-      const [c, a, r] = await Promise.all([
+      const [c, a, r, rep] = await Promise.all([
         api<{ changes: Change[] }>('/changes?state=en_attente'),
         api<{ alerts: Alert[]; labels: Record<string, string> }>('/alerts?state=ouverte'),
         api<{ runs: Run[] }>('/runs'),
+        api<{ reports: Report[]; labels: Record<string, string> }>('/reports?state=a_verifier'),
       ]);
       renderChanges(c.changes);
+      renderReports(rep.reports, rep.labels);
       renderAlerts(a.alerts, a.labels);
       renderRuns(r.runs);
       $('admin-content').hidden = false;

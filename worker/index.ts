@@ -9,8 +9,13 @@ import {
   type EventPatch,
 } from './lib';
 import { ALERT_LABELS, hashText, type AlertKind } from './watch';
+import sourcesFile from '../data/sources.json';
+import {
+  REPORT_TYPE_LABELS, assessReport, buildKnownHosts, isKnownHost, normalizeReportUrl, reportDedupeKey, validateReport,
+  type ReportInput, type ReportType,
+} from './reports';
 
-export interface Env { ASSETS: Fetcher; DB?: D1Database; ADMIN_TOKEN?: string }
+export interface Env { ASSETS: Fetcher; DB?: D1Database; ADMIN_TOKEN?: string; REPORT_SALT?: string }
 
 const BASE = eventsWithRegistrations;
 const BASE_BY_ID = new Map(BASE.map((e) => [e.id, e]));
@@ -87,7 +92,7 @@ async function publicApi(url: URL, env: Env): Promise<Response> {
 }
 
 /** Enregistre des propositions en attente ; rien n'est publié à cette étape. */
-async function importChanges(db: D1Database, items: unknown[], origin: 'import' | 'correction' | 'veille_auto', events: RaceEvent[]) {
+async function importChanges(db: D1Database, items: unknown[], origin: 'import' | 'correction' | 'veille_auto' | 'signalement', events: RaceEvent[]) {
   const current = new Map(events.map((e) => [e.id, e]));
   const report = { received: items.length, queued: [] as number[], duplicates: 0, unchanged: 0, alreadyDecided: 0, rejected: [] as { index: number; errors: string[] }[] };
   // La veille automatique ne repropose jamais ce qu'un administrateur a déjà publié ou rejeté.
@@ -200,6 +205,16 @@ async function adminApi(request: Request, url: URL, env: Env, ctx: ExecutionCont
     const res = await db.prepare("UPDATE watch_alerts SET state = 'traitee', closed_at = ?, note = ? WHERE id = ? AND state = 'ouverte'").bind(now(), note, Number(closeAlert[1])).run();
     return res.meta.changes ? json({ closed: Number(closeAlert[1]) }) : json({ error: 'Alerte inconnue ou déjà traitée' }, 409);
   }
+  if (method === 'GET' && path === '/reports') {
+    const state = url.searchParams.get('state') ?? 'a_verifier';
+    const { results } = await db.prepare('SELECT id, event_id, type, format, source_url, state, received_at, verified_at, attempts, reason, evidence, change_id FROM registration_reports WHERE state = ? ORDER BY id DESC LIMIT 200').bind(state).all();
+    return json({ state, reports: results, labels: REPORT_TYPE_LABELS });
+  }
+  const closeReport = path.match(/^\/reports\/(\d+)\/(traite|rejete)$/);
+  if (method === 'POST' && closeReport) {
+    const res = await db.prepare("UPDATE registration_reports SET state = ?, verified_at = ? WHERE id = ? AND state IN ('a_verifier', 'en_attente')").bind(closeReport[2], now(), Number(closeReport[1])).run();
+    return res.meta.changes ? json({ closed: Number(closeReport[1]), state: closeReport[2] }) : json({ error: 'Signalement inconnu ou déjà traité' }, 409);
+  }
   if (method === 'GET' && path === '/runs') {
     const runs = (await db.prepare('SELECT * FROM check_runs ORDER BY id DESC LIMIT 20').all()).results;
     const errors = (await db.prepare('SELECT * FROM error_log ORDER BY id DESC LIMIT 100').all()).results;
@@ -288,6 +303,154 @@ async function receiveWatchReport(db: D1Database, b: Record<string, unknown>, ev
   await db.prepare("UPDATE check_runs SET finished_at = ?, links_checked = ?, links_failed = ?, state = 'termine', note = ? WHERE id = ?")
     .bind(now(), sources.length, sources.length - ok, note, runId).run();
   return { runId, pages: sources.length, pagesRead: ok, changes: importReport, alerts: { received: alerts.length, created: newAlerts } };
+}
+
+// ---------------------------------------------------------------------------
+// Signalements communautaires
+
+const REPORT_MAX_BODY = 4096;
+const REPORT_LIMIT_PER_HOUR = 5;
+const REPORT_LIMIT_PER_DAY = 20;
+const REPORT_MAX_PAGE = 2_000_000;
+const KNOWN_HOSTS = buildKnownHosts(BASE, (sourcesFile as { sources: { pages: { url: string }[] }[] }).sources.flatMap((s) => s.pages.map((p) => p.url)));
+
+async function sha256(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+type ReportResult = 'recu' | 'deja_signale' | 'impossible';
+const reportReply = (result: ReportResult, message: string, status = 202): Response => json({ result, message }, status);
+
+/** Réception d'un signalement : validation, limitation de débit, dédoublonnage, puis vérification différée. */
+async function receiveReport(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  if (!env.DB) return reportReply('impossible', 'Les signalements sont momentanément indisponibles.', 503);
+  const length = Number(request.headers.get('content-length') ?? '0');
+  if (length > REPORT_MAX_BODY) return reportReply('impossible', 'Demande trop volumineuse.', 413);
+  const raw = await request.text();
+  if (raw.length > REPORT_MAX_BODY) return reportReply('impossible', 'Demande trop volumineuse.', 413);
+  let body: Record<string, unknown> = {};
+  try { const parsed: unknown = JSON.parse(raw); if (parsed && typeof parsed === 'object') body = parsed as Record<string, unknown>; } catch { /* corps invalide */ }
+  // Champ piège invisible : un robot qui le remplit reçoit un accusé neutre, rien n'est enregistré.
+  if (typeof body.website === 'string' && body.website.trim()) return reportReply('recu', 'Merci ! Votre signalement va être vérifié.');
+
+  const { events } = await loadEvents(env);
+  const valid = validateReport(body, new Map(events.map((e) => [e.id, e])));
+  if (!valid.ok) return reportReply('impossible', valid.error, 400);
+  const r = valid.report;
+  const db = env.DB;
+
+  // Limitation de débit : empreinte salée de l'IP, renouvelée chaque jour, effacée après deux jours.
+  const ip = request.headers.get('cf-connecting-ip') ?? 'inconnue';
+  const day = new Date().toISOString().slice(0, 10);
+  const clientHash = await sha256(`${ip}|${day}|${env.REPORT_SALT ?? env.ADMIN_TOKEN ?? 'tcn-calendrier-2027'}`);
+  const hourAgo = new Date(Date.now() - 3600_000).toISOString();
+  const counts = await db.prepare('SELECT SUM(received_at >= ?) AS hour, COUNT(*) AS day FROM registration_reports WHERE client_hash = ?').bind(hourAgo, clientHash).first<{ hour: number | null; day: number }>();
+  if ((counts?.hour ?? 0) >= REPORT_LIMIT_PER_HOUR || (counts?.day ?? 0) >= REPORT_LIMIT_PER_DAY) {
+    return reportReply('impossible', 'Trop de signalements envoyés depuis cette connexion : réessayez plus tard.', 429);
+  }
+
+  const key = reportDedupeKey(r.eventId, r.type, r.format, r.url);
+  const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+  const dup = await db.prepare("SELECT id, state FROM registration_reports WHERE dedupe_key = ? AND (state IN ('en_attente', 'a_verifier') OR received_at >= ?) ORDER BY id DESC LIMIT 1").bind(key, weekAgo).first<{ id: number; state: string }>();
+  if (dup) return reportReply('deja_signale', 'Ce signalement a déjà été reçu : il est en cours de vérification ou vient d’être traité. Merci !', 200);
+
+  const inserted = await db.prepare('INSERT INTO registration_reports (event_id, type, format, source_url, received_at, dedupe_key, client_hash) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .bind(r.eventId, r.type, r.format, r.url, now(), key, clientHash).run();
+  const id = Number(inserted.meta.last_row_id);
+  ctx.waitUntil(verifyReport(env, id).catch((err) => console.error('Vérification du signalement', id, err)));
+  return reportReply('recu', 'Merci ! La page indiquée va être vérifiée ; rien n’est publié sans preuve officielle de l’édition 2027.');
+}
+
+/** Lecture prudente d'une page : domaines connus seulement, redirections revérifiées, taille et durée bornées. */
+async function fetchKnownPage(start: string): Promise<{ ok: true; html: string; url: string } | { ok: false; reason: string; retry: boolean }> {
+  let current = start;
+  for (let hop = 0; hop <= 3; hop += 1) {
+    const checked = normalizeReportUrl(current);
+    if (!checked.ok) return { ok: false, reason: `Redirection refusée : ${checked.error}`, retry: false };
+    if (!isKnownHost(checked.host, KNOWN_HOSTS)) return { ok: false, reason: `Domaine non reconnu (${checked.host}) : vérification manuelle nécessaire.`, retry: false };
+    let res: Response;
+    try {
+      res = await fetch(checked.url, { redirect: 'manual', headers: { 'user-agent': USER_AGENT, accept: 'text/html', 'accept-language': 'fr' }, signal: AbortSignal.timeout(10_000) });
+    } catch (err) {
+      return { ok: false, reason: `Page injoignable (${err instanceof Error ? err.message : 'erreur réseau'}).`, retry: true };
+    }
+    if (res.status >= 300 && res.status < 400) {
+      await res.body?.cancel();
+      const location = res.headers.get('location');
+      if (!location) return { ok: false, reason: 'Redirection sans destination.', retry: false };
+      current = new URL(location, checked.url).toString();
+      continue;
+    }
+    if (!res.ok) { await res.body?.cancel(); return { ok: false, reason: `La page répond HTTP ${res.status}.`, retry: res.status >= 500 || res.status === 429 }; }
+    if (!(res.headers.get('content-type') ?? '').includes('html')) { await res.body?.cancel(); return { ok: false, reason: 'La source n’est pas une page web lisible.', retry: false }; }
+    const reader = res.body?.getReader();
+    if (!reader) return { ok: false, reason: 'Page vide.', retry: true };
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > REPORT_MAX_PAGE) { await reader.cancel(); break; }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(chunks.reduce((n, c) => n + c.byteLength, 0));
+    let offset = 0;
+    for (const c of chunks) { bytes.set(c, offset); offset += c.byteLength; }
+    return { ok: true, html: new TextDecoder('utf-8').decode(bytes), url: checked.url };
+  }
+  return { ok: false, reason: 'Trop de redirections.', retry: false };
+}
+
+/** Vérification d'un signalement ; publication automatique seulement sur preuve officielle 2027 explicite. */
+async function verifyReport(env: Env, id: number): Promise<void> {
+  if (!env.DB) return;
+  const db = env.DB;
+  const row = await db.prepare("SELECT * FROM registration_reports WHERE id = ? AND state = 'en_attente'").bind(id).first<{ id: number; event_id: string; type: string; format: string; source_url: string; attempts: number }>();
+  if (!row) return;
+  await db.prepare('UPDATE registration_reports SET attempts = attempts + 1 WHERE id = ?').bind(id).run();
+  const finish = (state: string, reason: string, evidence: string | null = null, changeId: number | null = null) =>
+    db.prepare('UPDATE registration_reports SET state = ?, reason = ?, evidence = ?, change_id = ?, verified_at = ? WHERE id = ?').bind(state, reason.slice(0, 500), evidence?.slice(0, 600) ?? null, changeId, now(), id).run();
+
+  // État publié au moment de la vérification (et non à la réception) : évite d'écraser une information plus récente.
+  const { events } = await loadEvents(env);
+  const event = events.find((e) => e.id === row.event_id);
+  if (!event) { await finish('rejete', 'Épreuve introuvable.'); return; }
+  const checked = normalizeReportUrl(row.source_url);
+  if (!checked.ok) { await finish('rejete', checked.error); return; }
+  const input: ReportInput = { eventId: row.event_id, type: row.type as ReportType, format: row.format, url: checked.url, host: checked.host };
+
+  const page = await fetchKnownPage(checked.url);
+  if (!page.ok) {
+    if (page.retry && row.attempts + 1 < 3) return; // nouvelle tentative au prochain passage planifié
+    await finish('a_verifier', page.reason);
+    return;
+  }
+  const assessment = assessReport(event, { ...input, url: page.url }, page.html);
+  if (assessment.outcome !== 'confirme' || !assessment.patch) {
+    await finish(assessment.outcome, assessment.reason, assessment.quote);
+    return;
+  }
+  const report = await importChanges(db, [{ eventId: event.id, checkedAt: now(), summary: assessment.summary ?? assessment.reason, patch: assessment.patch }], 'signalement', events);
+  const changeId = report.queued[0];
+  if (changeId === undefined) {
+    const why = report.rejected[0]?.errors.join(', ') ?? (report.unchanged ? 'Aucun changement par rapport aux données publiées.' : 'Proposition identique déjà en attente.');
+    await finish(report.unchanged ? 'sans_effet' : 'a_verifier', why, assessment.quote);
+    return;
+  }
+  const published = await publishChange(db, changeId, events, 'publication automatique : signalement confirmé par la source officielle');
+  if (published.ok) await finish('confirme', assessment.reason, assessment.quote, changeId);
+  else await finish('a_verifier', `Publication refusée : ${(await published.text()).slice(0, 300)}`, assessment.quote, changeId);
+}
+
+/** Passage planifié : reprise des signalements en attente et effacement des empreintes de connexion anciennes. */
+async function processPendingReports(env: Env): Promise<void> {
+  if (!env.DB) return;
+  const db = env.DB;
+  await db.prepare('UPDATE registration_reports SET client_hash = NULL WHERE client_hash IS NOT NULL AND received_at < ?').bind(new Date(Date.now() - 2 * 86400_000).toISOString()).run();
+  const { results } = await db.prepare("SELECT id FROM registration_reports WHERE state = 'en_attente' AND received_at < ? ORDER BY id LIMIT 20").bind(new Date(Date.now() - 600_000).toISOString()).all<{ id: number }>();
+  for (const r of results) await verifyReport(env, r.id).catch((err) => console.error('Reprise du signalement', r.id, err));
 }
 
 /** Contrôle d'un lien officiel : 3 tentatives sur erreur réseau ou 5xx, aucun contournement d'accès. */
@@ -387,6 +550,10 @@ export default {
     try {
       if (url.pathname === '/veille/rss.xml' && (request.method === 'GET' || request.method === 'HEAD')) return await rssFeed(url, env);
       if (url.pathname.startsWith('/api/admin/')) return await adminApi(request, url, env, ctx);
+      if (url.pathname === '/api/reports') {
+        if (request.method !== 'POST') return json({ error: 'Méthode non autorisée' }, 405, { allow: 'POST' });
+        return await receiveReport(request, env, ctx);
+      }
       if (url.pathname.startsWith('/api/')) {
         if (request.method !== 'GET' && request.method !== 'HEAD') return json({ error: 'Méthode non autorisée' }, 405, { allow: 'GET, HEAD' });
         return await publicApi(url, env);
@@ -402,5 +569,6 @@ export default {
     // Deux déclenchements UTC chaque jour ; un seul correspond à 08 h 30 à Paris selon la saison.
     if (!isDailySlot(new Date(controller.scheduledTime))) return;
     ctx.waitUntil(runDailyCheck(env, 'planifie'));
+    ctx.waitUntil(processPendingReports(env));
   },
 } satisfies ExportedHandler<Env>;

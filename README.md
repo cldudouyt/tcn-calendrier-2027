@@ -109,6 +109,34 @@ variables → Actions ; variable `SITE_URL` facultative. Essai sans rien envoyer
 Planification : deux déclenchements UTC chaque jour (06:30 et 07:30) ; le Worker n'exécute que celui qui
 tombe à 08 h 30 à Paris, été comme hiver.
 
+## Signalements des membres
+
+Sur chaque fiche d’épreuve à venir, « Signaler une info d’inscription » envoie à `POST /api/reports` un des trois
+types `inscriptions_ouvertes`, `complet` (avec un format facultatif), `ouverture_annoncee`, et l’adresse de la page
+qui le montre. Aucun compte n’est demandé ; dates, distances, lieux et nombre d’épreuves ne peuvent pas être modifiés
+par ce canal (seuls l’identifiant fixé par la fiche, le type, le format et l’adresse sont lus).
+
+| Étape | Règle |
+| --- | --- |
+| Réception | épreuve des 78 du référentiel, type et format autorisés, adresse https publique (pas d’IP, de `localhost`, de port inhabituel ni d’identifiants), corps ≤ 4 Ko, champ piège anti-robot |
+| Limitation | 5 signalements par heure et 20 par jour par connexion (empreinte SHA-256 salée et quotidienne de l’IP, effacée après 2 jours) |
+| Dédoublonnage | même épreuve + type + format + adresse normalisée (paramètres de suivi retirés) : « déjà signalé » |
+| Accusé | `reçu`, `déjà signalé` ou `impossible à traiter`, jamais « confirmé » |
+| Vérification | en tâche différée (`waitUntil`), reprise au passage planifié quotidien (3 tentatives) ; seuls les domaines connus sont lus (billetteries, calendrier FFTRI, sites déjà référencés), redirections revérifiées, 2 Mo et 10 s au plus |
+| Publication automatique | seulement si la page établit l’édition 2027, l’épreuve (nom ou commune), la date si elle est donnée, et un état explicite (« inscriptions ouvertes », « complet », annonce d’ouverture) sans indication contraire ; « complet » d’un format ne met à jour que ce format ; la date d’ouverture n’est reprise que si elle est écrite en entier |
+| Sinon | `a_verifier` (autre édition, page illisible, domaine inconnu, contradiction avec le site ou dans la page) : rien n’est publié, le signalement apparaît sur `/admin/` |
+
+Les changements confirmés passent par la même chaîne que la veille (validation, historique des statuts, journal
+`/api/updates`) et s’affichent sur la fiche, rubrique « Informations confirmées ».
+
+**Mise en service (étape distincte)** :
+1. Migration D1 additive (table `registration_reports` et ses index) : `npm run worker:schema:remote`
+   (le fichier `worker/schema.sql` est rejouable sans perte).
+2. Secret facultatif `REPORT_SALT` (type Secret) pour l’empreinte des connexions ; à défaut, `ADMIN_TOKEN` sert de sel.
+3. Fusionner la branche dans `main` : Cloudflare Workers Builds déploie.
+
+Tests : `npm test` (logique), `npm run worker:test` (Worker + D1 local), `npm run test:e2e` (parcours mobile).
+
 ## Déploiement Cloudflare
 
 La base D1 `tcn-calendrier-2027` existe sur le compte Cloudflare, son schéma est appliqué et son

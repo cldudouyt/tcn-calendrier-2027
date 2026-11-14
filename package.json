@@ -16,7 +16,8 @@
     "worker:schema:local": "wrangler d1 execute tcn-calendrier-2027 --local --file worker/schema.sql",
     "worker:schema:remote": "wrangler d1 execute tcn-calendrier-2027 --remote --file worker/schema.sql",
     "veille": "node scripts/veille-auto.ts",
-    "veille:simulation": "node scripts/veille-auto.ts --dry-run"
+    "veille:simulation": "node scripts/veille-auto.ts --dry-run",
+    "worker:test": "bash scripts/worker-test.sh"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

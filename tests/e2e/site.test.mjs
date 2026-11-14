@@ -288,3 +288,49 @@ test('administration : page non référencée, hors navigation, contenu masqué 
   await home.close();
 });
 
+
+test('signalement : parcours mobile depuis une fiche, accusés « reçu » et « déjà signalé »', async () => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
+  const answers = [
+    { result: 'recu', message: 'Merci, votre signalement est reçu.' },
+    { result: 'deja_signale', message: 'Ce signalement a déjà été reçu.' },
+  ];
+  const sent = [];
+  await context.route('**/api/reports', async (route) => {
+    sent.push(JSON.parse(route.request().postData() ?? '{}'));
+    await route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify(answers.shift()) });
+  });
+  const page = await context.newPage();
+  await page.goto(BASE + '/epreuves/pdl-85-2027-09-26-triathlon-sud-vendee/');
+  await page.locator('#report-shortcut').click();
+  assert.equal(await page.locator('#report-details').evaluate((d) => d.open), true);
+  await page.locator('#report-form input[value="complet"]').check({ force: true });
+  assert.equal(await page.locator('#report-format').isVisible(), true);
+  await page.selectOption('#report-format-select', 'S');
+  await page.fill('#report-url', 'pas une adresse');
+  await page.click('#report-submit');
+  assert.match(await page.locator('#report-result').innerText(), /lien complet/);
+  await page.fill('#report-url', 'https://triathlonsudvendee.fr/epreuve/open-distance-s/');
+  await page.click('#report-submit');
+  await page.waitForFunction(() => document.getElementById('report-result').textContent.startsWith('Reçu'));
+  assert.doesNotMatch(await page.locator('#report-result').innerText(), /confirmé/i);
+  assert.deepEqual(sent[0], { eventId: 'pdl-85-2027-09-26-triathlon-sud-vendee', type: 'complet', format: 'S', url: 'https://triathlonsudvendee.fr/epreuve/open-distance-s/', website: '' });
+
+  await page.locator('#report-form input[value="inscriptions_ouvertes"]').check({ force: true });
+  assert.equal(await page.locator('#report-format').isVisible(), false);
+  await page.fill('#report-url', 'https://triathlonsudvendee.fr/inscriptions/');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.getElementById('report-result').textContent.startsWith('Déjà signalé'));
+  assert.equal(sent[1].format, '');
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  assert.ok(overflow <= 1, `débordement ${overflow}px`);
+  const small = await page.evaluate(() => [...document.querySelectorAll('#signaler .btn, #signaler .chip span')].filter((el) => el.offsetParent && el.getBoundingClientRect().height < 40).length);
+  assert.equal(small, 0);
+  await context.close();
+
+  if (pastEvent) {
+    const past = await open(`/epreuves/${pastEvent.id}/`);
+    assert.equal(await past.locator('#signaler').isVisible(), false);
+    await past.close();
+  }
+});

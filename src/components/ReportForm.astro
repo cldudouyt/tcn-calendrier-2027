@@ -1,0 +1,135 @@
+---
+import type { RaceEvent } from '../lib/types';
+import { FORMAT_LABELS } from '../lib/events';
+interface Props { event: RaceEvent }
+const { event } = Astro.props;
+const formats = event.formatTags.filter((f) => f in FORMAT_LABELS);
+---
+<section class="card report" id="signaler" aria-labelledby="t-signaler" data-event-date={event.date} style="margin-top:24px">
+  <h2 id="t-signaler" style="font-size:1.5rem">Une info sur les inscriptions ?</h2>
+  <p class="small muted">Vous avez vu les inscriptions ouvertes, complètes ou une date d’ouverture sur le site de l’organisateur ou de la billetterie ? Signalez-le : la page sera vérifiée automatiquement, et rien n’est publié sans preuve officielle de l’édition 2027.</p>
+  <details id="report-details">
+    <summary class="btn btn-secondary" style="list-style:none;display:inline-flex">Signaler une info d’inscription</summary>
+    <form id="report-form" class="filters" style="margin-top:14px" novalidate>
+      <input type="hidden" name="eventId" value={event.id} />
+      <fieldset>
+        <legend class="legend">Ce que vous avez vu</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="type" value="inscriptions_ouvertes" required /><span>Inscriptions ouvertes</span></label>
+          <label class="chip"><input type="radio" name="type" value="complet" /><span>Complet</span></label>
+          <label class="chip"><input type="radio" name="type" value="ouverture_annoncee" /><span>Ouverture annoncée</span></label>
+        </div>
+      </fieldset>
+      {formats.length > 1 && (
+        <div class="field" id="report-format" hidden>
+          <label for="report-format-select">Format complet</label>
+          <select id="report-format-select" name="format">
+            <option value="">Toute l’épreuve (tous les formats)</option>
+            {formats.map((f) => <option value={f}>{FORMAT_LABELS[f]}</option>)}
+          </select>
+        </div>
+      )}
+      <div class="field">
+        <label for="report-url">Lien de la page où l’information figure</label>
+        <input type="url" id="report-url" name="url" required maxlength="500" inputmode="url" autocomplete="off" placeholder="https://… (organisateur, Klikego, TimePulse…)" />
+      </div>
+      <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden">
+        <label for="report-website">Ne pas remplir</label>
+        <input type="text" id="report-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="report-submit">Envoyer le signalement</button>
+      </div>
+      <p class="small muted" style="margin:0">Aucun compte ni donnée personnelle demandés. Les dates, distances et lieux ne peuvent pas être modifiés par ce formulaire.</p>
+    </form>
+  </details>
+  <p role="status" aria-live="polite" id="report-result" class="notice notice-neutral" style="margin-top:12px" hidden></p>
+</section>
+
+<section class="card-sunk" id="updates" aria-labelledby="t-updates" style="margin-top:24px" hidden>
+  <h2 id="t-updates" style="font-size:1.3rem">Informations confirmées</h2>
+  <ul class="small" id="updates-list" style="margin:0;padding-left:18px;display:grid;gap:8px"></ul>
+</section>
+
+<script>
+  import { parisToday } from '../lib/format';
+
+  const section = document.getElementById('signaler') as HTMLElement | null;
+  const form = document.getElementById('report-form') as HTMLFormElement | null;
+  const result = document.getElementById('report-result') as HTMLElement;
+  const submit = document.getElementById('report-submit') as HTMLButtonElement | null;
+  const formatField = document.getElementById('report-format');
+
+  // Une épreuve passée n'appelle plus de signalement.
+  if (section && section.dataset.eventDate! < parisToday()) {
+    section.hidden = true;
+    const shortcut = document.getElementById('report-shortcut');
+    if (shortcut) shortcut.hidden = true;
+  }
+  // Le raccourci en tête de fiche ouvre directement le formulaire.
+  document.getElementById('report-shortcut')?.addEventListener('click', () => {
+    const details = document.getElementById('report-details') as HTMLDetailsElement | null;
+    if (details) details.open = true;
+  });
+
+  const show = (text: string, tone: 'neutral' | 'ok' | 'warn'): void => {
+    result.hidden = false;
+    result.textContent = text;
+    result.className = tone === 'ok' ? 'notice' : tone === 'warn' ? 'notice' : 'notice notice-neutral';
+    result.style.borderColor = tone === 'ok' ? 'var(--success-border)' : '';
+    result.style.background = tone === 'ok' ? 'var(--success-bg)' : '';
+    result.style.color = tone === 'ok' ? 'var(--success)' : '';
+  };
+
+  form?.addEventListener('change', () => {
+    const type = (form.elements.namedItem('type') as RadioNodeList).value;
+    if (formatField) formatField.hidden = type !== 'complet';
+  });
+
+  form?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const data = new FormData(form);
+    const type = String(data.get('type') ?? '');
+    const url = String(data.get('url') ?? '').trim();
+    if (!type) { show('Choisissez ce que vous avez vu : inscriptions ouvertes, complet ou ouverture annoncée.', 'warn'); return; }
+    if (!/^https?:\/\/\S+\.\S+/.test(url)) { show('Collez le lien complet de la page (il commence par https://).', 'warn'); (form.elements.namedItem('url') as HTMLInputElement).focus(); return; }
+    if (submit) { submit.disabled = true; submit.textContent = 'Envoi…'; }
+    try {
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ eventId: data.get('eventId'), type, format: type === 'complet' ? data.get('format') ?? '' : '', url, website: data.get('website') ?? '' }),
+      });
+      const body = (await res.json().catch(() => null)) as { result?: string; message?: string } | null;
+      if (body?.result === 'recu') { show(`Reçu. ${body.message ?? ''}`, 'ok'); form.reset(); if (formatField) formatField.hidden = true; }
+      else if (body?.result === 'deja_signale') show(`Déjà signalé. ${body.message ?? ''}`, 'neutral');
+      else show(`Impossible à traiter. ${body?.message ?? 'Le service est momentanément indisponible.'}`, 'warn');
+    } catch {
+      show('Impossible à traiter : connexion interrompue. Réessayez dans un instant.', 'warn');
+    } finally {
+      if (submit) { submit.disabled = false; submit.textContent = 'Envoyer le signalement'; }
+    }
+  });
+
+  // Changements confirmés pour cette épreuve (veille, signalements, administrateurs), avec source et horodatage.
+  interface Update { eventId: string; categoryLabel: string; summary: string; sourceUrl: string | null; publishedAt: string }
+  const eventId = (form?.elements.namedItem('eventId') as HTMLInputElement | null)?.value;
+  const fmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Paris' });
+  if (eventId) {
+    fetch('/api/updates', { headers: { accept: 'application/json' } })
+      .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? (r.json() as Promise<{ updates?: Update[] }>) : null))
+      .then((body) => {
+        const mine = (body?.updates ?? []).filter((u) => u.eventId === eventId).slice(0, 10);
+        if (!mine.length) return;
+        const list = document.getElementById('updates-list')!;
+        for (const u of mine) {
+          const li = document.createElement('li');
+          li.append(Object.assign(document.createElement('strong'), { textContent: `${u.categoryLabel} — ` }), u.summary, ` (${fmt.format(new Date(u.publishedAt))}, heure de Paris)`);
+          if (u.sourceUrl?.startsWith('https://')) li.append(' · ', Object.assign(document.createElement('a'), { href: u.sourceUrl, textContent: 'source', rel: 'noopener' }));
+          list.append(li);
+        }
+        document.getElementById('updates')!.hidden = false;
+      })
+      .catch(() => { /* API indisponible : rien à afficher */ });
+  }
+</script>

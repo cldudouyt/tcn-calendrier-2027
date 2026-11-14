@@ -20,6 +20,7 @@ const announcementUrl = status === 'annonce' ? e.officialUrl : null;
 const others = siblings(e);
 const uncertain = e.transport === '?';
 const TO_CHECK = 'Horaires à vérifier';
+import ReportForm from '../../components/ReportForm.astro';
 ---
 <Base title={e.name} description={`${e.name}, ${formatDay(e.date)}${e.town ? ` à ${e.town}` : ''} : formats, statut d’inscription et accès depuis Nantes.`}>
   <article class="section wrap">
@@ -40,6 +41,7 @@ const TO_CHECK = 'Horaires à vérifier';
         : <span class="btn btn-secondary" aria-disabled="true" style="cursor:default">Lien d’inscription non vérifié</span>}
       {e.officialUrl && <a class="btn btn-secondary" href={e.officialUrl} rel="noopener">Site de l’organisateur</a>}
       <button type="button" class="btn btn-secondary" id="share" data-title={e.name}>Partager</button>
+      <a class="btn btn-secondary" href="#signaler" id="report-shortcut">Signaler une info d’inscription</a>
     </div>
     <p class="sr-only" role="status" aria-live="polite" id="share-feedback"></p>
 
@@ -87,6 +89,8 @@ const TO_CHECK = 'Horaires à vérifier';
         <p class="small muted" style="margin:12px 0 0">{e.statusDetail}</p>
       </section>
     </div>
+
+    <ReportForm event={e} />
 
     <section style="margin-top:28px" aria-labelledby="t-acces">
       <p class="eyebrow">Depuis la {e.transportOrigin.toLowerCase()}</p>

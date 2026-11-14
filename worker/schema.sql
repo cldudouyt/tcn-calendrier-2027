@@ -81,3 +81,24 @@ CREATE TABLE IF NOT EXISTS watch_alerts (
   note TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_watch_alerts_state ON watch_alerts (state, id);
+
+-- Signalements communautaires des inscriptions (migration additive : aucune table existante modifiée).
+CREATE TABLE IF NOT EXISTS registration_reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id TEXT NOT NULL,                    -- identifiant d'une des 78 épreuves régionales
+  type TEXT NOT NULL,                        -- inscriptions_ouvertes | complet | ouverture_annoncee
+  format TEXT NOT NULL DEFAULT '',           -- format concerné (« complet » uniquement), sinon vide
+  source_url TEXT NOT NULL,                  -- adresse normalisée fournie par le membre
+  state TEXT NOT NULL DEFAULT 'en_attente',  -- en_attente | confirme | sans_effet | a_verifier | traite | rejete
+  received_at TEXT NOT NULL,
+  verified_at TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  reason TEXT,                               -- motif de la décision (texte court)
+  evidence TEXT,                             -- passage de la page qui fonde la décision
+  change_id INTEGER,                         -- changement publié (table changes) le cas échéant
+  dedupe_key TEXT NOT NULL,                  -- empreinte épreuve + type + format + adresse
+  client_hash TEXT                           -- empreinte salée et quotidienne de l'adresse IP (limitation de débit), effacée après 2 jours
+);
+CREATE INDEX IF NOT EXISTS idx_reports_state ON registration_reports (state, id);
+CREATE INDEX IF NOT EXISTS idx_reports_dedupe ON registration_reports (dedupe_key);
+CREATE INDEX IF NOT EXISTS idx_reports_client ON registration_reports (client_hash, received_at);
