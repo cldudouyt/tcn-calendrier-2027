@@ -363,7 +363,7 @@ async function receiveReport(request: Request, env: Env, ctx: ExecutionContext):
 }
 
 /** Lecture prudente d'une page : domaines connus seulement, redirections revérifiées, taille et durée bornées. */
-async function fetchKnownPage(start: string): Promise<{ ok: true; html: string; url: string } | { ok: false; reason: string; retry: boolean }> {
+export async function fetchKnownPage(start: string): Promise<{ ok: true; html: string; url: string } | { ok: false; reason: string; retry: boolean }> {
   let current = start;
   for (let hop = 0; hop <= 3; hop += 1) {
     const checked = normalizeReportUrl(current);
@@ -392,7 +392,10 @@ async function fetchKnownPage(start: string): Promise<{ ok: true; html: string; 
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > REPORT_MAX_PAGE) { await reader.cancel(); break; }
+      if (size > REPORT_MAX_PAGE) {
+        await reader.cancel();
+        return { ok: false, reason: 'Page trop volumineuse : vérification automatique impossible.', retry: false };
+      }
       chunks.push(value);
     }
     const bytes = new Uint8Array(chunks.reduce((n, c) => n + c.byteLength, 0));
