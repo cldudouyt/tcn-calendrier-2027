@@ -104,9 +104,10 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .weekend-multi { background: var(--sunk); border: 1px dashed var(--line-input); border-radius: var(--radius); padding: 12px; }
 .weekend-label { font-family: var(--cond); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .82rem; color: var(--muted); margin: 0 0 8px 4px; }
 .event-list { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
-.event-card { display: grid; grid-template-columns: 74px 1fr; gap: 14px; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
+.event-card { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 14px; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
 .event-date { text-align: center; border-right: 1px solid var(--line); padding-right: 12px; font-family: var(--cond); font-weight: 700; text-transform: uppercase; color: var(--muted); font-size: .8rem; letter-spacing: .08em; }
 .event-date b { display: block; font-family: var(--display); font-weight: 400; font-size: 2.2rem; line-height: 1; color: var(--ink); letter-spacing: 0; }
+.event-card > :last-child { min-width: 0; overflow-wrap: anywhere; }
 .event-card h3 { margin: 0 0 2px; font-family: var(--cond); font-weight: 800; font-size: 1.2rem; line-height: 1.2; }
 .event-card h3 a { color: var(--ink); text-decoration: none; }
 .event-card h3 a:hover { color: var(--orange-deeper); text-decoration: underline; }
@@ -174,7 +175,7 @@ table.plain th { font-family: var(--cond); text-transform: uppercase; letter-spa
   .nav a { font-size: .82rem; letter-spacing: .03em; padding: 10px 7px; }
   .nav { gap: 0; }
   body { font-size: 16px; }
-  .event-card { grid-template-columns: 58px 1fr; gap: 10px; padding: 12px; }
+  .event-card { grid-template-columns: 58px minmax(0, 1fr); gap: 10px; padding: 12px; }
   .event-date b { font-size: 1.8rem; }
   .section { padding-block: 28px; }
 }
