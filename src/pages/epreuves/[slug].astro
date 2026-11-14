@@ -26,6 +26,9 @@ const TO_CHECK = 'Horaires à vérifier';
     <p class="eyebrow"><a href="/calendrier/">Calendrier</a> · {e.kind} · {DEPARTMENT_NAMES[e.department]} ({e.department})</p>
     <h1 style="font-size:clamp(2rem,6vw,3.6rem)">{e.name}</h1>
     <p class="lead"><time datetime={e.date}>{formatDay(e.date)}</time> · {e.town ?? 'commune à confirmer'}</p>
+    <div class="notice notice-neutral" id="past-notice" data-event-date={e.date} style="margin-bottom:18px" hidden>
+      <p><strong>Épreuve passée.</strong> Cette fiche reste consultable pour mémoire ; elle n’apparaît plus dans le calendrier ni sur la carte. <a href="/calendrier/">Voir les prochains rendez-vous</a>.</p>
+    </div>
     <div class="badges" style="margin-bottom:18px">
       <StatusBadge event={e} />
       <TransportBadge code={e.transport} />
@@ -127,6 +130,9 @@ const TO_CHECK = 'Horaires à vérifier';
 </Base>
 
 <script>
+  import { parisToday } from '../../lib/format';
+  const pastNotice = document.getElementById('past-notice');
+  if (pastNotice && pastNotice.dataset.eventDate! < parisToday()) pastNotice.hidden = false;
   const btn = document.getElementById('share');
   const feedback = document.getElementById('share-feedback');
   btn?.addEventListener('click', async () => {

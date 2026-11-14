@@ -5,12 +5,12 @@ import { dayNumber, formatDay, monthShort, weekdayShort } from '../lib/format';
 import StatusBadge from './StatusBadge.astro';
 import { effectiveStatus, verifiedRegistrationUrl } from '../lib/status';
 import TransportBadge from './TransportBadge.astro';
-interface Props { event: RaceEvent; heading?: 'h3' | 'h4' }
-const { event } = Astro.props;
+interface Props { event: RaceEvent; heading?: 'h3' | 'h4'; hidden?: boolean }
+const { event, hidden = false } = Astro.props;
 const registrationStatus = effectiveStatus(event);
 const registrationLink = verifiedRegistrationUrl(event);
 ---
-<li class="event-card" data-event-id={event.id} id={`e-${event.id}`}>
+<li class="event-card" data-event-id={event.id} data-event-date={event.date} id={`e-${event.id}`} hidden={hidden}>
   <div class="event-date" aria-hidden="true">
     {weekdayShort(event.date)}<b>{dayNumber(event.date)}</b>{monthShort(event.date)}
   </div>

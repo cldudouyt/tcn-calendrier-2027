@@ -11,6 +11,11 @@ const published = new Map(reports.flatMap((r) => r.changes.map((c) => [c.eventId
 const openCount = [...published.values()].filter((status) => status === 'ouvert').length;
 const announcedCount = [...published.values()].filter((status) => status === 'annonce').length;
 const closedCount = [...published.values()].filter(status => ['complet', 'ferme', 'annule'].includes(status)).length;
+// Épreuves à venir (heure de Paris) : les épreuves passées sont masquées par défaut.
+const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const allEvents = JSON.parse(readFileSync(new URL('../../data.json', import.meta.url), 'utf8'));
+const upcomingCount = allEvents.filter((e) => e.date >= today).length;
+const pastEvent = allEvents.filter((e) => e.date < today).sort((a, b) => b.date.localeCompare(a.date))[0];
 const conflictingCount = [...published.values()].filter(status => status === 'a_confirmer').length;
 let browser;
 before(async () => { browser = await chromium.launch(); });
@@ -59,7 +64,7 @@ test('charte : couleurs et polices du site Quiberon', async () => {
 });
 
 test('calendrier : 78 entrées, répartition 20/10/15/13/20, aucun statut inventé', async () => {
-  const page = await open('/calendrier/');
+  const page = await open('/calendrier/?passees=1');
   assert.equal(await visibleCards(page), 78);
   await page.locator('#filter-details summary').click(); // filtres repliés par défaut
   assert.equal(await page.locator('#result-count').innerText(), '78');
@@ -75,7 +80,7 @@ test('calendrier : 78 entrées, répartition 20/10/15/13/20, aucun statut invent
 });
 
 test('calendrier : filtres cumulables, recherche, URL partageable, vue mois', async () => {
-  const page = await open('/calendrier/');
+  const page = await open('/calendrier/?passees=1');
   await page.locator('#filter-details summary').click();
   await page.locator('input[name="dep"][value="44"]').check({ force: true });
   await page.locator('input[name="kind"][value="Bike & Run"]').check({ force: true });
@@ -90,7 +95,8 @@ test('calendrier : filtres cumulables, recherche, URL partageable, vue mois', as
   await shared.close();
 
   await page.locator('#filters-reset').click();
-  await page.waitForFunction(() => document.getElementById('result-count').textContent === '78');
+  // « Réinitialiser » revient à l'affichage par défaut : épreuves à venir seulement.
+  await page.waitForFunction((n) => document.getElementById('result-count').textContent === String(n), upcomingCount);
   await page.fill('#q', 'coueron');
   assert.equal(await visibleCards(page), 1);
   await page.fill('#q', 'zzzz');
@@ -100,9 +106,32 @@ test('calendrier : filtres cumulables, recherche, URL partageable, vue mois', as
   await page.locator('[data-view="mois"]').click();
   assert.equal(await page.locator('#view-mois').isVisible(), true);
   assert.equal(await page.locator('#view-mois section').count(), 13);
-  assert.equal(await page.locator('#view-mois li[data-event-id]:visible').count(), 78);
+  assert.equal(await page.locator('#view-mois li[data-event-id]:visible').count(), upcomingCount);
   assert.match(page.url(), /vue=mois/);
   await page.close();
+});
+
+test('épreuves passées : masquées par défaut, affichables, fiche conservée', async () => {
+  const page = await open('/calendrier/');
+  assert.equal(await page.locator('#result-count').innerText(), String(upcomingCount));
+  assert.match(await page.locator('#result-label').innerText(), /à venir/);
+  if (pastEvent) {
+    assert.equal(await page.locator(`#view-liste [data-event-id="${pastEvent.id}"]`).isVisible(), false);
+    await page.locator('input[name="passees"]').check({ force: true });
+    assert.equal(await page.locator('#result-count').innerText(), '78');
+    assert.match(page.url(), /passees=1/);
+    assert.equal(await page.locator(`#view-liste [data-event-id="${pastEvent.id}"]`).isVisible(), true);
+    const fiche = await open(`/epreuves/${pastEvent.id}/`);
+    assert.equal(await fiche.locator('#past-notice').isVisible(), true);
+    await fiche.close();
+  }
+  const home = await open('/');
+  const dates = await home.locator('#upcoming-list > li:visible').evaluateAll((els) => els.map((el) => el.dataset.eventDate));
+  assert.equal(dates.length, Math.min(4, upcomingCount));
+  assert.ok(dates.every((d) => d >= today), `accueil : ${dates.join(', ')}`);
+  const future = await open('/epreuves/pdl-85-2027-06-27-ironman-les-sables-dolonne/');
+  assert.equal(await future.locator('#past-notice').isVisible(), false);
+  await Promise.all([page.close(), home.close(), future.close()]);
 });
 
 test('calendrier : week-end regroupé, entrées distinctes', async () => {
@@ -113,7 +142,7 @@ test('calendrier : week-end regroupé, entrées distinctes', async () => {
 });
 
 test('carte : positions indicatives, repères et filtres synchronisés avec la liste', async () => {
-  const page = await open('/carte/?dep=85');
+  const page = await open('/carte/?dep=85&passees=1');
   assert.match(await page.locator('.notice').first().innerText(), /Positions indicatives/);
   assert.equal(await page.locator('#result-count').innerText(), '20');
   assert.equal(await page.locator('input[name="dep"][value="85"]').isChecked(), true);
@@ -136,7 +165,7 @@ test('carte : positions indicatives, repères et filtres synchronisés avec la l
 });
 
 test('carte : statut d’inscription visible sur les repères et filtrable en un geste', async () => {
-  const page = await open('/carte/');
+  const page = await open('/carte/?passees=1');
   await page.waitForSelector('.leaflet-marker-icon');
   const n = (g) => page.locator(`.status-pill[data-status-group="${g}"] [data-n]`).innerText();
   assert.deepEqual([await n('ouvert'), await n('annonce'), await n('non_verifie'), await n('clos')], [openCount, announcedCount, 78 - published.size, closedCount].map(String));
@@ -162,7 +191,7 @@ test('carte : statut d’inscription visible sur les repères et filtrable en un
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ statuses }) });
   });
   const live = await context.newPage();
-  await live.goto(BASE + '/carte/');
+  await live.goto(BASE + '/carte/?passees=1');
   await live.waitForFunction(() => document.querySelector('.status-pill[data-status-group="ouvert"] [data-n]').textContent === '1');
   const m = (g) => live.locator(`.status-pill[data-status-group="${g}"] [data-n]`).innerText();
   assert.deepEqual([await m('ouvert'), await m('annonce'), await m('non_verifie'), await m('clos')], ['1', '1', '75', '1']);
@@ -231,7 +260,7 @@ test('mobile : pas de défilement horizontal, cibles tactiles, carte utilisable'
 });
 
 test('clavier : lien d’évitement, focus visible, filtres actionnables', async () => {
-  const page = await open('/calendrier/');
+  const page = await open('/calendrier/?passees=1');
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement.className), 'skip');
   await page.locator('#q').focus();

@@ -11,7 +11,7 @@ import { formatDay } from '../lib/format';
     <p class="lead">{outOfRegion.length} rendez-vous nationaux cités à part dans le PDF (p. 7 et 20). Ils ne sont <strong>pas comptés</strong> dans les {events.length} rendez-vous régionaux.</p>
     <ul class="event-list" id="hors-region-list">
       {outOfRegion.map((e) => (
-        <li class="card">
+        <li class="card" data-event-date={e.endDate ?? e.date}>
           <h2 style="font-family:var(--cond);font-weight:800;font-size:1.2rem;text-transform:none;margin:0 0 2px">{e.name}</h2>
           <p class="event-meta">{e.endDate ? `Du ${formatDay(e.date)} au ${formatDay(e.endDate)}` : formatDay(e.date)} · {e.town} ({e.department}){e.formats && ` · ${e.formats}`}</p>
           <div class="badges" style="margin-bottom:8px"><span class="badge">Inscriptions non vérifiées</span><TransportBadge code={e.transport} /></div>
@@ -21,3 +21,9 @@ import { formatDay } from '../lib/format';
     </ul>
   </section>
 </Base>
+
+<script>
+  import { parisToday } from '../lib/format';
+  const today = parisToday();
+  document.querySelectorAll<HTMLElement>('#hors-region-list > [data-event-date]').forEach((li) => { li.hidden = li.dataset.eventDate! < today; });
+</script>

@@ -12,6 +12,10 @@ export const formatMonth = (monthKey: string): string => MONTH.format(dayToDate(
 export const weekdayShort = (iso: string): string => WEEKDAY_SHORT.format(dayToDate(iso));
 export const monthShort = (iso: string): string => MONTH_SHORT.format(dayToDate(iso));
 export const dayNumber = (iso: string): number => dayToDate(iso).getUTCDate();
+/** Date du jour à Paris (AAAA-MM-JJ) : une épreuve est « passée » dès le lendemain de sa date. */
+export function parisToday(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+}
 export const monthKey = (iso: string): string => iso.slice(0, 7);
 /** 1 = lundi … 7 = dimanche. */
 export const isoWeekday = (iso: string): number => dayToDate(iso).getUTCDay() || 7;

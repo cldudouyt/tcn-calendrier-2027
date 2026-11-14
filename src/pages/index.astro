@@ -13,7 +13,8 @@ const changes = latest?.changes.filter((c, i, all) => {
   return !event || all.findIndex(other => byId.get(other.eventId)?.eventGroupId === event.eventGroupId) === i;
 }) ?? [];
 const today = new Date().toISOString().slice(0, 10);
-const upcoming = events.filter((e) => e.date >= today).slice(0, 4);
+// Quelques épreuves de réserve : le navigateur retire celles passées depuis la publication du site.
+const upcoming = events.filter((e) => e.date >= today).slice(0, 12);
 const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e) => e.department === d).length }));
 ---
 <Base title="Triathlon Pays de la Loire 2027">
@@ -74,7 +75,7 @@ const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e
   <section class="section wrap">
     <p class="eyebrow">À venir</p>
     <h2>Prochains rendez-vous</h2>
-    <ul class="event-list">{upcoming.map((e) => <EventCard event={e} />)}</ul>
+    <ul class="event-list" id="upcoming-list">{upcoming.map((e, i) => <EventCard event={e} hidden={i >= 4} />)}</ul>
     <p style="margin-top:16px"><a href="/calendrier/">Tous les rendez-vous →</a></p>
   </section>
 
@@ -84,3 +85,15 @@ const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e
     </div>
   </section>
 </Base>
+
+<script>
+  import { parisToday } from '../lib/format';
+  // Le site est publié une fois : la date du jour est appliquée à chaque visite.
+  const today = parisToday();
+  let shown = 0;
+  document.querySelectorAll<HTMLElement>('#upcoming-list > [data-event-date]').forEach((li) => {
+    const keep = li.dataset.eventDate! >= today && shown < 4;
+    li.hidden = !keep;
+    if (keep) shown += 1;
+  });
+</script>

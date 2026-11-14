@@ -33,7 +33,7 @@ export const eventUrl = (e: Pick<RaceEvent, 'id'>): string => `/epreuves/${e.id}
 export function toFilterable(e: RaceEvent): Filterable {
   return {
     id: e.id, name: e.name, town: e.town, department: e.department, kind: e.kind,
-    formatTags: e.formatTags, month: monthKey(e.date), status: effectiveStatus(e), access: accessCategories(e),
+    formatTags: e.formatTags, month: monthKey(e.date), date: e.date, status: effectiveStatus(e), access: accessCategories(e),
   };
 }
 

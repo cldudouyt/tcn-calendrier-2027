@@ -57,7 +57,7 @@ const unlocated = events.filter((e) => !e.coords);
 
 <script>
   import { initFilters, readEventsData } from '../client/filters-ui';
-  import { applyFilters } from '../lib/filters';
+  import { applyFilters, countLabel } from '../lib/filters';
   import { createMap, statusGroup, type MapPoint } from '../client/map';
 
   const data = readEventsData();
@@ -90,7 +90,7 @@ const unlocated = events.filter((e) => !e.coords);
     map.show(visible);
     document.querySelectorAll<HTMLElement>('[data-event-id]').forEach((el) => { el.hidden = !visible.has(el.dataset.eventId!); });
     document.getElementById('result-count')!.textContent = String(visible.size);
-    document.getElementById('result-label')!.textContent = visible.size === data.length ? 'rendez-vous régionaux' : `rendez-vous sur ${data.length}`;
+    document.getElementById('result-label')!.textContent = countLabel(visible.size, f, data);
   };
   initFilters(refresh);
 

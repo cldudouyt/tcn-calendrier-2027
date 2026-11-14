@@ -49,7 +49,7 @@ const icsData = events.map((e) => ({ id: e.id, date: e.date, name: e.name, town:
     <div id="view-mois" hidden>
       <div class="grid grid-2">
         {byMonth.map((m) => (
-          <section class="card" aria-labelledby={`grille-${m.key}`}>
+          <section class="card" aria-labelledby={`grille-${m.key}`} data-month={m.key}>
             <h2 id={`grille-${m.key}`} style="font-size:1.5rem">{m.label}</h2>
             <div class="month-grid">
               {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d) => <span class="dow" aria-hidden="true">{d}</span>)}
@@ -82,11 +82,12 @@ const icsData = events.map((e) => ({ id: e.id, date: e.date, name: e.name, town:
 
 <script>
   import { initFilters, readEventsData } from '../client/filters-ui';
-  import { applyFilters } from '../lib/filters';
+  import { applyFilters, countLabel, type Filters } from '../lib/filters';
   import { buildIcs, type IcsEvent } from '../lib/ics';
 
   const data = readEventsData();
   let visible = new Set(data.map((e) => e.id));
+  let filters: Filters | null = null;
 
   function render(): void {
     document.querySelectorAll<HTMLElement>('[data-event-id]').forEach((el) => { el.hidden = !visible.has(el.dataset.eventId!); });
@@ -104,11 +105,17 @@ const icsData = events.map((e) => ({ id: e.id, date: e.date, name: e.name, town:
       if (sup) sup.textContent = n ? String(n) : '';
     });
     document.getElementById('result-count')!.textContent = String(visible.size);
-    document.getElementById('result-label')!.textContent = visible.size === data.length ? 'rendez-vous régionaux' : `rendez-vous sur ${data.length}`;
+    if (filters) {
+      document.getElementById('result-label')!.textContent = countLabel(visible.size, filters, data);
+      // Vue mois : les mois entièrement écoulés disparaissent avec les épreuves passées.
+      const current = filters.today.slice(0, 7);
+      const hidePast = !filters.past && Boolean(current);
+      document.querySelectorAll<HTMLElement>('#view-mois section[data-month]').forEach((s) => { s.hidden = hidePast && s.dataset.month! < current; });
+    }
     document.getElementById('no-result')!.hidden = visible.size > 0;
   }
 
-  initFilters((f) => { visible = new Set(applyFilters(data, f).map((e) => e.id)); render(); });
+  initFilters((f) => { filters = f; visible = new Set(applyFilters(data, f).map((e) => e.id)); render(); });
 
   // Vues liste / mois, mémorisées dans l'URL (?vue=mois).
   const setView = (view: string): void => {

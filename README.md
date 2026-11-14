@@ -36,6 +36,14 @@ npm run build && npm run worker:schema:local && npm run worker:dev
 | `worker/` | Worker Cloudflare : API, administration, contrôle quotidien, schéma D1 |
 | `tests/` | Tests unitaires (Vitest) et de bout en bout (Playwright) |
 
+## Épreuves passées
+
+Elles disparaissent du calendrier, de la carte, de la page hors région et des « prochains rendez-vous » dès le
+lendemain de leur date (heure de Paris). Le tri se fait à chaque visite dans le navigateur : aucune tâche planifiée
+ni nouvelle publication n'est nécessaire. La case « Afficher aussi les épreuves passées » (`?passees=1`) les
+réaffiche ; les fiches restent consultables avec la mention « Épreuve passée ». Les indicateurs de l'accueil et
+l'API gardent la saison complète (78 rendez-vous).
+
 ## Règles éditoriales appliquées par le code
 
 - Un statut autre que « non vérifié » exige un fait vérifié, une date de vérification et un lien officiel

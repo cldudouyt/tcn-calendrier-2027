@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { computeKpis, events, toFilterable } from '../src/lib/events';
-import { applyFilters, emptyFilters, parseFilters, serializeFilters, activeFilterCount } from '../src/lib/filters';
+import { applyFilters, countLabel, emptyFilters, parseFilters, serializeFilters, activeFilterCount } from '../src/lib/filters';
 import { buildIcs } from '../src/lib/ics';
-import { formatDay, formatParis, listMonths, normalizeText } from '../src/lib/format';
+import { formatDay, formatParis, listMonths, normalizeText, parisToday } from '../src/lib/format';
 
 const all = events.map(toFilterable);
 const f = (over: Partial<ReturnType<typeof emptyFilters>>) => ({ ...emptyFilters(), ...over });
@@ -74,5 +74,35 @@ describe('export .ics', () => {
     expect(ics).toContain('DTSTART;VALUE=DATE:20270627');
     expect(ics).toContain('DTEND;VALUE=DATE:20270628');
     expect(ics.split('\r\n').every((l) => l.length <= 75)).toBe(true);
+  });
+});
+
+describe('épreuves passées', () => {
+  it('les masque à partir du lendemain de leur date, sauf demande explicite', () => {
+    const day = '2026-11-15';
+    const shown = applyFilters(all, f({ today: day }));
+    expect(shown.every((e) => e.date >= day)).toBe(true);
+    expect(shown.length).toBe(all.filter((e) => e.date >= day).length);
+    expect(shown.some((e) => e.date === day)).toBe(true);
+    expect(applyFilters(all, f({ today: day, past: true }))).toHaveLength(78);
+    expect(applyFilters(all, f({ today: '' }))).toHaveLength(78);
+  });
+  it('mémorise le choix dans l’URL partageable, jamais la date du jour', () => {
+    const qs = serializeFilters(f({ past: true, today: '2027-01-01' })).toString();
+    expect(qs).toBe('passees=1');
+    expect(parseFilters(new URLSearchParams(qs)).past).toBe(true);
+    expect(parseFilters(new URLSearchParams('')).past).toBe(false);
+  });
+  it('libelle le compteur selon le mode', () => {
+    const day = '2027-06-01';
+    const upcoming = all.filter((e) => e.date >= day).length;
+    expect(countLabel(upcoming, f({ today: day }), all)).toBe('rendez-vous à venir');
+    expect(countLabel(3, f({ today: day }), all)).toBe(`rendez-vous à venir sur ${upcoming}`);
+    expect(countLabel(78, f({ today: day, past: true }), all)).toBe('rendez-vous régionaux');
+  });
+  it('donne la date du jour à Paris, y compris autour de minuit', () => {
+    expect(parisToday(new Date('2026-11-14T23:30:00Z'))).toBe('2026-11-15');
+    expect(parisToday(new Date('2027-07-01T21:59:00Z'))).toBe('2027-07-01');
+    expect(parisToday(new Date('2027-07-01T22:01:00Z'))).toBe('2027-07-02');
   });
 });

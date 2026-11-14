@@ -1,3 +1,4 @@
+import { parisToday } from '../lib/format';
 import { MULTI_KEYS, activeFilterCount, emptyFilters, parseFilters, serializeFilters, type Filterable, type Filters } from '../lib/filters';
 
 export function readEventsData(): Filterable[] {
@@ -8,6 +9,8 @@ export function readEventsData(): Filterable[] {
 function readForm(form: HTMLFormElement): Filters {
   const f = emptyFilters();
   f.q = (form.elements.namedItem('q') as HTMLInputElement | null)?.value ?? '';
+  f.past = (form.elements.namedItem('passees') as HTMLInputElement | null)?.checked ?? false;
+  f.today = parisToday();
   for (const key of MULTI_KEYS) {
     f[key] = [...form.querySelectorAll<HTMLInputElement>(`input[name="${key}"]:checked`)].map((i) => i.value);
   }
@@ -17,6 +20,8 @@ function readForm(form: HTMLFormElement): Filters {
 function writeForm(form: HTMLFormElement, f: Filters): void {
   const q = form.elements.namedItem('q') as HTMLInputElement | null;
   if (q) q.value = f.q;
+  const past = form.elements.namedItem('passees') as HTMLInputElement | null;
+  if (past) past.checked = f.past;
   for (const key of MULTI_KEYS) {
     form.querySelectorAll<HTMLInputElement>(`input[name="${key}"]`).forEach((i) => { i.checked = f[key].includes(i.value); });
   }
