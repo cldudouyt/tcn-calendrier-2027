@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { events, surveys, computeKpis, eventUrl } from '../../lib/events';
-import { formatDay, formatParis } from '../../lib/format';
+import { events, surveys, computeKpis, eventUrl, groupSchedule } from '../../lib/events';
+import { formatParis } from '../../lib/format';
 import { CATEGORY_LABEL, STATUS_META } from '../../lib/status';
 import { REGISTRATION_STATUSES } from '../../lib/schema';
 
@@ -12,21 +12,22 @@ const uniqueChanges = (changes: typeof surveys[number]['changes']) => changes.fi
   const e = find(change.eventId);
   return !e || all.findIndex(other => find(other.eventId)?.eventGroupId === e.eventGroupId) === index;
 });
-const days = (id: string) => {
-  const event = find(id);
-  return event ? events.filter(e => e.eventGroupId === event.eventGroupId).map(e => formatDay(e.date)).join(' et ') : '';
-};
+// Le lien « S’inscrire » ne figure que sur l'information la plus récente d'une épreuve ;
+// les relevés plus anciens renvoient à leur propre source.
+const latestChange = new Map<string, string>();
+for (const s of surveys) for (const c of s.changes) if (!latestChange.has(c.eventId)) latestChange.set(c.eventId, s.id);
 ---
-<Base title="Veille des inscriptions" description="Suivi des inscriptions d’inscriptions : ce qui est ouvert, annoncé, complet ou encore à confirmer, avec sources et dates de vérification.">
+<Base title="Veille des inscriptions" description="Suivi des inscriptions : ce qui est ouvert, annoncé, complet ou encore à confirmer, avec sources et dates de vérification.">
   <section class="section wrap">
     <p class="eyebrow">Journal des relevés</p>
     <h1 style="font-size:clamp(2.2rem,6vw,3.6rem)">Veille des inscriptions</h1>
     <p class="lead">Pour chaque compétition, découvrez si les inscriptions sont ouvertes, annoncées, complètes ou encore à vérifier. Les informations publiées comportent une source et une date.</p>
     <div class="card" style="margin-block:18px">
-      <p class="eyebrow">Dernière mise à jour publiée</p>
+      <p class="eyebrow">Dernier contrôle</p>
       <p style="font-family:var(--display);font-size:1.8rem;margin:0" id="last-check">
         {latest ? <time datetime={latest.checkedAt}>{formatParis(latest.checkedAt, latest.checkedAtPrecision)}</time> : 'Aucun relevé'}
       </p>
+      <p class="small muted" style="margin:6px 0 0">Relevé automatique des pages officielles chaque matin, contrôle des liens publiés chaque jour à 8 h 30. Dernière information publiée : {latest ? formatParis(latest.checkedAt, latest.checkedAtPrecision) : '—'}.</p>
     </div>
 
     <h2>État actuel</h2>
@@ -59,10 +60,12 @@ const days = (id: string) => {
                   return (
                     <li>
                       <strong>{ev ? <a href={eventUrl(ev)}>{ev.name}</a> : c.eventId}</strong>
-                      {ev && <div class="small muted">{ev.town ?? 'Lieu à confirmer'} · {days(ev.id)} · {ev.formats}</div>}
+                      {ev && <div class="small muted">{ev.town ?? 'Lieu à confirmer'} · {groupSchedule(ev)}</div>}
                       <div><span class="badge">{CATEGORY_LABEL[c.category]}</span> {c.summary}</div>
                       {c.previous && <span class="small muted">Statut précédent : {c.previous}</span>}
-                      {c.sourceUrl && <p class="small" style="margin:5px 0 0"><a href={ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? ev.registrationUrl : ev?.officialUrl ?? c.sourceUrl} rel="noopener">{ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? 'S’inscrire' : ev?.registrationStatus === 'annonce' ? 'Voir l’annonce de l’organisateur' : 'Voir la source officielle'}</a></p>}
+                      {c.sourceUrl && (latestChange.get(c.eventId) === s.id
+                        ? <p class="small" style="margin:5px 0 0"><a href={ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? ev.registrationUrl : ev?.officialUrl ?? c.sourceUrl} rel="noopener">{ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? 'S’inscrire' : ev?.registrationStatus === 'annonce' ? 'Voir l’annonce de l’organisateur' : 'Voir la source officielle'}</a></p>
+                        : <p class="small" style="margin:5px 0 0"><a href={c.sourceUrl} rel="noopener">Source de ce relevé</a> <span class="muted">(information depuis remplacée)</span></p>)}
                     </li>
                   );
                 })}
@@ -94,8 +97,13 @@ const days = (id: string) => {
   const text = (tag: string, value: string, cls = ''): HTMLElement => Object.assign(document.createElement(tag), { textContent: value, className: cls });
   fetch('/api/updates', { headers: { accept: 'application/json' } })
     .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? r.json() : null))
-    .then((body: { updates?: ApiUpdate[] } | null) => {
+    .then((body: { updates?: ApiUpdate[]; lastCheck?: string | null } | null) => {
       if (!body) return;
+      // Dernier contrôle réel (veille automatique ou contrôle des liens), s'il est plus récent que le dernier relevé publié.
+      const shown = document.querySelector('#last-check time')?.getAttribute('datetime');
+      if (body.lastCheck && (!shown || Date.parse(body.lastCheck) > Date.parse(shown))) {
+        document.getElementById('last-check')!.textContent = `${fmt.format(new Date(body.lastCheck))} (heure de Paris)`;
+      }
       const list = document.getElementById('timeline')!;
       for (const u of [...(body.updates ?? [])].reverse()) {
         const li = text('li', '', 'card');

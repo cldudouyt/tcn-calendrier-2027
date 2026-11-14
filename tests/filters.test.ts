@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeKpis, events, toFilterable } from '../src/lib/events';
 import { applyFilters, countLabel, emptyFilters, parseFilters, serializeFilters, activeFilterCount } from '../src/lib/filters';
-import { buildIcs } from '../src/lib/ics';
+import { buildIcs, fold } from '../src/lib/ics';
 import { formatDay, formatParis, listMonths, normalizeText, parisToday } from '../src/lib/format';
 
 const all = events.map(toFilterable);
@@ -96,7 +96,8 @@ describe('épreuves passées', () => {
   it('libelle le compteur selon le mode', () => {
     const day = '2027-06-01';
     const upcoming = all.filter((e) => e.date >= day).length;
-    expect(countLabel(upcoming, f({ today: day }), all)).toBe('rendez-vous à venir');
+    expect(countLabel(upcoming, f({ today: day }), all)).toBe('rendez-vous à venir · 78 référencés, épreuves passées masquées');
+    expect(countLabel(78, f({ today: '2026-11-01' }), all)).toBe('rendez-vous à venir');
     expect(countLabel(3, f({ today: day }), all)).toBe(`rendez-vous à venir sur ${upcoming}`);
     expect(countLabel(78, f({ today: day, past: true }), all)).toBe('rendez-vous régionaux');
   });
@@ -104,5 +105,22 @@ describe('épreuves passées', () => {
     expect(parisToday(new Date('2026-11-14T23:30:00Z'))).toBe('2026-11-15');
     expect(parisToday(new Date('2027-07-01T21:59:00Z'))).toBe('2027-07-01');
     expect(parisToday(new Date('2027-07-01T22:01:00Z'))).toBe('2027-07-02');
+  });
+});
+
+describe('export .ics conforme', () => {
+  const unfold = (text: string): string => text.replace(/\r\n /g, '');
+  it('plie une seule fois, à 75 octets, sans couper les caractères accentués', () => {
+    const line = `DESCRIPTION:${'Épreuve à confirmer auprès de l’organisateur. '.repeat(4)}`;
+    const folded = fold(line);
+    expect(unfold(folded)).toBe(line);
+    for (const part of folded.split('\r\n')) expect(new TextEncoder().encode(part).length).toBeLessThanOrEqual(75);
+  });
+  it('restitue le texte intact après dépliage et protège les séparateurs', () => {
+    const ics = buildIcs([{ id: 'x', date: '2027-01-10', name: 'Run; Bike, test', town: 'Saint-Nazaire', formats: 'S, XS', url: 'https://exemple.fr/epreuves/x/' }]);
+    const plain = unfold(ics);
+    expect(plain).toContain('SUMMARY:Run\\; Bike\\, test');
+    expect(plain).toContain('à confirmer auprès de l’organisateur');
+    expect(plain).not.toMatch(/\r\n  /);
   });
 });

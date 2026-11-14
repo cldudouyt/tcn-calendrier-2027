@@ -1,8 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import EventCard from '../components/EventCard.astro';
-import { events, surveys, computeKpis, outOfRegion, DEPARTMENT_NAMES, PDF_REFERENCE_DATE } from '../lib/events';
-import { formatDay, formatParis } from '../lib/format';
+import { events, surveys, computeKpis, outOfRegion, DEPARTMENT_NAMES, PDF_REFERENCE_DATE, groupSchedule } from '../lib/events';
+import { formatParis } from '../lib/format';
 import { CATEGORY_LABEL } from '../lib/status';
 
 const kpis = computeKpis(events);
@@ -36,7 +36,7 @@ const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e
     </ul>
     <p class="small muted" style="margin-top:12px">
       Répartition : {byDep.map((x, i) => <>{i > 0 && ' · '}<a href={`/calendrier/?dep=${x.d}`}>{DEPARTMENT_NAMES[x.d]} {x.n}</a></>)}.
-      Une compétition sur plusieurs jours compte une fois par journée. Les {outOfRegion.length} <a href="/hors-region/">rendez-vous hors région</a> sont comptés à part.
+      Une compétition sur plusieurs jours compte une fois par journée. Ces compteurs portent sur toute la saison, épreuves déjà passées comprises ; le calendrier et la carte n’affichent par défaut que les épreuves à venir. Les {outOfRegion.length} <a href="/hors-region/">rendez-vous hors région</a> sont comptés à part.
     </p>
   </section>
 
@@ -52,12 +52,11 @@ const byDep = Object.keys(DEPARTMENT_NAMES).map((d) => ({ d, n: events.filter((e
           <ul>
             {changes.slice(0, 6).map((c) => {
               const e = byId.get(c.eventId);
-              const days = e ? events.filter(x => x.eventGroupId === e.eventGroupId).map(x => formatDay(x.date)) : [];
               const isOpen = e?.registrationStatus === 'ouvert' && Boolean(e.registrationUrl);
               const link = isOpen ? e?.registrationUrl : (e?.officialUrl ?? c.sourceUrl);
               return <li style="margin-bottom:18px">
                 <strong>{e ? <a href={`/epreuves/${e.id}/`}>{e.name}</a> : c.eventId}</strong>
-                {e && <div class="small muted">{e.town ?? 'Lieu à confirmer'} · {days.join(' et ')} · {e.formats}</div>}
+                {e && <div class="small muted">{e.town ?? 'Lieu à confirmer'} · {groupSchedule(e)}</div>}
                 <div><span class="badge">{CATEGORY_LABEL[c.category]}</span> {c.summary}</div>
                 {link && <p class="small" style="margin:6px 0 0"><a href={link} rel="noopener">{isOpen ? 'S’inscrire' : e?.registrationStatus === 'annonce' ? 'Voir l’annonce de l’organisateur' : 'Consulter la source officielle'}</a></p>}
               </li>;

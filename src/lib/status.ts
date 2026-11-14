@@ -40,6 +40,27 @@ export function effectiveStatus(e: Evidence): RegistrationStatus {
   return hasOfficialEvidence(e) ? e.registrationStatus : 'non_verifie';
 }
 
+/** Formats signalés complets par l'organisateur (disponibilités par format). */
+export function fullFormats(e: Pick<RaceEvent, 'formatAvailability'>): string[] {
+  return (e.formatAvailability ?? []).filter((f) => f.status === 'complet').map((f) => f.format);
+}
+
+/**
+ * Libellé affiché : identique au statut, sauf « ouvert » avec des formats complets, qui devient
+ * « ouvert en partie » pour ne pas laisser croire que tous les formats sont disponibles.
+ */
+export function statusDisplay(e: Evidence & Pick<RaceEvent, 'formatAvailability'>): StatusMeta & { status: RegistrationStatus; partial: boolean } {
+  const status = effectiveStatus(e);
+  const full = status === 'ouvert' ? fullFormats(e) : [];
+  if (!full.length) return { ...STATUS_META[status], status, partial: false };
+  const list = full.join(', ');
+  return {
+    status, partial: true, tone: 'success',
+    label: `Ouvert en partie · ${list} complet${full.length > 1 ? 's' : ''}`,
+    description: `Inscriptions ouvertes pour certains formats seulement : ${list} ${full.length > 1 ? 'sont complets' : 'est complet'} selon l’organisateur.`,
+  };
+}
+
 /** Le lien d'inscription n'est proposé que s'il est vérifié. */
 export function verifiedRegistrationUrl(e: Evidence): string | null {
   return e.registrationStatus === 'ouvert' && hasOfficialEvidence(e) && e.registrationUrl ? e.registrationUrl : null;

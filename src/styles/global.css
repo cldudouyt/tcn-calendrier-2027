@@ -169,6 +169,8 @@ table.plain th { font-family: var(--cond); text-transform: uppercase; letter-spa
 .site-footer a { color: var(--orange-200); }
 
 @media (max-width: 520px) {
+  .nav a { font-size: .82rem; letter-spacing: .03em; padding: 10px 7px; }
+  .nav { gap: 0; }
   body { font-size: 16px; }
   .event-card { grid-template-columns: 58px 1fr; gap: 10px; padding: 12px; }
   .event-date b { font-size: 1.8rem; }

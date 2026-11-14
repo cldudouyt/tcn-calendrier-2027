@@ -157,5 +157,20 @@
         }
       }
     ]
+  },
+  {
+    "checkedAt": "2026-11-14T14:30:00+01:00",
+    "changes": [
+      {
+        "eventId": "pdl-44-2027-01-10-bike-run-de-saint-nazaire",
+        "summary": "Inscriptions ouvertes sur Klikego pour le BEST Run & Bike du 10 janvier 2027 (formats S, XS et jeunes), jusqu’au 6 janvier 2027 au plus tard.",
+        "patch": {
+          "registrationStatus": "ouvert",
+          "officialUrl": "https://www.best-triathlon-saint-nazaire.com/organisations",
+          "registrationEvidence": "Klikego publie « BEST RUN&BIKE 2027 » le 10 janvier 2027 à Saint-Nazaire avec un bouton « S’inscrire » pour les formats S, XS, Jeunes 1 et Jeunes 2, et une clôture des inscriptions au plus tard le 06/01/2027 à 23h00.",
+          "registrationUrl": "https://www.klikego.com/inscription/best-runbike-2027/triathlon/1650509676123-7"
+        }
+      }
+    ]
   }
 ]
