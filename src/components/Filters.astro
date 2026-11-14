@@ -13,7 +13,8 @@ const groups = [
   { key: 'format', legend: 'Quelle distance ?', options: Object.entries(FORMAT_LABELS).filter(([v]) => filterable.some((e) => e.formatTags.includes(v))).map(([v, l]) => ({ v, l })) },
   { key: 'month', legend: 'Quand souhaitez-vous courir ?', options: uniq(filterable.map((e) => e.month)).sort().map((v) => ({ v, l: formatMonth(v) })) },
   { key: 'status', legend: 'Où en sont les inscriptions ?', options: REGISTRATION_STATUSES.map((v) => ({ v, l: STATUS_META[v].label })) },
-  { key: 'access', legend: 'Comment rejoindre la commune depuis Nantes ?', options: Object.entries(ACCESS_LABEL).map(([v, l]) => ({ v, l })) },
+  // « Vélo accepté à bord » n'apparaît que lorsqu'au moins une règle vélo est confirmée (sinon 0 résultat).
+  { key: 'access', legend: 'Comment rejoindre la commune depuis Nantes ?', options: Object.entries(ACCESS_LABEL).filter(([v]) => v !== 'velo' || filterable.some((e) => e.access.includes('velo'))).map(([v, l]) => ({ v, l })) },
 ];
 ---
 <form class="card filters" id="filters" role="search" aria-label="Filtrer les épreuves" onsubmit="return false">
@@ -39,7 +40,7 @@ const groups = [
       ))}
     </div>
     <p class="small muted" style="margin:12px 0 0">
-      Le transport indiqué concerne l’accès à la commune, pas forcément le départ. Le transport du vélo n’est proposé que lorsqu’il est confirmé pour le jour de la course.
+      Le transport indiqué concerne l’accès à la commune, pas forcément le départ. Le filtre « vélo accepté à bord » apparaîtra dès qu’une règle vélo sera confirmée pour le jour d’une course.
     </p>
   </details>
   <div class="actions">

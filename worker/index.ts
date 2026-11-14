@@ -1,7 +1,7 @@
 // Worker Cloudflare : API publique, administration protégée et contrôle quotidien.
 // Les pages statiques (dist/) sont servies par la liaison ASSETS.
 import type { RaceEvent } from '../src/lib/types';
-import { STATUS_META, effectiveStatus } from '../src/lib/status';
+import { STATUS_META, effectiveStatus, statusDisplay } from '../src/lib/status';
 import { eventsWithRegistrations, REGISTRATION_FIELDS } from '../src/lib/registration-surveys';
 import { surveys } from '../src/lib/events';
 import {
@@ -54,7 +54,7 @@ async function publicApi(url: URL, env: Env): Promise<Response> {
   const headers = { 'x-data-source': source, 'cache-control': 'public, max-age=60' };
   if (url.pathname === '/api/events') return json({ count: events.length, events }, 200, headers);
   if (url.pathname === '/api/status') {
-    return json({ statuses: events.map((e) => { const s = effectiveStatus(e); return { id: e.id, status: s, label: STATUS_META[s].label, tone: STATUS_META[s].tone }; }) }, 200, headers);
+    return json({ statuses: events.map((e) => { const d = statusDisplay(e); return { id: e.id, status: d.status, label: d.label, tone: d.tone, partial: d.partial }; }) }, 200, headers);
   }
   const one = url.pathname.match(/^\/api\/events\/([a-z0-9-]+)$/);
   if (one) {

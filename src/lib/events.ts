@@ -70,6 +70,13 @@ export function groupByWeekend(list: RaceEvent[]): WeekendGroup[] {
   });
 }
 
+/** « samedi 25 septembre 2027 (L et XS Open) et dimanche 26 septembre 2027 (M et S Open…) » pour un week-end. */
+export function groupSchedule(e: RaceEvent): string {
+  const days = events.filter((o) => o.eventGroupId === e.eventGroupId);
+  if (days.length <= 1) return `${formatDay(e.date)} · ${e.formats}`;
+  return days.map((d) => `${formatDay(d.date)} (${d.formats})`).join(' et ');
+}
+
 export function siblings(e: RaceEvent): RaceEvent[] {
   return events.filter((o) => o.eventGroupId === e.eventGroupId && o.id !== e.id);
 }

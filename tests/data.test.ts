@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import raw from '../data.json';
-import { events, outOfRegion, surveys, computeKpis, groupByWeekend, weekendKey } from '../src/lib/events';
+import { events, outOfRegion, surveys, computeKpis, groupByWeekend, groupSchedule, weekendKey } from '../src/lib/events';
 import { EXPECTED_BY_DEPARTMENT, EXPECTED_TOTAL, validateDataset, validateEvent } from '../src/lib/schema';
-import { effectiveStatus, verifiedRegistrationUrl } from '../src/lib/status';
+import { effectiveStatus, statusDisplay, verifiedRegistrationUrl } from '../src/lib/status';
 import { accessCategories, bikeAdvice, bikeConfirmed } from '../src/lib/transport';
 import type { RaceEvent } from '../src/lib/types';
 
@@ -179,5 +179,23 @@ describe('accès sans voiture', () => {
     expect(bikeAdvice(winter).text).not.toMatch(/ce qui concerne cette date/);
     expect(bikeAdvice(coach).text).toMatch(/En car/);
     expect(bikeAdvice(coach).text).not.toMatch(/En train/);
+  });
+});
+
+describe('affichage des statuts et des week-ends', () => {
+  it('« ouvert en partie » quand des formats sont complets, sans changer le statut', () => {
+    const sunday = events.find((e) => e.id === 'pdl-85-2027-09-26-triathlon-sud-vendee')!;
+    const d = statusDisplay(sunday);
+    expect(d.status).toBe('ouvert');
+    expect(d.partial).toBe(true);
+    expect(d.label).toMatch(/Ouvert en partie · S, M complets/);
+    const saturday = events.find((e) => e.id === 'pdl-85-2027-09-25-triathlon-sud-vendee')!;
+    expect(statusDisplay(saturday).label).toBe('Inscriptions ouvertes');
+  });
+  it('détaille les formats de chaque journée d’un week-end', () => {
+    const sunday = events.find((e) => e.id === 'pdl-85-2027-09-26-triathlon-sud-vendee')!;
+    expect(groupSchedule(sunday)).toBe('samedi 25 septembre 2027 (L et XS Open) et dimanche 26 septembre 2027 (M et S Open, Jeunes 1 et 2)');
+    const single = events.find((e) => e.id === 'pdl-44-2027-01-10-bike-run-de-saint-nazaire')!;
+    expect(groupSchedule(single)).toBe('dimanche 10 janvier 2027 · S, XS, Jeunes 1 et 2');
   });
 });

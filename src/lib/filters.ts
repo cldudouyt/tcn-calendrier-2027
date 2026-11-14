@@ -81,5 +81,6 @@ export const applyFilters = <T extends Filterable>(events: T[], f: Filters): T[]
 export function countLabel(shown: number, f: Filters, all: Filterable[]): string {
   if (f.past || !f.today) return shown === all.length ? 'rendez-vous régionaux' : `rendez-vous sur ${all.length}`;
   const upcoming = all.filter((e) => e.date >= f.today).length;
-  return shown === upcoming ? 'rendez-vous à venir' : `rendez-vous à venir sur ${upcoming}`;
+  if (shown !== upcoming) return `rendez-vous à venir sur ${upcoming}`;
+  return upcoming < all.length ? `rendez-vous à venir · ${all.length} référencés, épreuves passées masquées` : 'rendez-vous à venir';
 }

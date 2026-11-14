@@ -5,7 +5,7 @@ import TransportBadge from '../../components/TransportBadge.astro';
 import { events, DEPARTMENT_NAMES, eventUrl, siblings } from '../../lib/events';
 import type { RaceEvent } from '../../lib/types';
 import { formatDay, formatParis } from '../../lib/format';
-import { STATUS_META, effectiveStatus, verifiedRegistrationUrl } from '../../lib/status';
+import { effectiveStatus, verifiedRegistrationUrl, statusDisplay } from '../../lib/status';
 
 
 export function getStaticPaths() {
@@ -14,6 +14,7 @@ export function getStaticPaths() {
 interface Props { event: RaceEvent }
 const { event: e } = Astro.props;
 const status = effectiveStatus(e);
+const display = statusDisplay(e);
 const regUrl = verifiedRegistrationUrl(e);
 const announcementUrl = status === 'annonce' ? e.officialUrl : null;
 const others = siblings(e);
@@ -26,7 +27,6 @@ import TransportAccess from '../../components/TransportAccess.astro';
     <h1 style="font-size:clamp(2rem,6vw,3.6rem)">{e.name}</h1>
     <p class="lead"><time datetime={e.date}>{formatDay(e.date)}</time> · {e.town ?? 'commune à confirmer'}</p>
     <div class="notice notice-neutral" id="past-notice" data-event-date={e.date} style="margin-bottom:18px" hidden>
-      <p><strong>Épreuve passée.</strong> Cette fiche reste consultable pour mémoire ; elle n’apparaît plus dans le calendrier ni sur la carte. <a href="/calendrier/">Voir les prochains rendez-vous</a>.</p>
     </div>
     <div class="badges" style="margin-bottom:18px">
       <StatusBadge event={e} />
@@ -73,10 +73,10 @@ import TransportAccess from '../../components/TransportAccess.astro';
       <section class="card" aria-labelledby="t-inscription">
         <h2 id="t-inscription" style="font-size:1.5rem">Inscription</h2>
         <dl class="facts">
-          <div><dt>Statut</dt><dd>{STATUS_META[status].label}<br /><span class="small muted">{STATUS_META[status].description}</span></dd></div>
+          <div><dt>Statut</dt><dd>{display.label}<br /><span class="small muted">{display.description}</span></dd></div>
           <div><dt>Dernière vérification</dt><dd>{e.lastCheckedAt ? formatParis(e.lastCheckedAt) : <span class="unknown">Jamais vérifié</span>}</dd></div>
           {e.registrationOpenAt && status === 'annonce' && <div><dt>Ouverture annoncée</dt><dd>{formatParis(e.registrationOpenAt)}</dd></div>}
-          <div><dt>Tarif</dt><dd>{e.price !== null && regUrl ? `${e.price} ${e.currency}` : <span class="muted">Non communiqué (aucun tarif sourcé)</span>}</dd></div>
+          <div><dt>Tarif</dt><dd>{e.price !== null && regUrl ? `${e.price} ${e.currency}` : e.registrationEvidence && /\d\s?€/.test(e.registrationEvidence) && status !== 'non_verifie' ? <span>Selon le format : voir le fait vérifié ci-dessous et la billetterie</span> : <span class="muted">Non communiqué (aucun tarif sourcé)</span>}</dd></div>
           {e.registrationEvidence && status !== 'non_verifie' && <div><dt>Fait vérifié</dt><dd>{e.registrationEvidence}</dd></div>}
         </dl>
         {e.formatAvailability && e.formatAvailability.length > 0 && <>
@@ -106,7 +106,15 @@ import TransportAccess from '../../components/TransportAccess.astro';
 <script>
   import { parisToday } from '../../lib/format';
   const pastNotice = document.getElementById('past-notice');
-  if (pastNotice && pastNotice.dataset.eventDate! < parisToday()) pastNotice.hidden = false;
+  // Texte inséré seulement si l'épreuve est passée : le HTML publié ne contient jamais « Épreuve passée ».
+  if (pastNotice && pastNotice.dataset.eventDate! < parisToday()) {
+    const p = document.createElement('p');
+    p.append(Object.assign(document.createElement('strong'), { textContent: 'Épreuve passée.' }),
+      ' Cette fiche reste consultable pour mémoire ; elle n’apparaît plus dans le calendrier ni sur la carte (case « Afficher aussi les épreuves passées » pour la retrouver). ',
+      Object.assign(document.createElement('a'), { href: '/calendrier/', textContent: 'Voir les prochains rendez-vous' }), '.');
+    pastNotice.append(p);
+    pastNotice.hidden = false;
+  }
   const btn = document.getElementById('share');
   const feedback = document.getElementById('share-feedback');
   btn?.addEventListener('click', async () => {

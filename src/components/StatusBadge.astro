@@ -1,10 +1,10 @@
 ---
 import type { RaceEvent } from '../lib/types';
-import { STATUS_META, effectiveStatus } from '../lib/status';
+import { statusDisplay } from '../lib/status';
 interface Props { event: RaceEvent }
 const { event } = Astro.props;
-const status = effectiveStatus(event);
-const meta = STATUS_META[status];
+const meta = statusDisplay(event);
+const status = meta.status;
 const cls = meta.tone === 'success' ? 'badge-success' : meta.tone === 'warning' ? 'badge-warning' : meta.tone === 'dark' ? 'badge-dark' : '';
 ---
 <span class:list={['badge', cls]} data-status-for={event.id} data-status={status} title={meta.description}>{meta.label}</span>

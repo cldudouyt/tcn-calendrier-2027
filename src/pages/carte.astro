@@ -3,12 +3,12 @@ import Base from '../layouts/Base.astro';
 import Filters from '../components/Filters.astro';
 import { events, DEPARTMENT_NAMES, eventUrl } from '../lib/events';
 import { formatDay } from '../lib/format';
-import { STATUS_META, effectiveStatus } from '../lib/status';
+import { effectiveStatus, statusDisplay } from '../lib/status';
 import { TRANSPORT_META } from '../lib/transport';
 
 const points = events.map((e) => ({
   id: e.id, name: e.name, town: e.town, dep: e.department, date: formatDay(e.date), formats: e.formats,
-  status: STATUS_META[effectiveStatus(e)].label, statusKey: effectiveStatus(e), transport: TRANSPORT_META[e.transport].short,
+  status: statusDisplay(e).label, statusKey: effectiveStatus(e), transport: TRANSPORT_META[e.transport].short,
   url: eventUrl(e), coords: e.coords, verified: e.locationAccuracy === 'depart_verifie',
 }));
 const unlocated = events.filter((e) => !e.coords);
