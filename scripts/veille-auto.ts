@@ -9,7 +9,7 @@
 // Variables : SITE_URL (défaut : site de production), ADMIN_TOKEN (sans lui : simulation, rien n'est envoyé).
 import { readFileSync, appendFileSync } from 'node:fs';
 import {
-  ALERT_LABELS, buildProposals, cleanUrl, groupKeywords, isSocial, matchCalendar, parseFftriCalendar, parseFftriEvent, scanPage,
+  ALERT_LABELS, buildProposals, cleanUrl, fftriDescribesEdition, groupKeywords, isSocial, matchCalendar, parseFftriCalendar, parseFftriEvent, scanPage,
   type FftriEventInfo, type GroupObservation, type PageScan, type SourceEntry, type SourcePage, type WatchEvent,
 } from '../worker/watch.ts';
 
@@ -115,18 +115,24 @@ async function main(): Promise<void> {
   const scans = new Map<string, { scan: PageScan | null; fetched: Fetched; groups: Set<string> }>();
   for (const groupId of groupIds.slice(0, LIMIT)) {
     const entry = calendarByGroup.get(groupId) ?? null;
-    let fftri: FftriEventInfo | null = null;
-    if (entry) {
-      const page = await getPage(entry.url);
-      if (page.ok) fftri = parseFftriEvent(page.html, entry.url);
-      // La fiche est aussi suivie comme page : un changement (date, formats) y déclenche une alerte de relecture.
-      if (!scans.has(entry.url)) scans.set(entry.url, { scan: page.ok ? scanPage(page.html, entry.url) : null, fetched: page, groups: new Set() });
-      scans.get(entry.url)!.groups.add(groupId);
-    }
     const configured = sourceByGroup.get(groupId);
+    const groupEvents = events.filter((e) => e.eventGroupId === groupId);
+    // Fiche FFTRI : celle du calendrier régional, sinon la fiche manifestation déclarée dans data/sources.json.
+    const ficheUrl = entry?.url ?? configured?.fftri ?? null;
+    let fftri: FftriEventInfo | null = null;
+    let fiche: FftriEventInfo | null = null;
+    if (ficheUrl) {
+      const page = await getPage(ficheUrl);
+      if (page.ok) fiche = parseFftriEvent(page.html, ficheUrl);
+      // Hors calendrier, la fiche peut encore décrire l'édition passée : on n'en tire alors que le site officiel.
+      fftri = fiche && (entry || fftriDescribesEdition(fiche, groupEvents.map((e) => e.date), today)) ? fiche : null;
+      // La fiche est aussi suivie comme page : un changement (date, formats) y déclenche une alerte de relecture.
+      if (!scans.has(ficheUrl)) scans.set(ficheUrl, { scan: page.ok ? scanPage(page.html, ficheUrl) : null, fetched: page, groups: new Set() });
+      scans.get(ficheUrl)!.groups.add(groupId);
+    }
     const pages: SourcePage[] = [...(configured?.pages ?? [])];
     // Site indiqué par la fiche FFTRI : traité comme page générale (mots-clés exigés).
-    const fromFftri = cleanUrl(fftri?.officialUrl);
+    const fromFftri = cleanUrl(fiche?.officialUrl);
     if (fromFftri && !isSocial(fromFftri) && !pages.some((p) => p.url.replace(/\/$/, '') === fromFftri.replace(/\/$/, ''))) pages.push({ url: fromFftri, scope: 'club' });
 
     const observed: GroupObservation['pages'] = [];
@@ -140,7 +146,6 @@ async function main(): Promise<void> {
       record.groups.add(groupId);
       if (record.scan) observed.push({ page, scan: record.scan });
     }
-    const groupEvents = events.filter((e) => e.eventGroupId === groupId);
     observations.push({ eventGroupId: groupId, calendar: entry, fftri, pages: observed, keywords: groupKeywords(groupEvents, configured?.keywords ?? []) });
   }
 

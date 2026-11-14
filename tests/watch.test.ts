@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import sourcesFile from '../data/sources.json';
 import { events as allEvents } from '../src/lib/events';
 import {
-  buildProposals, cleanUrl, editionYear, groupKeywords, hashText, isTicketing, matchCalendar, parseFftriCalendar, parseFftriEvent,
+  buildProposals, cleanUrl, editionYear, fftriDescribesEdition, groupKeywords, hashText, isTicketing, matchCalendar, parseFftriCalendar, parseFftriEvent,
   parseFrenchDates, scanPage, type CalendarEntry, type GroupObservation, type SourcePage, type WatchEvent,
 } from '../worker/watch';
 
@@ -184,6 +184,37 @@ describe('data/sources.json', () => {
         expect(['epreuve', 'club']).toContain(p.scope);
         if (p.scope === 'club') expect(groupKeywords(allEvents.filter((e) => e.eventGroupId === s.eventGroupId), (s as { keywords?: string[] }).keywords ?? []).length).toBeGreaterThan(0);
       }
+      const fftri = (s as { fftri?: string }).fftri;
+      if (fftri !== undefined) expect(fftri).toMatch(/^https:\/\/fftri\.t2area\.com\/calendrier\/[a-z0-9-]+\.html$/);
+      expect(s.pages.length > 0 || fftri !== undefined, s.eventGroupId).toBe(true);
     }
+  });
+});
+
+describe('fiche FFTRI lue hors calendrier', () => {
+  const today = '2026-11-14';
+  it('ignore une fiche qui décrit encore l’édition 2026', () => {
+    expect(fftriDescribesEdition({ startDate: '2026-06-14', raceDates: ['2024-06-16', '2026-06-14'] }, ['2027-06-19', '2027-06-20'], today)).toBe(false);
+  });
+  it('ignore l’édition passée d’un groupe qui en compte deux (2026 et 2027)', () => {
+    expect(fftriDescribesEdition({ startDate: '2026-11-08', raceDates: ['2026-11-08'] }, ['2026-11-08', '2027-11-14'], today)).toBe(false);
+  });
+  it('retient une fiche passée à l’édition 2027, même à une date différente', () => {
+    expect(fftriDescribesEdition({ startDate: '2027-09-19', raceDates: ['2027-09-19'] }, ['2027-09-19'], today)).toBe(true);
+    expect(fftriDescribesEdition({ startDate: '2027-06-26', raceDates: [] }, ['2027-06-19'], today)).toBe(true);
+  });
+  it('ignore une fiche sans date', () => {
+    expect(fftriDescribesEdition({ startDate: null, raceDates: [] }, ['2027-06-19'], today)).toBe(false);
+  });
+});
+
+describe('liens « Site officiel » / « S’inscrire » d’une fiche FFTRI', () => {
+  it('les reconnaît malgré l’icône placée dans le lien', () => {
+    const links = `<div class="event-external-links"><a
+      href="https://club.example.fr/" target="_blank" class="event-external-link"><span><i class="fa-solid fa-globe" aria-hidden="true"></i>
+      Site officiel</span></a><a href="https://www.klikego.com/inscription/epreuve-2027/triathlon/1-1" class="event-external-link"><span><i class="fa-solid fa-pen"></i> S’inscrire</span></a></div>`;
+    const info = parseFftriEvent(fftriHtml(false, ['2027-06-19'], links), 'https://fftri.t2area.com/calendrier/x.html');
+    expect(info.officialUrl).toBe('https://club.example.fr/');
+    expect(info.registerUrl).toBe('https://www.klikego.com/inscription/epreuve-2027/triathlon/1-1');
   });
 });

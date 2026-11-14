@@ -1,5 +1,5 @@
 {
-  "$comment": "Pages officielles surveillées par la veille automatique (scripts/veille-auto.ts). « epreuve » : page dédiée à l’épreuve ; « club » : page générale, un lien n’y est retenu que si ses abords contiennent un des mots-clés. Les fiches du calendrier FFTRI sont découvertes automatiquement. Réseaux sociaux exclus.",
+  "$comment": "Pages officielles surveillées par la veille automatique (scripts/veille-auto.ts). « epreuve » : page dédiée à l’épreuve ; « club » : page générale, un lien n’y est retenu que si ses abords contiennent un des mots-clés. Les fiches du calendrier FFTRI sont découvertes automatiquement ; « fftri » désigne la fiche manifestation à lire tant que le calendrier régional ne liste pas l’édition 2027 (ses date, annulation et lien d’inscription ne sont exploités que si elle porte l’édition à venir, son « site officiel » est suivi comme page club). Réseaux sociaux exclus.",
   "sources": [
     {
       "eventGroupId": "pdl-44-run-bike-du-bouguenais-club-triathlon",
@@ -481,6 +481,66 @@
           "scope": "epreuve"
         }
       ]
+    },
+    {
+      "eventGroupId": "pdl-44-duathlon-nozeen",
+      "fftri": "https://fftri.t2area.com/calendrier/duathlon-nozeen.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-49-aquathlon-de-segre",
+      "fftri": "https://fftri.t2area.com/calendrier/aquathlon-de-segre.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-53-triathlon-des-etangs",
+      "fftri": "https://fftri.t2area.com/calendrier/triathlon-de-port-brillet.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-53-triathlon-de-laval",
+      "fftri": "https://fftri.t2area.com/calendrier/triathlon-de-laval.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-53-triathlon-de-la-base-de-la-chesnaie",
+      "fftri": "https://fftri.t2area.com/calendrier/triathlon-de-la-base-de-la-chesnaie.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-72-triathlon-de-la-ferte-bernard",
+      "fftri": "https://fftri.t2area.com/calendrier/triathlon-de-la-ferte-bernard.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-72-spaycific-races",
+      "fftri": "https://fftri.t2area.com/calendrier/spay-cific-races.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-72-triathlon-de-sable-sur-sarthe",
+      "fftri": "https://fftri.t2area.com/calendrier/triathlon-de-sable.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-85-bike-run-pays-du-gois",
+      "fftri": "https://fftri.t2area.com/calendrier/bike-and-run-pays-du-gois.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-85-planete-racing-aquarun",
+      "fftri": "https://fftri.t2area.com/calendrier/planete-racing-aquarun.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-85-swimrun-de-xanton",
+      "fftri": "https://fftri.t2area.com/calendrier/triathlon-de-xanton-chassenon.html",
+      "pages": []
+    },
+    {
+      "eventGroupId": "pdl-85-triathlon-de-xanton",
+      "fftri": "https://fftri.t2area.com/calendrier/triathlon-de-xanton-chassenon.html",
+      "pages": []
     }
   ]
 }

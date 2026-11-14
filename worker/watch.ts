@@ -50,7 +50,13 @@ export interface SourcePage {
   /** « epreuve » : page dédiée à l'épreuve ; « club » : page générale où il faut retrouver l'épreuve par mots-clés. */
   scope: 'epreuve' | 'club';
 }
-export interface SourceEntry { eventGroupId: string; keywords?: string[]; pages: SourcePage[] }
+export interface SourceEntry {
+  eventGroupId: string;
+  keywords?: string[];
+  pages: SourcePage[];
+  /** Fiche « manifestation » du calendrier FFTRI, stable d'une édition à l'autre ; lue quand le calendrier régional ne liste pas encore l'édition. */
+  fftri?: string;
+}
 
 export type AlertKind =
   | 'date_differente' | 'manifestation_non_suivie' | 'formats_complets' | 'page_modifiee' | 'source_injoignable';
@@ -224,7 +230,7 @@ export function parseFftriEvent(html: string, url: string): FftriEventInfo {
   const raceDates = [...new Set([...html.matchAll(/datetime="(\d{4}-\d{2}-\d{2})"/g)].map((m) => m[1] ?? ''))].filter(Boolean).sort();
   const link = (label: RegExp): string | null => {
     for (const m of html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
-      if (label.test(htmlToText(m[2] ?? ''))) {
+      if (label.test(htmlToText(m[2] ?? '').replace(/[|\s]+/g, ' ').trim())) {
         const u = cleanUrl(m[1], url);
         if (u && !u.includes('t2area.com')) return u;
       }
@@ -239,6 +245,16 @@ export function parseFftriEvent(html: string, url: string): FftriEventInfo {
     officialUrl: link(/^site officiel$/i),
     registerUrl: link(/^s.inscrire$/i),
   };
+}
+
+/**
+ * Une fiche FFTRI lue hors calendrier peut encore décrire l'édition précédente : ses données (date, annulation,
+ * lien d'inscription) ne valent pour nos épreuves que si elle porte une date à venir de la même année qu'elles.
+ */
+export function fftriDescribesEdition(info: Pick<FftriEventInfo, 'startDate' | 'raceDates'>, groupDates: string[], today: string): boolean {
+  const years = new Set(groupDates.filter((d) => d >= today).map((d) => d.slice(0, 4)));
+  const dates = [info.startDate, ...info.raceDates].filter((d): d is string => !!d && d >= today);
+  return dates.some((d) => years.has(d.slice(0, 4)));
 }
 
 // ---------------------------------------------------------------------------
