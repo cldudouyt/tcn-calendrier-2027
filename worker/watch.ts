@@ -156,6 +156,18 @@ const TICKETING_HOSTS = /(^|\.)(klikego\.com|timepulse\.fr|helloasso\.com|njuko\
 /** Liens de billetterie qui ne concernent pas une épreuve (adhésion, boutique, dons, résultats). */
 const NOT_RACE = /adh[eé]sion|cotisation|licence|boutique|don\b|dons\b|resultats|r[eé]sultats|live\./i;
 
+/**
+ * Année d'édition écrite comme segment autonome de l'adresse (« …-2026/… », « /2027/ »), ou null.
+ * Les identifiants qui collent l'année à un horodatage (« …-20261790260765381 ») ne comptent pas.
+ */
+export function editionYear(url: string): number | null {
+  let path: string;
+  try { const u = new URL(url); path = u.pathname + u.search; } catch { return null; }
+  const years = [...path.matchAll(/(?:^|[-_/=.])(20[2-3]\d)(?=$|[-_/.?&#])/g)].map((m) => Number(m[1]));
+  if (!years.length) return null;
+  return years.includes(2027) ? 2027 : years[years.length - 1] ?? null;
+}
+
 export function isTicketing(url: string): boolean {
   try {
     const u = new URL(url);
@@ -253,7 +265,10 @@ export function scanPage(html: string, url: string): PageScan {
     // Le sujet d'un lien est annoncé avant lui (titre, paragraphe) : seuls les abords précédents servent à l'attribuer.
     const near = htmlToText(html.slice(Math.max(0, idx - 350), idx + (m[0]?.length ?? 0)));
     const linkText = htmlToText(m[2] ?? '');
-    ticketing.push({ url: href, text: clip(linkText, 80), context: clip(context, 600), near: clip(near, 400), mentions2027: href.includes('2027') || linkText.includes('2027') || context.includes('2027') });
+    const year = editionYear(href);
+    // Une année explicite dans l'adresse l'emporte sur le texte de la page (lien 2026 resté sur une page 2027).
+    const mentions2027 = year !== null ? year === 2027 : href.includes('2027') || linkText.includes('2027') || context.includes('2027');
+    ticketing.push({ url: href, text: clip(linkText, 80), context: clip(context, 600), near: clip(near, 400), mentions2027 });
   }
   const excerpt = (m: RegExpMatchArray): Excerpt => {
     const i = m.index ?? 0;

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import sourcesFile from '../data/sources.json';
 import { events as allEvents } from '../src/lib/events';
 import {
-  buildProposals, cleanUrl, groupKeywords, hashText, isTicketing, matchCalendar, parseFftriCalendar, parseFftriEvent,
+  buildProposals, cleanUrl, editionYear, groupKeywords, hashText, isTicketing, matchCalendar, parseFftriCalendar, parseFftriEvent,
   parseFrenchDates, scanPage, type CalendarEntry, type GroupObservation, type SourcePage, type WatchEvent,
 } from '../worker/watch';
 
@@ -85,6 +85,14 @@ describe('lecture des pages des organisateurs', () => {
       <a href="https://www.swika.co/course/">Bourse aux dossards</a></main>`, 'https://club.example.fr/course');
     expect(scan.ticketing.map((t) => t.url)).toEqual(['https://in.inscriptions-tiel.com/course-20271791963694991']);
     expect(scan.ticketing[0]?.mentions2027).toBe(true);
+  });
+  it('écarte un lien de l’édition 2026 resté sur une page 2027', () => {
+    const scan = scanPage('<h1>Triathlon 2027</h1><p>Ouverture des inscriptions : décembre 2026</p><a href="https://www.klikego.com/inscription/triathlon-2026/triathlon/1700025627600-3">Inscription</a>', 'https://club.example.fr/2027/');
+    expect(scan.ticketing[0]?.mentions2027).toBe(false);
+    expect(editionYear('https://www.klikego.com/inscription/triathlon-2026/triathlon/1-3')).toBe(2026);
+    expect(editionYear('https://in.inscriptions-tiel.com/triathlon-sud-vendee-20261790260765381')).toBeNull();
+    expect(editionYear('https://in.inscriptions-tiel.com/bikerun-des-iles-de-loire-20271791963694991')).toBeNull();
+    expect(editionYear('https://www.klikego.com/inscription/x-2027/triathlon/1-9')).toBe(2027);
   });
   it('relève une annonce d’ouverture et des places complètes pour 2027', () => {
     const scan = scanPage('<p>Triathlon 2027 : ouverture des inscriptions le 1er décembre.</p><p>Format M : cette épreuve est complète pour l’édition 2027</p>', 'https://club.example.fr/');
