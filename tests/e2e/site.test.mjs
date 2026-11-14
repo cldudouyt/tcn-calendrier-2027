@@ -250,6 +250,9 @@ test('administration : page non référencée, hors navigation, contenu masqué 
   assert.equal(await page.getAttribute('meta[name="robots"]', 'content'), 'noindex, nofollow');
   assert.equal(await page.locator('#admin-content').isHidden(), true);
   assert.equal(await page.locator('#token').getAttribute('type'), 'password');
+  await page.fill('#token', 'court');
+  await page.click('#login button[type=submit]');
+  assert.match(await page.locator('#admin-status').innerText(), /trop court/);
   const home = await open('/');
   assert.equal(await home.locator('a[href="/admin/"]').count(), 0);
   await page.close();

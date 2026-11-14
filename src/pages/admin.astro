@@ -10,9 +10,10 @@ import Base from '../layouts/Base.astro';
     <form class="card filters" id="login" autocomplete="off">
       <div class="field">
         <label for="token">Jeton d’administration</label>
-        <input type="password" id="token" name="token" required minlength="16" autocomplete="current-password" style="font:inherit;min-height:46px;padding:8px 12px;border:1px solid var(--line-input);border-radius:12px;width:100%" />
+        <input type="password" id="token" name="token" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="font:inherit;min-height:46px;padding:8px 12px;border:1px solid var(--line-input);border-radius:12px;width:100%" />
       </div>
-      <p class="small muted" style="margin:0">Le jeton reste dans cet onglet (stockage de session) et n’est envoyé qu’à l’API de ce site.</p>
+      <label class="small" style="display:flex;gap:8px;align-items:center;min-height:44px"><input type="checkbox" id="show-token" /> Afficher le jeton</label>
+      <p class="small muted" style="margin:0">Saisissez exactement la valeur du secret <code>ADMIN_TOKEN</code> enregistrée dans Cloudflare (la même que dans GitHub). Le jeton reste dans cet onglet et n’est envoyé qu’à l’API de ce site.</p>
       <div class="actions">
         <button class="btn btn-primary" type="submit">Se connecter</button>
         <button class="btn btn-secondary" type="button" id="logout" hidden>Se déconnecter</button>
@@ -184,14 +185,20 @@ import Base from '../layouts/Base.astro';
       if (status.textContent?.startsWith('Connexion')) say('');
     } catch (err) {
       $('admin-content').hidden = true;
-      say(`Connexion impossible : ${(err as Error).message}`);
+      const msg = (err as Error).message;
+      try { sessionStorage.removeItem(KEY); } catch { /* rien */ }
+      say(msg === 'Non autorisé'
+        ? 'Jeton refusé : il ne correspond pas au secret ADMIN_TOKEN de Cloudflare. Vérifiez les majuscules, les espaces et les caractères copiés ; si la valeur est perdue, enregistrez un nouveau secret dans Cloudflare et dans GitHub.'
+        : `Connexion impossible : ${msg}`);
     }
   }
 
   $('login').addEventListener('submit', (ev) => {
     ev.preventDefault();
     const input = $<HTMLInputElement>('token');
-    try { sessionStorage.setItem(KEY, input.value.trim()); } catch { say('Le stockage de session est indisponible dans ce navigateur.'); return; }
+    const value = input.value.replace(/^Bearer\s+/i, '').trim();
+    if (value.length < 16) { say(`Jeton trop court (${value.length} caractères) : le secret ADMIN_TOKEN en compte au moins 16.`); return; }
+    try { sessionStorage.setItem(KEY, value); } catch { say('Le stockage de session est indisponible dans ce navigateur.'); return; }
     input.value = '';
     say('Connexion…');
     void load();
@@ -203,5 +210,8 @@ import Base from '../layouts/Base.astro';
     say('Déconnecté.');
   });
   $('refresh').addEventListener('click', () => { void load(); });
+  $<HTMLInputElement>('show-token').addEventListener('change', (ev) => {
+    $<HTMLInputElement>('token').type = (ev.target as HTMLInputElement).checked ? 'text' : 'password';
+  });
   void load();
 </script>
