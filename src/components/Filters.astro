@@ -13,8 +13,11 @@ const groups = [
   { key: 'format', legend: 'Quelle distance ?', options: Object.entries(FORMAT_LABELS).filter(([v]) => filterable.some((e) => e.formatTags.includes(v))).map(([v, l]) => ({ v, l })) },
   { key: 'month', legend: 'Quand souhaitez-vous courir ?', options: uniq(filterable.map((e) => e.month)).sort().map((v) => ({ v, l: formatMonth(v) })) },
   { key: 'status', legend: 'Où en sont les inscriptions ?', options: REGISTRATION_STATUSES.map((v) => ({ v, l: STATUS_META[v].label })) },
-  // « Vélo accepté à bord » n'apparaît que lorsqu'au moins une règle vélo est confirmée (sinon 0 résultat).
-  { key: 'access', legend: 'Comment rejoindre la commune depuis Nantes ?', options: Object.entries(ACCESS_LABEL).filter(([v]) => v !== 'velo' || filterable.some((e) => e.access.includes('velo'))).map(([v, l]) => ({ v, l })) },
+  // Filtre « avec vélo » exigé par le §5 de CLAUDE.md : toujours présent, mais grisé et explicite tant qu'aucune règle n'est confirmée.
+  { key: 'access', legend: 'Comment rejoindre la commune depuis Nantes ?', options: Object.entries(ACCESS_LABEL).map(([v, l]) => {
+    const none = v === 'velo' && !filterable.some((e) => e.access.includes('velo'));
+    return { v, l: none ? `${l} — aucune règle confirmée à ce jour` : l, disabled: none };
+  }) },
 ];
 ---
 <form class="card filters" id="filters" role="search" aria-label="Filtrer les épreuves" onsubmit="return false">
@@ -33,14 +36,14 @@ const groups = [
           <legend class="legend">{g.legend}</legend>
           <div class="chips">
             {g.options.map((o) => (
-              <label class="chip"><input type="checkbox" name={g.key} value={o.v} /><span>{o.l}</span></label>
+              <label class="chip"><input type="checkbox" name={g.key} value={o.v} disabled={(o as { disabled?: boolean }).disabled ?? false} /><span>{o.l}</span></label>
             ))}
           </div>
         </fieldset>
       ))}
     </div>
     <p class="small muted" style="margin:12px 0 0">
-      Le transport indiqué concerne l’accès à la commune, pas forcément le départ. Le filtre « vélo accepté à bord » apparaîtra dès qu’une règle vélo sera confirmée pour le jour d’une course.
+      Le transport indiqué concerne l’accès à la commune, pas forcément le départ. Le filtre « vélo accepté à bord » s’activera dès qu’une règle vélo sera confirmée pour le jour d’une course.
     </p>
   </details>
   <div class="actions">
