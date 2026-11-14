@@ -7,14 +7,16 @@
   "scripts": {
     "sync": "node scripts/sync-public.mjs",
     "dev": "npm run sync && astro dev",
-    "check": "astro check && tsc -p worker",
+    "check": "astro check && tsc -p worker && tsc -p scripts",
     "build": "npm run test && npm run sync && npm run check && astro build",
     "preview": "astro preview",
     "test": "vitest run",
     "test:e2e": "node --test tests/e2e/site.test.mjs",
     "worker:dev": "wrangler dev",
     "worker:schema:local": "wrangler d1 execute tcn-calendrier-2027 --local --file worker/schema.sql",
-    "worker:schema:remote": "wrangler d1 execute tcn-calendrier-2027 --remote --file worker/schema.sql"
+    "worker:schema:remote": "wrangler d1 execute tcn-calendrier-2027 --remote --file worker/schema.sql",
+    "veille": "node scripts/veille-auto.ts",
+    "veille:simulation": "node scripts/veille-auto.ts --dry-run"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

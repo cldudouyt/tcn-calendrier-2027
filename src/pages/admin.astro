@@ -1,0 +1,207 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Administration de la veille" noindex description="Validation des propositions de la veille automatique.">
+  <section class="section wrap">
+    <p class="eyebrow">Réservé aux administrateurs</p>
+    <h1 style="font-size:clamp(2rem,6vw,3.2rem)">Administration de la veille</h1>
+    <p class="lead">La veille automatique lit chaque matin le calendrier FFTRI et les pages des organisateurs. Elle ne publie rien : chaque proposition attend ici une décision.</p>
+
+    <form class="card filters" id="login" autocomplete="off">
+      <div class="field">
+        <label for="token">Jeton d’administration</label>
+        <input type="password" id="token" name="token" required minlength="16" autocomplete="current-password" style="font:inherit;min-height:46px;padding:8px 12px;border:1px solid var(--line-input);border-radius:12px;width:100%" />
+      </div>
+      <p class="small muted" style="margin:0">Le jeton reste dans cet onglet (stockage de session) et n’est envoyé qu’à l’API de ce site.</p>
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Se connecter</button>
+        <button class="btn btn-secondary" type="button" id="logout" hidden>Se déconnecter</button>
+      </div>
+    </form>
+    <p role="status" aria-live="polite" id="admin-status" class="notice notice-neutral" style="margin-top:14px" hidden></p>
+
+    <div id="admin-content" hidden>
+      <h2 style="margin-top:32px">Propositions en attente <span class="badge badge-brand" id="count-changes">0</span></h2>
+      <div class="notice" style="margin-bottom:12px">
+        <p>Avant de valider, ouvrez la source : la billetterie doit réellement accepter les inscriptions pour l’édition 2027, ou l’annonce doit figurer telle quelle sur la page de l’organisateur. Une proposition validée est publiée sur le site.</p>
+      </div>
+      <ul class="timeline" id="changes"></ul>
+
+      <h2 style="margin-top:32px">Alertes à examiner <span class="badge badge-brand" id="count-alerts">0</span></h2>
+      <p class="small muted">Les alertes ne modifient rien sur le site. Une alerte traitée n’est jamais recréée à l’identique.</p>
+      <ul class="timeline" id="alerts"></ul>
+
+      <h2 style="margin-top:32px">Derniers contrôles</h2>
+      <div class="card" style="overflow-x:auto">
+        <table class="plain">
+          <thead><tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col">Pages lues</th><th scope="col">Bilan</th></tr></thead>
+          <tbody id="runs"></tbody>
+        </table>
+      </div>
+      <div class="actions" style="margin-top:14px">
+        <button class="btn btn-secondary" type="button" id="refresh">Actualiser</button>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Toutes les données affichées viennent de pages tierces : uniquement textContent, jamais innerHTML.
+  interface Change { id: number; event_id: string; category: string; patch: string; summary: string; evidence: string | null; source_url: string | null; checked_at: string; origin: string; created_at: string }
+  interface Alert { id: number; event_id: string | null; kind: string; message: string; source_url: string | null; quote: string | null; created_at: string }
+  interface Run { started_at: string; trigger_kind: string; links_checked: number; links_failed: number; state: string; note: string | null }
+  interface EventLite { id: string; name: string; date: string }
+
+  const KEY = 'tcn-admin-token';
+  const fmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' });
+  const fmtDay = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'UTC' });
+  const CATEGORY: Record<string, string> = { ouvert_confirme: 'Ouverture', ouverture_annoncee: 'Ouverture annoncée', annule: 'Annulation', complet: 'Complet', ferme: 'Fermeture', modification: 'Modification', information: 'Information', non_confirme: 'Non confirmé', source_contradictoire: 'Sources contradictoires' };
+  const STATUS: Record<string, string> = { ouvert: 'Inscriptions ouvertes', annonce: 'Ouverture annoncée', annule: 'Épreuve annulée', complet: 'Complet', ferme: 'Inscriptions fermées', non_verifie: 'Non vérifié', a_confirmer: 'Sources contradictoires' };
+  const ORIGIN: Record<string, string> = { veille_auto: 'veille automatique', import: 'import manuel', correction: 'correction' };
+  const TRIGGER: Record<string, string> = { veille_auto: 'Veille automatique', planifie: 'Contrôle des liens', manuel: 'Contrôle manuel' };
+
+  const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
+  const status = $('admin-status');
+  const say = (msg: string): void => { status.hidden = !msg; status.textContent = msg; };
+  const token = (): string => { try { return sessionStorage.getItem(KEY) ?? ''; } catch { return ''; } };
+  let names = new Map<string, EventLite>();
+
+  async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+    const res = await fetch(`/api/admin${path}`, { ...init, headers: { authorization: `Bearer ${token()}`, 'content-type': 'application/json', ...(init.headers ?? {}) } });
+    const body = (await res.json().catch(() => ({}))) as T & { error?: string; details?: string[] };
+    if (!res.ok) throw new Error(body.error ? `${body.error}${body.details ? ` : ${body.details.join(', ')}` : ''}` : `HTTP ${res.status}`);
+    return body;
+  }
+
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, text = '', cls = ''): HTMLElementTagNameMap[K] => {
+    const node = document.createElement(tag);
+    if (text) node.textContent = text;
+    if (cls) node.className = cls;
+    return node;
+  };
+  const link = (href: string | null, label: string): HTMLElement => {
+    if (!href || !/^https?:\/\//.test(href)) return el('span', label);
+    return Object.assign(el('a', label), { href, target: '_blank', rel: 'noopener noreferrer' });
+  };
+  const eventLine = (id: string | null): HTMLElement => {
+    const p = el('p', '', 'small muted');
+    p.style.margin = '0 0 4px';
+    const ev = id ? names.get(id) : undefined;
+    if (ev) { p.append(Object.assign(el('a', ev.name), { href: `/epreuves/${ev.id}/` }), ` — ${fmtDay.format(new Date(`${ev.date}T12:00:00Z`))}`); }
+    else p.textContent = id ?? 'Calendrier régional';
+    return p;
+  };
+
+  function renderChanges(changes: Change[]): void {
+    const list = $('changes');
+    list.replaceChildren();
+    $('count-changes').textContent = String(changes.length);
+    if (!changes.length) list.append(el('li', 'Aucune proposition en attente.', 'card-sunk'));
+    for (const c of changes) {
+      let patch: Record<string, unknown> = {};
+      try { patch = JSON.parse(c.patch) as Record<string, unknown>; } catch { /* ignoré */ }
+      const li = el('li', '', 'card');
+      li.append(eventLine(c.event_id));
+      li.append(el('h3', CATEGORY[c.category] ?? c.category));
+      if (typeof patch.registrationStatus === 'string') li.append(el('p', `Statut proposé : ${STATUS[patch.registrationStatus] ?? patch.registrationStatus}`, 'badge badge-brand'));
+      li.append(el('p', c.summary));
+      if (c.evidence) li.append(el('p', `Preuve proposée : ${c.evidence}`, 'small'));
+      const meta = el('p', `Relevé le ${fmt.format(new Date(c.checked_at))} · ${ORIGIN[c.origin] ?? c.origin} · `, 'small muted');
+      meta.append(link(c.source_url, 'ouvrir la source'));
+      if (typeof patch.registrationUrl === 'string' && patch.registrationUrl !== c.source_url) meta.append(' · ', link(patch.registrationUrl, 'ouvrir la billetterie'));
+      li.append(meta);
+      const note = Object.assign(el('input'), { type: 'text', placeholder: 'Note (facultative)', maxLength: 300 });
+      note.setAttribute('aria-label', 'Note de décision');
+      note.style.cssText = 'font:inherit;min-height:44px;padding:6px 10px;border:1px solid var(--line-input);border-radius:10px;width:100%;margin-bottom:8px';
+      const actions = el('div', '', 'actions');
+      const decide = async (action: 'validate' | 'reject', btn: HTMLButtonElement): Promise<void> => {
+        btn.disabled = true;
+        try {
+          await api(`/changes/${c.id}/${action}`, { method: 'POST', body: JSON.stringify({ note: note.value || null }) });
+          say(action === 'validate' ? 'Proposition publiée sur le site.' : 'Proposition rejetée : elle ne sera plus reproposée.');
+          await load();
+        } catch (err) { say(`Échec : ${(err as Error).message}`); btn.disabled = false; }
+      };
+      const ok = Object.assign(el('button', 'Valider et publier', 'btn btn-primary'), { type: 'button' });
+      const ko = Object.assign(el('button', 'Rejeter', 'btn btn-secondary'), { type: 'button' });
+      ok.addEventListener('click', () => { void decide('validate', ok); });
+      ko.addEventListener('click', () => { void decide('reject', ko); });
+      actions.append(ok, ko);
+      li.append(note, actions);
+      list.append(li);
+    }
+  }
+
+  function renderAlerts(alerts: Alert[], labels: Record<string, string>): void {
+    const list = $('alerts');
+    list.replaceChildren();
+    $('count-alerts').textContent = String(alerts.length);
+    if (!alerts.length) list.append(el('li', 'Aucune alerte ouverte.', 'card-sunk'));
+    for (const a of alerts) {
+      const li = el('li', '', 'card');
+      li.append(eventLine(a.event_id), el('h3', labels[a.kind] ?? a.kind), el('p', a.message));
+      if (a.quote) li.append(el('p', `« ${a.quote} »`, 'small'));
+      const meta = el('p', `Signalée le ${fmt.format(new Date(a.created_at))} · `, 'small muted');
+      meta.append(link(a.source_url, 'ouvrir la source'));
+      const btn = Object.assign(el('button', 'Marquer comme traitée', 'btn btn-secondary'), { type: 'button' });
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try { await api(`/alerts/${a.id}/close`, { method: 'POST', body: '{}' }); await load(); } catch (err) { say(`Échec : ${(err as Error).message}`); btn.disabled = false; }
+      });
+      li.append(meta, btn);
+      list.append(li);
+    }
+  }
+
+  function renderRuns(runs: Run[]): void {
+    const body = $('runs');
+    body.replaceChildren();
+    for (const r of runs.slice(0, 10)) {
+      const tr = el('tr');
+      tr.append(el('td', fmt.format(new Date(r.started_at))), el('td', TRIGGER[r.trigger_kind] ?? r.trigger_kind),
+        el('td', `${r.links_checked - r.links_failed} / ${r.links_checked}`), el('td', r.state === 'termine' ? (r.note ?? 'Terminé') : r.state));
+      body.append(tr);
+    }
+  }
+
+  async function load(): Promise<void> {
+    if (!token()) return;
+    try {
+      if (!names.size) {
+        const res = await fetch('/api/events');
+        if (res.ok) names = new Map(((await res.json()) as { events: EventLite[] }).events.map((e) => [e.id, e]));
+      }
+      const [c, a, r] = await Promise.all([
+        api<{ changes: Change[] }>('/changes?state=en_attente'),
+        api<{ alerts: Alert[]; labels: Record<string, string> }>('/alerts?state=ouverte'),
+        api<{ runs: Run[] }>('/runs'),
+      ]);
+      renderChanges(c.changes);
+      renderAlerts(a.alerts, a.labels);
+      renderRuns(r.runs);
+      $('admin-content').hidden = false;
+      $('logout').hidden = false;
+      if (status.textContent?.startsWith('Connexion')) say('');
+    } catch (err) {
+      $('admin-content').hidden = true;
+      say(`Connexion impossible : ${(err as Error).message}`);
+    }
+  }
+
+  $('login').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const input = $<HTMLInputElement>('token');
+    try { sessionStorage.setItem(KEY, input.value.trim()); } catch { say('Le stockage de session est indisponible dans ce navigateur.'); return; }
+    input.value = '';
+    say('Connexion…');
+    void load();
+  });
+  $('logout').addEventListener('click', () => {
+    try { sessionStorage.removeItem(KEY); } catch { /* rien */ }
+    $('admin-content').hidden = true;
+    $('logout').hidden = true;
+    say('Déconnecté.');
+  });
+  $('refresh').addEventListener('click', () => { void load(); });
+  void load();
+</script>

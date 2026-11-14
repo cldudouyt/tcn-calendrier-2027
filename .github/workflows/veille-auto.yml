@@ -1,0 +1,44 @@
+name: Veille automatique des inscriptions
+
+# Lit chaque matin le calendrier FFTRI et les pages des organisateurs, puis envoie des propositions
+# au site. Rien n'est publié sans validation sur /admin/.
+on:
+  schedule:
+    # 05:41 UTC = 06 h 41 (hiver) ou 07 h 41 (été) à Paris ; GitHub peut décaler le départ de quelques minutes.
+    - cron: '41 5 * * *'
+  workflow_dispatch:
+    inputs:
+      simulation:
+        description: 'Simulation : lire les pages sans rien envoyer au site'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veille-auto
+  cancel-in-progress: false
+
+jobs:
+  veille:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Le script n'a aucune dépendance npm : pas d'installation nécessaire.
+      - name: Relevé des pages officielles
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://tcn-calendrier-2027.cldudouyt.workers.dev' }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          if [ "${{ inputs.simulation }}" = "true" ]; then
+            node scripts/veille-auto.ts --dry-run
+          else
+            node scripts/veille-auto.ts
+          fi

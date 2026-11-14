@@ -76,8 +76,10 @@ const days = (id: string) => {
     <h2 style="margin-top:32px">Comment les informations sont-elles vérifiées ?</h2>
     <div class="card-sunk">
       <ul style="margin:0;padding-left:18px">
-        <li>Un contrôle automatique des liens déjà connus est programmé chaque jour à 8 h 30 (heure de Paris). Il ne recherche pas à lui seul les nouvelles ouvertures.</li>
-        <li>La recherche quotidienne des ouvertures dans ChatGPT est indépendante du site. Les informations doivent être transmises et validées avant leur publication ici.</li>
+        <li>Chaque matin, une veille automatique lit le calendrier officiel FFTRI et les pages des organisateurs. Elle repère les liens d’inscription 2027, les annonces d’ouverture, les annulations et les changements de date.</li>
+        <li>Ce qu’elle repère n’est publié qu’après vérification par un administrateur : une page muette ou introuvable n’est jamais interprétée comme « fermé ».</li>
+        <li>Les liens officiels déjà publiés sont en outre contrôlés chaque jour à 8 h 30 (heure de Paris).</li>
+        <li>La recherche des ouvertures menée dans ChatGPT reste indépendante du site : ses résultats ne sont pas transmis automatiquement et doivent être validés avant publication.</li>
         <li>Catégories suivies : {Object.values(CATEGORY_LABEL).join(', ').toLowerCase()}.</li>
         <li>Suivre les nouveautés : <a href="/veille/rss.xml">flux RSS</a>.</li>
       </ul>

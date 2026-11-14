@@ -8,6 +8,7 @@ import {
   CATEGORY_LABELS, applyPatch, checkBearer, dedupeKey, isNoop, isDailySlot, mergeOverrides, validateChange,
   type EventPatch,
 } from './lib';
+import { ALERT_LABELS, hashText, type AlertKind } from './watch';
 
 export interface Env { ASSETS: Fetcher; DB?: D1Database; ADMIN_TOKEN?: string }
 
@@ -86,15 +87,22 @@ async function publicApi(url: URL, env: Env): Promise<Response> {
 }
 
 /** Enregistre des propositions en attente ; rien n'est publié à cette étape. */
-async function importChanges(db: D1Database, items: unknown[], origin: 'import' | 'correction', events: RaceEvent[]) {
+async function importChanges(db: D1Database, items: unknown[], origin: 'import' | 'correction' | 'veille_auto', events: RaceEvent[]) {
   const current = new Map(events.map((e) => [e.id, e]));
-  const report = { received: items.length, queued: [] as number[], duplicates: 0, unchanged: 0, rejected: [] as { index: number; errors: string[] }[] };
+  const report = { received: items.length, queued: [] as number[], duplicates: 0, unchanged: 0, alreadyDecided: 0, rejected: [] as { index: number; errors: string[] }[] };
+  // La veille automatique ne repropose jamais ce qu'un administrateur a déjà publié ou rejeté.
+  const decided = new Set<string>();
+  if (origin === 'veille_auto' && items.length) {
+    const { results } = await db.prepare("SELECT dedupe_key FROM changes WHERE state IN ('publie', 'rejete')").all<{ dedupe_key: string }>();
+    for (const r of results) decided.add(r.dedupe_key);
+  }
   for (const [index, item] of items.entries()) {
     const result = validateChange(item, current);
     if (!result.ok) { report.rejected.push({ index, errors: result.errors }); continue; }
     const c = result.change;
     if (isNoop(current.get(c.eventId)!, c.patch)) { report.unchanged += 1; continue; }
     const key = await dedupeKey(c.eventId, c.patch);
+    if (decided.has(key)) { report.alreadyDecided += 1; continue; }
     const res = await db.prepare(
       'INSERT OR IGNORE INTO changes (event_id, category, patch, summary, evidence, source_url, checked_at, origin, dedupe_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     ).bind(c.eventId, c.category, JSON.stringify(c.patch), c.summary, c.evidence, c.sourceUrl, c.checkedAt, origin, key, now()).run();
@@ -176,12 +184,110 @@ async function adminApi(request: Request, url: URL, env: Env, ctx: ExecutionCont
     ctx.waitUntil(runDailyCheck(env, 'manuel'));
     return json({ started: true }, 202);
   }
+  if (method === 'POST' && path === '/watch/report') {
+    const b = await body();
+    return json(await receiveWatchReport(db, b, events), 202);
+  }
+  if (method === 'GET' && path === '/alerts') {
+    const state = url.searchParams.get('state') ?? 'ouverte';
+    const { results } = await db.prepare('SELECT * FROM watch_alerts WHERE state = ? ORDER BY id DESC LIMIT 200').bind(state).all();
+    return json({ state, alerts: results, labels: ALERT_LABELS });
+  }
+  const closeAlert = path.match(/^\/alerts\/(\d+)\/close$/);
+  if (method === 'POST' && closeAlert) {
+    const b = await body();
+    const note = typeof b.note === 'string' ? b.note.slice(0, 500) : null;
+    const res = await db.prepare("UPDATE watch_alerts SET state = 'traitee', closed_at = ?, note = ? WHERE id = ? AND state = 'ouverte'").bind(now(), note, Number(closeAlert[1])).run();
+    return res.meta.changes ? json({ closed: Number(closeAlert[1]) }) : json({ error: 'Alerte inconnue ou déjà traitée' }, 409);
+  }
   if (method === 'GET' && path === '/runs') {
     const runs = (await db.prepare('SELECT * FROM check_runs ORDER BY id DESC LIMIT 20').all()).results;
     const errors = (await db.prepare('SELECT * FROM error_log ORDER BY id DESC LIMIT 100').all()).results;
     return json({ runs, errors });
   }
   return json({ error: 'Route inconnue' }, 404);
+}
+
+const str = (v: unknown, max: number): string | null => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
+const httpsOrNull = (v: unknown): string | null => { const s = str(v, 1000); return s && /^https?:\/\//.test(s) ? s : null; };
+
+/**
+ * Rapport de la veille automatique : les propositions passent par la même validation que l'import manuel
+ * et restent « en attente » ; les alertes et l'état des pages sont seulement enregistrés.
+ */
+async function receiveWatchReport(db: D1Database, b: Record<string, unknown>, events: RaceEvent[]) {
+  const checkedAt = str(b.checkedAt, 40) ?? now();
+  const started = await db.prepare("INSERT INTO check_runs (started_at, trigger_kind) VALUES (?, 'veille_auto')").bind(checkedAt).run();
+  const runId = Number(started.meta.last_row_id);
+  const sources = (Array.isArray(b.sources) ? b.sources : []).slice(0, 400) as Record<string, unknown>[];
+  const changes = (Array.isArray(b.changes) ? b.changes : []).slice(0, 200);
+  const rawAlerts = (Array.isArray(b.alerts) ? b.alerts : []).slice(0, 300) as Record<string, unknown>[];
+  const eventIds = new Set(events.map((e) => e.id));
+  const groupFirstEvent = new Map<string, string>();
+  for (const e of events) if (!groupFirstEvent.has(e.eventGroupId) && e.date >= checkedAt.slice(0, 10)) groupFirstEvent.set(e.eventGroupId, e.id);
+
+  const importReport = await importChanges(db, changes, 'veille_auto', events);
+
+  // Alertes envoyées par la veille, puis alertes déduites de l'état des pages.
+  const alerts: { eventId: string | null; kind: AlertKind; message: string; sourceUrl: string | null; quote: string | null }[] = [];
+  for (const a of rawAlerts) {
+    const kind = str(a.kind, 40) as AlertKind | null;
+    const message = str(a.message, 1000);
+    if (!kind || !(kind in ALERT_LABELS) || !message) continue;
+    const eventId = str(a.eventId, 200);
+    alerts.push({ eventId: eventId && eventIds.has(eventId) ? eventId : null, kind, message, sourceUrl: httpsOrNull(a.sourceUrl), quote: str(a.quote, 600) });
+  }
+  const touchedGroups = new Set<string>();
+  for (const c of changes as Record<string, unknown>[]) { const e = events.find((x) => x.id === c.eventId); if (e) touchedGroups.add(e.eventGroupId); }
+
+  const { results: previousRows } = await db.prepare('SELECT url, hash, snippets, failures FROM watch_snapshots').all<{ url: string; hash: string | null; snippets: string; failures: number }>();
+  const previous = new Map(previousRows.map((r) => [r.url, r]));
+  const writes: D1PreparedStatement[] = [];
+  let ok = 0;
+  for (const s of sources) {
+    const url = httpsOrNull(s.url);
+    if (!url) continue;
+    const groups = (Array.isArray(s.eventGroupIds) ? s.eventGroupIds : []).filter((g): g is string => typeof g === 'string');
+    const firstEvent = groups.map((g) => groupFirstEvent.get(g)).find(Boolean) ?? null;
+    const prev = previous.get(url);
+    if (s.ok === true && typeof s.hash === 'string') {
+      ok += 1;
+      const snippets = (Array.isArray(s.snippets) ? s.snippets : []).filter((x): x is string => typeof x === 'string').slice(0, 60).map((x) => x.slice(0, 400));
+      if (prev?.hash && prev.hash !== s.hash && !groups.some((g) => touchedGroups.has(g))) {
+        let before: string[] = [];
+        try { before = JSON.parse(prev.snippets) as string[]; } catch { before = []; }
+        const added = snippets.filter((x) => !before.includes(x)).slice(0, 4);
+        if (added.length) {
+          alerts.push({ eventId: firstEvent, kind: 'page_modifiee', sourceUrl: url, quote: added.join(' … '), message: `Nouveaux passages sur une page officielle (${new URL(url).hostname}) : à relire.` });
+        }
+      }
+      writes.push(db.prepare('INSERT INTO watch_snapshots (url, hash, snippets, http_status, failures, fetched_at) VALUES (?, ?, ?, ?, 0, ?) ON CONFLICT (url) DO UPDATE SET hash = excluded.hash, snippets = excluded.snippets, http_status = excluded.http_status, failures = 0, fetched_at = excluded.fetched_at')
+        .bind(url, s.hash, JSON.stringify(snippets), typeof s.status === 'number' ? s.status : null, checkedAt));
+    } else {
+      const failures = (prev?.failures ?? 0) + 1;
+      // Une page muette n'est jamais interprétée comme « fermé » : elle est signalée après trois échecs.
+      if (failures === 3) {
+        alerts.push({ eventId: firstEvent, kind: 'source_injoignable', sourceUrl: url, quote: str(s.error, 200), message: `La page ${url} ne répond plus depuis trois relevés (${str(s.error, 120) ?? 'erreur'}).` });
+      }
+      writes.push(db.prepare('INSERT INTO watch_snapshots (url, hash, snippets, http_status, failures, fetched_at) VALUES (?, NULL, \'[]\', ?, ?, ?) ON CONFLICT (url) DO UPDATE SET http_status = excluded.http_status, failures = ?, fetched_at = excluded.fetched_at')
+        .bind(url, typeof s.status === 'number' ? s.status : null, failures, checkedAt, failures));
+    }
+  }
+  let newAlerts = 0;
+  for (const a of alerts) {
+    const key = hashText(`${a.kind}|${a.eventId ?? ''}|${a.sourceUrl ?? ''}|${a.quote ?? a.message}`);
+    writes.push(db.prepare('INSERT OR IGNORE INTO watch_alerts (event_id, kind, message, source_url, quote, dedupe_key, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .bind(a.eventId, a.kind, a.message, a.sourceUrl, a.quote, key, now()));
+  }
+  if (writes.length) {
+    const results = await db.batch(writes);
+    // Les insertions d'alertes sont les dernières instructions du lot.
+    newAlerts = results.slice(results.length - alerts.length).filter((r) => r.meta.changes > 0).length;
+  }
+  const note = `${importReport.queued.length} proposition(s) en attente, ${newAlerts} nouvelle(s) alerte(s)`;
+  await db.prepare("UPDATE check_runs SET finished_at = ?, links_checked = ?, links_failed = ?, state = 'termine', note = ? WHERE id = ?")
+    .bind(now(), sources.length, sources.length - ok, note, runId).run();
+  return { runId, pages: sources.length, pagesRead: ok, changes: importReport, alerts: { received: alerts.length, created: newAlerts } };
 }
 
 /** Contrôle d'un lien officiel : 3 tentatives sur erreur réseau ou 5xx, aucun contournement d'accès. */

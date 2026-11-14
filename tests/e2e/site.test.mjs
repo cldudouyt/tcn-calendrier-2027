@@ -244,3 +244,15 @@ test('clavier : lien d’évitement, focus visible, filtres actionnables', async
   assert.equal(await visibleCards(page), 13);
   await page.close();
 });
+
+test('administration : page non référencée, hors navigation, contenu masqué sans jeton', async () => {
+  const page = await open('/admin/');
+  assert.equal(await page.getAttribute('meta[name="robots"]', 'content'), 'noindex, nofollow');
+  assert.equal(await page.locator('#admin-content').isHidden(), true);
+  assert.equal(await page.locator('#token').getAttribute('type'), 'password');
+  const home = await open('/');
+  assert.equal(await home.locator('a[href="/admin/"]').count(), 0);
+  await page.close();
+  await home.close();
+});
+

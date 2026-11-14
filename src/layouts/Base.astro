@@ -10,8 +10,8 @@ import '@fontsource/barlow-semi-condensed/latin-700.css';
 import '@fontsource/barlow-semi-condensed/latin-800.css';
 import '../styles/global.css';
 
-interface Props { title: string; description?: string }
-const { title, description = 'Calendrier, carte et veille des épreuves de triathlon et disciplines associées des Pays de la Loire, de novembre 2026 à novembre 2027.' } = Astro.props;
+interface Props { title: string; description?: string; noindex?: boolean }
+const { title, noindex = false, description = 'Calendrier, carte et veille des épreuves de triathlon et disciplines associées des Pays de la Loire, de novembre 2026 à novembre 2027.' } = Astro.props;
 const path = Astro.url.pathname;
 const nav = [
   { href: '/', label: 'Accueil' },
@@ -29,6 +29,7 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title} — Triathlon Pays de la Loire 2027</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <meta property="og:title" content={`${title} — Triathlon Pays de la Loire 2027`} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />

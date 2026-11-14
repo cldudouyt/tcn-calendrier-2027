@@ -55,3 +55,29 @@ CREATE TABLE IF NOT EXISTS error_log (
   attempts INTEGER NOT NULL DEFAULT 1,
   occurred_at TEXT NOT NULL
 );
+
+-- Veille automatique (scripts/veille-auto.ts) : dernier état connu de chaque page surveillée.
+CREATE TABLE IF NOT EXISTS watch_snapshots (
+  url TEXT PRIMARY KEY,
+  hash TEXT,                                 -- empreinte des passages utiles (inscriptions, 2027, complet…)
+  snippets TEXT NOT NULL DEFAULT '[]',       -- JSON : passages relevés lors de la dernière lecture réussie
+  http_status INTEGER,
+  failures INTEGER NOT NULL DEFAULT 0,       -- échecs consécutifs de lecture
+  fetched_at TEXT NOT NULL
+);
+
+-- Signaux à examiner par un administrateur (aucun effet sur les données publiées).
+CREATE TABLE IF NOT EXISTS watch_alerts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id TEXT,
+  kind TEXT NOT NULL,                        -- date_differente | manifestation_non_suivie | formats_complets | page_modifiee | source_injoignable
+  message TEXT NOT NULL,
+  source_url TEXT,
+  quote TEXT,
+  state TEXT NOT NULL DEFAULT 'ouverte',     -- ouverte | traitee
+  dedupe_key TEXT NOT NULL UNIQUE,           -- une alerte identique n'est jamais recréée, même après traitement
+  created_at TEXT NOT NULL,
+  closed_at TEXT,
+  note TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_watch_alerts_state ON watch_alerts (state, id);

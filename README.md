@@ -57,6 +57,8 @@ npm run build && npm run worker:schema:local && npm run worker:dev
 | `POST /api/admin/changes/:id/validate` ou `/reject` | Publie ou rejette une proposition |
 | `PATCH /api/admin/events/:id` | Correction manuelle (même validation, publiée immédiatement) |
 | `POST /api/admin/check`, `GET /api/admin/runs` | Relance le contrôle des liens ; journal des contrôles et des erreurs |
+| `POST /api/admin/watch/report` | Reçoit le rapport de la veille automatique (propositions en attente, alertes, état des pages) |
+| `GET /api/admin/alerts?state=ouverte`, `POST /api/admin/alerts/:id/close` | Alertes de la veille à examiner |
 
 Les routes `/api/admin/*` exigent `Authorization: Bearer <ADMIN_TOKEN>`. Sans secret configuré, elles
 répondent 503.
@@ -64,7 +66,37 @@ répondent 503.
 L’import des informations vérifiées ajoute les changements d’inscription confirmés dans `data/veille-inscriptions.json`
 sur `main`. Le build vérifie chaque relevé et applique les changements au calendrier, au journal et à
 l’API. Cloudflare Workers Builds publie ces données à chaque commit. Les routes d’administration
-restent disponibles pour les corrections ponctuelles. Le contrôle planifié du Worker vérifie chaque jour que les liens officiels déjà publiés répondent encore. Il ne découvre pas automatiquement de nouvelles ouvertures : les résultats de la veille ChatGPT doivent être importés et validés avant publication.
+restent disponibles pour les corrections ponctuelles. Le contrôle planifié du Worker vérifie chaque jour que les liens officiels déjà publiés répondent encore.
+
+## Veille automatique des inscriptions
+
+Chaque matin (`.github/workflows/veille-auto.yml`, vers 7 h à Paris), `scripts/veille-auto.ts` :
+
+1. lit les épreuves publiées (`/api/events`) et les pages à surveiller (`data/sources.json`) ;
+2. lit le calendrier régional FFTRI, rapproche chaque manifestation d’une épreuve du site, puis lit sa fiche
+   (indicateur d’annulation structuré, dates des courses, liens « Site officiel » et « S’inscrire ») ;
+3. lit les pages des organisateurs (robots.txt respecté, une page à la fois, 1,5 s d’intervalle, réseaux sociaux exclus) ;
+4. envoie un rapport à `POST /api/admin/watch/report`.
+
+Règles (`worker/watch.ts`), qui ne produisent que des **propositions en attente** :
+
+| Signal | Proposition |
+| --- | --- |
+| Lien de billetterie pour l’édition 2027 sur une page officielle | « ouvert », avec le lien |
+| Phrase d’annonce d’ouverture près de « 2027 », sans billetterie | « annoncé », avec la citation |
+| Indicateur `cancelled: true` de la fiche FFTRI | « annulé » |
+| Date différente au calendrier FFTRI, manifestation inconnue du site, formats « complets », passages nouveaux sur une page, page muette trois jours de suite | alerte à examiner (aucun effet sur le site) |
+
+Sur une page générale de club (`"scope": "club"`), un lien ou une annonce n’est attribué à une épreuve que si le
+texte qui le précède contient un de ses mots-clés. Une proposition rejetée n’est jamais reproposée ; une alerte
+traitée n’est jamais recréée à l’identique.
+
+Les propositions se valident sur **`/admin/`** (page non référencée, jeton `ADMIN_TOKEN`). Ajouter une page à
+surveiller : compléter `data/sources.json` (les tests vérifient le fichier).
+
+Mise en service : secret `ADMIN_TOKEN` (même valeur que sur Cloudflare) dans GitHub → Settings → Secrets and
+variables → Actions ; variable `SITE_URL` facultative. Essai sans rien envoyer : `npm run veille:simulation`
+(ou lancer le workflow à la main avec « Simulation »).
 
 Planification : deux déclenchements UTC chaque jour (06:30 et 07:30) ; le Worker n'exécute que celui qui
 tombe à 08 h 30 à Paris, été comme hiver.

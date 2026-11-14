@@ -1,0 +1,486 @@
+{
+  "$comment": "Pages officielles surveillées par la veille automatique (scripts/veille-auto.ts). « epreuve » : page dédiée à l’épreuve ; « club » : page générale, un lien n’y est retenu que si ses abords contiennent un des mots-clés. Les fiches du calendrier FFTRI sont découvertes automatiquement. Réseaux sociaux exclus.",
+  "sources": [
+    {
+      "eventGroupId": "pdl-44-run-bike-du-bouguenais-club-triathlon",
+      "keywords": [
+        "roche ballue",
+        "bouguenais"
+      ],
+      "pages": [
+        {
+          "url": "https://www.bouguenais-club-triathlon.com/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-85-leclerc-bike-run",
+      "pages": [
+        {
+          "url": "https://lessablesvendeetriathlon.com/run-and-bike-leclerc/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-bike-run-de-saint-nazaire",
+      "keywords": [
+        "run & bike",
+        "run and bike",
+        "bike & run"
+      ],
+      "pages": [
+        {
+          "url": "https://www.best-triathlon-saint-nazaire.com/organisations",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-bike-run-de-la-gournerie",
+      "keywords": [
+        "gournerie"
+      ],
+      "pages": [
+        {
+          "url": "https://www.saintherblaintriathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-bike-run-des-iles-de-loire",
+      "pages": [
+        {
+          "url": "https://www.triveloce.com/bike-and-run",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-53-run-bike-du-chateau-de-mayenne",
+      "pages": [
+        {
+          "url": "https://mastria53-triathlon-mayenne.fr/run-and-bike-du-chateau",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-72-duathlon-du-mans",
+      "pages": [
+        {
+          "url": "https://lemanstriathlon.fr/duathlon-du-mans",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-53-duathlon-de-juvigne",
+      "keywords": [
+        "juvigne",
+        "duathlon"
+      ],
+      "pages": [
+        {
+          "url": "https://www.erneennetriathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-bike-run-des-vignes",
+      "keywords": [
+        "vignes"
+      ],
+      "pages": [
+        {
+          "url": "https://saumurteamtriathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-aquathlon-de-vertou",
+      "keywords": [
+        "aquathlon de vertou",
+        "triathlon de vertou"
+      ],
+      "pages": [
+        {
+          "url": "https://www.triveloce.com/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-de-vertou",
+      "keywords": [
+        "triathlon de vertou"
+      ],
+      "pages": [
+        {
+          "url": "https://www.triveloce.com/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-anjou-swimrun-hyundai-ocean-auto",
+      "keywords": [
+        "swimrun"
+      ],
+      "pages": [
+        {
+          "url": "https://sco-angers-triathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-72-aquathlon-de-brulon",
+      "keywords": [
+        "brulon",
+        "aquathlon"
+      ],
+      "pages": [
+        {
+          "url": "https://triathlonsudsarthe.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-triathlon-dangers-entre-loire-et-maine",
+      "pages": [
+        {
+          "url": "https://angerstriathlon.fr/triathlon-angers-2027/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-triathlon-dangers",
+      "pages": [
+        {
+          "url": "https://angerstriathlon.fr/triathlon-angers-2027/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-swimrun-de-pornic",
+      "pages": [
+        {
+          "url": "https://myswim.fr/swimrun-cotedejade-pornic",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-85-triathlon-de-la-roche-sur-yon",
+      "pages": [
+        {
+          "url": "https://triathlon-larochesuryon.fr/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-72-triathlon-du-mans",
+      "pages": [
+        {
+          "url": "https://lemanstriathlon.fr/triathlon-du-mans",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-aquathlon-de-montreuil-juigne",
+      "keywords": [
+        "montreuil"
+      ],
+      "pages": [
+        {
+          "url": "https://sco-angers-triathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-triathlon-de-montreuil-juigne",
+      "keywords": [
+        "montreuil"
+      ],
+      "pages": [
+        {
+          "url": "https://sco-angers-triathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-85-triathlon-de-noirmoutier",
+      "pages": [
+        {
+          "url": "https://triathlonnoirmoutier.fr/evenements/inscriptions-triathlon-noirmoutier-2027/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-53-le-northmay",
+      "keywords": [
+        "north"
+      ],
+      "pages": [
+        {
+          "url": "https://maytriathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-swimrun-du-pays-blanc",
+      "keywords": [
+        "swimrun",
+        "mesquer"
+      ],
+      "pages": [
+        {
+          "url": "https://www.tri-cote-damour.fr/site2016/index.php/mesquer-accueil",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-de-mesquer-quimiac",
+      "keywords": [
+        "mesquer",
+        "quimiac"
+      ],
+      "pages": [
+        {
+          "url": "https://www.tri-cote-damour.fr/site2016/index.php/mesquer-accueil",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-duathlon-des-dervallieres",
+      "pages": [
+        {
+          "url": "https://triathlon-club-nantais.com/nos-organisations/duathlon-des-dervailleres/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-72-triathlon-de-saint-calais",
+      "keywords": [
+        "calais",
+        "calthlon"
+      ],
+      "pages": [
+        {
+          "url": "https://www.aboi.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-85-triathlon-de-saint-jean-de-monts",
+      "pages": [
+        {
+          "url": "https://triathlon-vendee.com/triathlon-international-saint-jean-de-monts/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-au-feminin",
+      "keywords": [
+        "feminin"
+      ],
+      "pages": [
+        {
+          "url": "https://www.cormaris-triathlon.com/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-85-ironman-les-sables-dolonne",
+      "pages": [
+        {
+          "url": "https://www.ironman.com/races/im-les-sables-dolonne",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-53-triathlon-v-b-de-chateau-gontier",
+      "keywords": [
+        "v&b",
+        "triathlon"
+      ],
+      "pages": [
+        {
+          "url": "https://www.chateaugontiertriathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-53-duathlon-de-chateau-gontier",
+      "keywords": [
+        "duathlon"
+      ],
+      "pages": [
+        {
+          "url": "https://www.chateaugontiertriathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-53-endurathlon",
+      "pages": [
+        {
+          "url": "https://endurathlon.fr/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-85-triathlon-de-saint-gilles-croix-de-vie",
+      "keywords": [
+        "triathlon"
+      ],
+      "pages": [
+        {
+          "url": "https://www.payssaintgillesvendeetriathlon.fr/page/136393-accueil",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-triathlon-de-villeveque",
+      "pages": [
+        {
+          "url": "https://www.triathlondevilleveque.fr/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-sois-fier-de-toi",
+      "keywords": [
+        "sois fier"
+      ],
+      "pages": [
+        {
+          "url": "https://www.best-triathlon-saint-nazaire.com/organisations",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-aquathlon-de-saint-nazaire",
+      "keywords": [
+        "aquathlon"
+      ],
+      "pages": [
+        {
+          "url": "https://www.best-triathlon-saint-nazaire.com/organisations",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-de-saint-nazaire",
+      "keywords": [
+        "triathlon de saint"
+      ],
+      "pages": [
+        {
+          "url": "https://www.best-triathlon-saint-nazaire.com/organisations",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-72-cross-triathlon-de-la-fleche",
+      "keywords": [
+        "cross"
+      ],
+      "pages": [
+        {
+          "url": "https://la-fleche-triathlon.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-49-triathlon-de-cholet",
+      "keywords": [
+        "cholet"
+      ],
+      "pages": [
+        {
+          "url": "https://triathlon-cholet.fr/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-audencia-la-baule",
+      "pages": [
+        {
+          "url": "https://triathlon-audencialabaule.com/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-85-triathlon-sud-vendee",
+      "pages": [
+        {
+          "url": "https://triathlonsudvendee.fr/inscriptions/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-duathlon-de-coueron",
+      "keywords": [
+        "duathlon"
+      ],
+      "pages": [
+        {
+          "url": "https://www.tricoueron.org/",
+          "scope": "club"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-des-roses",
+      "pages": [
+        {
+          "url": "https://triathlon-club-nantais.com/nos-organisations/triathlon-de-nantes/",
+          "scope": "epreuve"
+        }
+      ]
+    },
+    {
+      "eventGroupId": "pdl-44-triathlon-de-nantes",
+      "pages": [
+        {
+          "url": "https://triathlon-club-nantais.com/nos-organisations/triathlon-de-nantes/",
+          "scope": "epreuve"
+        }
+      ]
+    }
+  ]
+}
