@@ -354,3 +354,53 @@ test('signalement : parcours mobile depuis une fiche, accusés « reçu » et «
     await past.close();
   }
 });
+
+
+test('fiche : changement D1 actualise statut, preuve, formats et lien d’inscription', async () => {
+  const id = 'pdl-44-2027-04-04-duathlon-nozeen';
+  const base = allEvents.find((e) => e.id === id);
+  assert.ok(base);
+  const url = 'https://www.klikego.com/inscription/duathlon-nozeen-2027';
+  const event = {
+    ...base, registrationStatus: 'ouvert', registrationEvidence: 'Inscriptions 2027 ouvertes, confirmation de l’organisateur.',
+    registrationUrl: url, officialUrl: 'https://organisateur.example/duathlon',
+    lastCheckedAt: '2026-11-14T14:30:00+01:00',
+    formatAvailability: [{ format: 'S', status: 'complet', evidence: 'S complet', sourceUrl: url }],
+  };
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR' });
+  await context.route('**/api/events/' + id, (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ event }),
+  }));
+  const page = await context.newPage();
+  await page.goto(BASE + '/epreuves/' + id + '/', { waitUntil: 'load' });
+  await page.waitForFunction(() => document.querySelector('#registration-actions a.btn-primary') !== null);
+  assert.equal(await page.locator('#registration-actions a.btn-primary').getAttribute('href'), url);
+  assert.match(await page.locator('#registration-facts').innerText(), /Ouvert en partie.*S complet/s);
+  assert.match(await page.locator('#registration-facts').innerText(), /Inscriptions 2027 ouvertes, confirmation de l’organisateur/);
+  assert.match(await page.locator('#registration-facts').innerText(), /14 novembre 2026/);
+  assert.match(await page.locator('#registration-availability').innerText(), /S : Complet/);
+  assert.equal(await page.locator('#registration-actions a').count(), 2);
+  await context.close();
+});
+
+test('fiche : un complet publié dans D1 retire le lien d’inscription', async () => {
+  const id = 'pdl-44-2027-04-04-duathlon-nozeen';
+  const base = allEvents.find((e) => e.id === id);
+  assert.ok(base);
+  const event = {
+    ...base, registrationStatus: 'complet', registrationEvidence: 'Toutes les places 2027 ont été attribuées.',
+    registrationUrl: 'https://www.klikego.com/inscription/duathlon-nozeen-2027',
+    officialUrl: 'https://organisateur.example/duathlon', lastCheckedAt: '2026-11-14T14:30:00+01:00',
+  };
+  const context = await browser.newContext();
+  await context.route('**/api/events/' + id, (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ event }),
+  }));
+  const page = await context.newPage();
+  await page.goto(BASE + '/epreuves/' + id + '/', { waitUntil: 'load' });
+  await page.waitForFunction(() => document.querySelector('#registration-facts')?.textContent?.includes('Toutes les places 2027'));
+  assert.match(await page.locator('#registration-facts').innerText(), /Complet/);
+  assert.equal(await page.locator('#registration-actions a.btn-primary').count(), 0);
+  assert.equal(await page.locator('#registration-actions [aria-disabled="true"]').count(), 1);
+  await context.close();
+});
