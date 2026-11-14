@@ -33,11 +33,13 @@ import TransportAccess from '../../components/TransportAccess.astro';
       <TransportBadge code={e.transport} />
     </div>
     <div class="actions" style="margin-bottom:24px">
+      <span id="registration-actions" style="display:contents">
       {regUrl
         ? <a class="btn btn-primary" href={regUrl} rel="noopener">S’inscrire (site officiel)</a>
         : announcementUrl ? <a class="btn btn-secondary" href={announcementUrl} rel="noopener">Voir l’annonce de l’organisateur</a>
         : <span class="btn btn-secondary" aria-disabled="true" style="cursor:default">Lien d’inscription non vérifié</span>}
       {e.officialUrl && <a class="btn btn-secondary" href={e.officialUrl} rel="noopener">Site de l’organisateur</a>}
+      </span>
       <button type="button" class="btn btn-secondary" id="share" data-title={e.name}>Partager</button>
       <a class="btn btn-secondary" href="#signaler" id="report-shortcut">Signaler une info d’inscription</a>
     </div>
@@ -70,21 +72,25 @@ import TransportAccess from '../../components/TransportAccess.astro';
         </dl>
       </section>
 
-      <section class="card" aria-labelledby="t-inscription">
+      <section class="card" aria-labelledby="t-inscription" id="registration-panel" data-event-id={e.id}>
         <h2 id="t-inscription" style="font-size:1.5rem">Inscription</h2>
-        <dl class="facts">
+        <dl class="facts" id="registration-facts">
           <div><dt>Statut</dt><dd>{display.label}<br /><span class="small muted">{display.description}</span></dd></div>
           <div><dt>Dernière vérification</dt><dd>{e.lastCheckedAt ? formatParis(e.lastCheckedAt) : <span class="unknown">Jamais vérifié</span>}</dd></div>
           {e.registrationOpenAt && status === 'annonce' && <div><dt>Ouverture annoncée</dt><dd>{formatParis(e.registrationOpenAt)}</dd></div>}
           <div><dt>Tarif</dt><dd>{e.price !== null && regUrl ? `${e.price} ${e.currency}` : e.registrationEvidence && /\d\s?€/.test(e.registrationEvidence) && status !== 'non_verifie' ? <span>Selon le format : voir le fait vérifié ci-dessous et la billetterie</span> : <span class="muted">Non communiqué (aucun tarif sourcé)</span>}</dd></div>
           {e.registrationEvidence && status !== 'non_verifie' && <div><dt>Fait vérifié</dt><dd>{e.registrationEvidence}</dd></div>}
         </dl>
+        <div id="registration-availability">
         {e.formatAvailability && e.formatAvailability.length > 0 && <>
           <h3 style="font-size:1.15rem;margin-top:14px">Disponibilité par format</h3>
           <ul>{e.formatAvailability.map((f) => <li><strong>{f.format} : {f.status === 'complet' ? 'Complet' : f.status === 'ouvert' ? 'Inscriptions ouvertes' : 'À vérifier'}</strong> — <a href={f.sourceUrl} rel="noopener">Voir l’information officielle</a></li>)}</ul>
         </>}
+        </div>
+        <div id="registration-conflict">
         {e.sourceConflict && <div class="notice" style="margin-top:12px"><p><strong>Les sources se contredisent.</strong> Avant de vous inscrire, vérifiez le maintien de la course auprès de l’organisateur. <a href={e.sourceConflict.url} rel="noopener">Autre source : {e.sourceConflict.label}</a></p></div>}
-        <p class="small muted" style="margin:12px 0 0">{e.statusDetail}</p>
+        </div>
+        <p class="small muted" id="registration-detail" style="margin:12px 0 0">{e.statusDetail}</p>
       </section>
     </div>
 
@@ -105,6 +111,7 @@ import TransportAccess from '../../components/TransportAccess.astro';
 
 <script>
   import { parisToday } from '../../lib/format';
+  import '../../client/registration-live';
   const pastNotice = document.getElementById('past-notice');
   // Texte inséré seulement si l'épreuve est passée : le HTML publié ne contient jamais « Épreuve passée ».
   if (pastNotice && pastNotice.dataset.eventDate! < parisToday()) {
