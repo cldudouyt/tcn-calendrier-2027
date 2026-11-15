@@ -1,5 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
+import sourcesRaw from '../../data/sources.json?raw';
+import { events } from '../lib/events';
+import { sourceLines, SOURCES_EDIT_URL } from '../lib/source-lines';
+// Où corriger une adresse injoignable : lignes de data/sources.json telles que déployées avec cette page.
+const lines = sourceLines(sourcesRaw);
+const sourceHelp = JSON.stringify({
+  editUrl: SOURCES_EDIT_URL,
+  urls: lines.urls,
+  groupByEvent: Object.fromEntries(events.map((e) => [e.id, { group: e.eventGroupId, line: lines.groups[e.eventGroupId] ?? null }])),
+});
 ---
 <Base title="Administration de la veille" noindex description="Validation des propositions de la veille automatique.">
   <section class="section wrap">
@@ -34,7 +44,13 @@ import Base from '../layouts/Base.astro';
 
       <h2 style="margin-top:32px">Alertes à examiner <span class="badge badge-brand" id="count-alerts">0</span></h2>
       <p class="small muted">Les alertes ne modifient rien sur le site. Une alerte traitée n’est jamais recréée à l’identique.</p>
-      <ul class="timeline" id="alerts"></ul>
+      <ul class="timeline" id="alerts" data-source-help={sourceHelp}></ul>
+
+      <section id="manual-pages" hidden>
+        <h3 style="margin-top:24px">Pages à consulter vous-même</h3>
+        <p class="small muted">Pages que le robot de veille ne parvient pas à lire mais qu’un administrateur a pu ouvrir. Elles ne sont pas surveillées automatiquement : jetez-y un œil de temps en temps.</p>
+        <ul class="small" id="manual-list" style="margin:0;padding-left:18px;display:grid;gap:6px"></ul>
+      </section>
 
       <h2 style="margin-top:32px">Derniers contrôles</h2>
       <div class="card" style="overflow-x:auto">
@@ -154,9 +170,73 @@ import Base from '../layouts/Base.astro';
         btn.disabled = true;
         try { await api(`/alerts/${a.id}/close`, { method: 'POST', body: '{}' }); await load(); } catch (err) { say(`Échec : ${(err as Error).message}`); btn.disabled = false; }
       });
-      li.append(meta, btn);
+      li.append(meta);
+      if (a.kind === 'source_injoignable' && a.source_url) li.append(replaceHelp(a.source_url, a.event_id));
+      const actions = el('div', '', 'actions');
+      if (a.kind === 'source_injoignable' && a.source_url) {
+        const readable = Object.assign(el('button', 'J’arrive à lire la page', 'btn btn-secondary'), { type: 'button', title: 'La page s’ouvre normalement dans votre navigateur : seul le robot de veille est bloqué.' });
+        readable.addEventListener('click', async () => {
+          readable.disabled = true;
+          try { await api(`/alerts/${a.id}/close`, { method: 'POST', body: JSON.stringify({ note: MANUAL_NOTE }) }); await load(); } catch (err) { say(`Échec : ${(err as Error).message}`); readable.disabled = false; }
+        });
+        actions.append(readable);
+      }
+      actions.append(btn);
+      li.append(actions);
       list.append(li);
     }
+  }
+
+  // Page lisible par un administrateur mais pas par le robot (blocage des lecteurs automatiques, 403…).
+  const MANUAL_NOTE = 'Page lisible par un administrateur : seul le robot de veille est bloqué. Consultation manuelle.';
+  function renderManual(alerts: (Alert & { note: string | null; closed_at: string | null })[]): void {
+    const seen = new Set<string>();
+    const list = $('manual-list');
+    list.replaceChildren();
+    for (const a of alerts) {
+      if (a.note !== MANUAL_NOTE || !a.source_url || seen.has(a.source_url)) continue;
+      seen.add(a.source_url);
+      const li = el('li');
+      const ev = a.event_id ? names.get(a.event_id) : undefined;
+      li.append(link(a.source_url, new URL(a.source_url).hostname), ` — ${ev?.name ?? a.event_id ?? 'épreuve'}`);
+      if (a.closed_at) li.append(el('span', ` (noté le ${fmt.format(new Date(a.closed_at))})`, 'muted'));
+      list.append(li);
+    }
+    $('manual-pages').hidden = seen.size === 0;
+  }
+
+  // Remplacement d'une adresse injoignable : on indique la ligne de data/sources.json et on ouvre l'éditeur GitHub.
+  interface SourceHelp { editUrl: string; urls: Record<string, number[]>; groupByEvent: Record<string, { group: string; line: number | null }> }
+  const sourceHelp = JSON.parse($('alerts').dataset.sourceHelp ?? '{}') as SourceHelp;
+  function replaceHelp(url: string, eventId: string | null): HTMLElement {
+    const box = el('div', '', 'card-sunk small');
+    box.style.margin = '10px 0';
+    box.append(el('strong', 'Remplacer l’adresse'));
+    const found = sourceHelp.urls?.[url] ?? [];
+    const group = eventId ? sourceHelp.groupByEvent?.[eventId] : undefined;
+    let where: string;
+    if (found.length) {
+      where = `Cette adresse figure ${found.length > 1 ? `aux lignes ${found.join(', ')}` : `à la ligne ${found[0]}`} de data/sources.json${found.length > 1 ? ' (page partagée par plusieurs épreuves : remplacez-la partout)' : ''}. Remplacez-la par la nouvelle adresse.`;
+    } else if (group?.line) {
+      where = `Cette adresse est déduite de la fiche FFTRI de l’épreuve. Ajoutez la bonne page dans l’entrée « ${group.group} », ligne ${group.line} de data/sources.json : { "url": "https://…", "scope": "club" }.`;
+    } else {
+      where = `Cette adresse est déduite de la fiche FFTRI de l’épreuve. Ajoutez une entrée pour le groupe « ${group?.group ?? 'de l’épreuve'} » dans data/sources.json : { "eventGroupId": "…", "pages": [{ "url": "https://…", "scope": "club" }] }.`;
+    }
+    const p = el('p', where);
+    p.style.margin = '6px 0';
+    const actions = el('div', '', 'actions');
+    const copied = found.length ? url : (group?.group ?? url);
+    const copy = Object.assign(el('button', found.length ? 'Copier l’ancienne adresse' : 'Copier le nom du groupe', 'btn btn-secondary'), { type: 'button' });
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(copied); copy.textContent = 'Copié'; } catch { copy.textContent = 'Copie impossible : sélectionnez l’adresse'; }
+    });
+    const edit = Object.assign(el('a', 'Modifier sur GitHub', 'btn btn-primary'), { href: sourceHelp.editUrl, target: '_blank', rel: 'noopener noreferrer' });
+    actions.append(copy, edit);
+    const step = found.length ? 'recherchez l’ancienne adresse (Ctrl+F) et remplacez-la' : `recherchez « ${group?.group ?? 'eventGroupId'} » (Ctrl+F) et ajoutez la page`;
+    const after = el('p', `Dans l’éditeur GitHub, ${step}, puis validez le commit sur main. Le site se redéploie et le relevé suivant lit la nouvelle adresse ; marquez ensuite l’alerte comme traitée.`, 'muted');
+    after.style.margin = '6px 0 0';
+    box.append(p, actions, after);
+    return box;
   }
 
   function renderReports(reports: Report[], labels: Record<string, string>): void {
@@ -209,6 +289,9 @@ import Base from '../layouts/Base.astro';
         api<{ runs: Run[] }>('/runs'),
         api<{ reports: Report[]; labels: Record<string, string> }>('/reports?state=a_verifier'),
       ]);
+      api<{ alerts: (Alert & { note: string | null; closed_at: string | null })[] }>('/alerts?state=traitee')
+        .then((t) => renderManual(t.alerts))
+        .catch(() => { /* liste facultative */ });
       renderChanges(c.changes);
       renderReports(rep.reports, rep.labels);
       renderAlerts(a.alerts, a.labels);
