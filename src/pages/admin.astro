@@ -1,14 +1,16 @@
 ---
 import Base from '../layouts/Base.astro';
 import sourcesRaw from '../../data/sources.json?raw';
+import sourcesFile from '../../data/sources.json';
 import { events } from '../lib/events';
 import { sourceLines, SOURCES_EDIT_URL } from '../lib/source-lines';
 // Où corriger une adresse injoignable : lignes de data/sources.json telles que déployées avec cette page.
 const lines = sourceLines(sourcesRaw);
+const pagesByGroup = new Map<string, string[]>((sourcesFile.sources as { eventGroupId: string; pages: { url: string }[] }[]).map((g) => [g.eventGroupId, g.pages.map((pg) => pg.url)]));
 const sourceHelp = JSON.stringify({
   editUrl: SOURCES_EDIT_URL,
   urls: lines.urls,
-  groupByEvent: Object.fromEntries(events.map((e) => [e.id, { group: e.eventGroupId, line: lines.groups[e.eventGroupId] ?? null }])),
+  groupByEvent: Object.fromEntries(events.map((e) => [e.id, { group: e.eventGroupId, line: lines.groups[e.eventGroupId] ?? null, pages: pagesByGroup.get(e.eventGroupId) ?? [] }])),
 });
 ---
 <Base title="Administration de la veille" noindex description="Validation des propositions de la veille automatique.">
@@ -164,7 +166,7 @@ const sourceHelp = JSON.stringify({
       li.append(eventLine(a.event_id), el('h3', labels[a.kind] ?? a.kind), el('p', a.message));
       if (a.quote) li.append(el('p', `« ${a.quote} »`, 'small'));
       const meta = el('p', `Signalée le ${fmt.format(new Date(a.created_at))} · `, 'small muted');
-      meta.append(link(a.source_url, 'ouvrir la source'));
+      meta.append(link(a.source_url, a.kind === 'source_injoignable' ? 'ouvrir l’adresse en échec' : 'ouvrir la source'));
       const btn = Object.assign(el('button', 'Marquer comme traitée', 'btn btn-secondary'), { type: 'button' });
       btn.addEventListener('click', async () => {
         btn.disabled = true;
@@ -173,7 +175,7 @@ const sourceHelp = JSON.stringify({
       li.append(meta);
       if (a.kind === 'source_injoignable' && a.source_url) li.append(replaceHelp(a.source_url, a.event_id));
       const actions = el('div', '', 'actions');
-      if (a.kind === 'source_injoignable' && a.source_url) {
+      if (a.kind === 'source_injoignable' && a.source_url && !isReplaced(a.source_url, a.event_id)) {
         const readable = Object.assign(el('button', 'J’arrive à lire la page', 'btn btn-secondary'), { type: 'button', title: 'La page s’ouvre normalement dans votre navigateur : seul le robot de veille est bloqué.' });
         readable.addEventListener('click', async () => {
           readable.disabled = true;
@@ -206,14 +208,28 @@ const sourceHelp = JSON.stringify({
   }
 
   // Remplacement d'une adresse injoignable : on indique la ligne de data/sources.json et on ouvre l'éditeur GitHub.
-  interface SourceHelp { editUrl: string; urls: Record<string, number[]>; groupByEvent: Record<string, { group: string; line: number | null }> }
+  interface SourceHelp { editUrl: string; urls: Record<string, number[]>; groupByEvent: Record<string, { group: string; line: number | null; pages: string[] }> }
   const sourceHelp = JSON.parse($('alerts').dataset.sourceHelp ?? '{}') as SourceHelp;
+  const readableUrl = (u: string): string => { try { return decodeURI(u).replace(/^https:\/\//, ''); } catch { return u.replace(/^https:\/\//, ''); } };
+  /** L'adresse en échec n'est plus dans data/sources.json alors que l'épreuve y a sa page. */
+  const isReplaced = (url: string, eventId: string | null): boolean =>
+    !(sourceHelp.urls?.[url]?.length) && !!(eventId && sourceHelp.groupByEvent?.[eventId]?.pages.length);
   function replaceHelp(url: string, eventId: string | null): HTMLElement {
     const box = el('div', '', 'card-sunk small');
     box.style.margin = '10px 0';
-    box.append(el('strong', 'Remplacer l’adresse'));
     const found = sourceHelp.urls?.[url] ?? [];
     const group = eventId ? sourceHelp.groupByEvent?.[eventId] : undefined;
+    // Adresse absente du fichier alors que l'épreuve y a déjà sa page : remplacement fait (ou adresse tirée de la fiche FFTRI).
+    if (isReplaced(url, eventId) && group) {
+      box.append(el('strong', 'Rien à corriger dans data/sources.json'));
+      const p = el('p', 'L’adresse en échec n’y figure plus (elle a été remplacée, ou elle venait de la fiche FFTRI). L’épreuve y est suivie via : ');
+      p.style.margin = '6px 0';
+      group.pages.forEach((u, i) => p.append(i ? ', ' : '', link(u, readableUrl(u))));
+      p.append('. Le prochain relevé lit cette page ; marquez l’alerte comme traitée.');
+      box.append(p);
+      return box;
+    }
+    box.append(el('strong', 'Remplacer l’adresse'));
     let where: string;
     if (found.length) {
       where = `Cette adresse figure ${found.length > 1 ? `aux lignes ${found.join(', ')}` : `à la ligne ${found[0]}`} de data/sources.json${found.length > 1 ? ' (page partagée par plusieurs épreuves : remplacez-la partout)' : ''}. Remplacez-la par la nouvelle adresse.`;
