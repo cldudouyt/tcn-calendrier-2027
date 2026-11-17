@@ -80,6 +80,8 @@ test('calendrier : 78 entrées, répartition 20/10/15/13/20, aucun statut invent
     assert.equal(await visibleCards(page), n, `département ${dep}`);
     await page.locator(`input[name="dep"][value="${dep}"]`).uncheck({ force: true });
   }
+  // Les badges sont mis à jour après le chargement avec les statuts publiés : on attend qu'ils soient appliqués.
+  await page.waitForFunction((n) => document.querySelectorAll('.event-card .badge-success').length === n, openCount, { timeout: 10000 });
   assert.equal(await page.locator('.event-card .badge-success').count(), openCount);
   assert.equal(await page.locator('.event-card [data-status="ferme"]').count(), [...published.values()].filter((status) => status === 'ferme').length);
   assert.equal(await page.locator('.event-card [data-status="non_verifie"]').count(), 78 - published.size);
@@ -254,6 +256,17 @@ test('fiche : transports séparant commune, départ et vélo, sans rien garantir
   assert.match(t2, /Points à recouper/);
   assert.match(t2, /Non localisé/);
   await unknown.close();
+});
+
+test('veille : le tableau « État actuel » compte les statuts publiés (admin compris)', async () => {
+  const page = await open('/veille/');
+  const count = (s) => [...published.values()].filter((x) => x === s).length;
+  await page.waitForFunction((n) => document.querySelector('[data-kpi="status-ouvert"]')?.textContent === String(n), count('ouvert'), { timeout: 10000 });
+  for (const s of ['ouvert', 'annonce', 'a_confirmer', 'complet', 'ferme', 'annule']) {
+    assert.equal(await page.locator(`[data-kpi="status-${s}"]`).innerText(), String(count(s)), s);
+  }
+  assert.equal(await page.locator('[data-kpi="status-non_verifie"]').innerText(), String(78 - published.size));
+  await page.close();
 });
 
 test('veille, documents et hors région', async () => {

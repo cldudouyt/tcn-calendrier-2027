@@ -37,7 +37,7 @@ for (const s of surveys) for (const c of s.changes) if (!latestChange.has(c.even
         <tbody>
           {REGISTRATION_STATUSES.map((s) => (
             <tr><th scope="row" style="font-family:var(--text);text-transform:none;letter-spacing:0;font-size:1rem;color:var(--ink)">{STATUS_META[s].label}</th>
-              <td><a href={`/calendrier/?status=${s}`}>{kpis.byStatus[s]}</a></td><td class="small">{STATUS_META[s].description}</td></tr>
+              <td><a href={`/calendrier/?status=${s}`} data-kpi={`status-${s}`}>{kpis.byStatus[s]}</a></td><td class="small">{STATUS_META[s].description}</td></tr>
           ))}
         </tbody>
       </table>

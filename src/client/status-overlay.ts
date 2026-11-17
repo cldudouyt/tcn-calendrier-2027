@@ -21,6 +21,9 @@ if (badges.length || kpis.length) {
       });
       const count = (status: string): number => body.statuses.filter((s) => s.status === status).length;
       const values: Record<string, number> = { total: body.statuses.length, open: count('ouvert'), announced: count('annonce'), toConfirm: count('non_verifie') };
+      // Tableau « État actuel » de la veille : un compteur par statut (data-kpi="status-<statut>").
+      for (const s of new Set(body.statuses.map((x) => x.status))) values[`status-${s}`] = count(s);
+      kpis.forEach((el) => { if (el.dataset.kpi?.startsWith('status-') && values[el.dataset.kpi] === undefined) values[el.dataset.kpi] = 0; });
       kpis.forEach((el) => { const v = values[el.dataset.kpi ?? '']; if (v !== undefined) el.textContent = String(v); });
     })
     .catch(() => { /* API indisponible */ });
