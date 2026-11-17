@@ -7,7 +7,14 @@ import { chromium } from 'playwright';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4321';
 const reports = JSON.parse(readFileSync(new URL('../../data/veille-inscriptions.json', import.meta.url), 'utf8'));
-const published = new Map(reports.flatMap((r) => r.changes.map((c) => [c.eventId, c.patch.registrationStatus])));
+// Statuts attendus : ceux que le site sert réellement (fichier de veille du dépôt + publications faites depuis /admin/,
+// stockées dans D1). Sans API (astro preview), on retombe sur le seul fichier du dépôt.
+const fromFile = new Map(reports.flatMap((r) => r.changes.map((c) => [c.eventId, c.patch.registrationStatus])));
+const fromSite = await fetch(`${BASE}/api/status`)
+  .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? r.json() : null))
+  .then((b) => (b?.statuses ? new Map(b.statuses.filter((x) => x.status !== 'non_verifie').map((x) => [x.id, x.status])) : null))
+  .catch(() => null);
+const published = fromSite ?? fromFile;
 const openCount = [...published.values()].filter((status) => status === 'ouvert').length;
 const announcedCount = [...published.values()].filter((status) => status === 'annonce').length;
 const closedCount = [...published.values()].filter(status => ['complet', 'ferme', 'annule'].includes(status)).length;

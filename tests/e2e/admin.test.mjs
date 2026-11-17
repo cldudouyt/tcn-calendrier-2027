@@ -83,7 +83,7 @@ test('admin : publier depuis une alerte exige la preuve, envoie la correction pu
   await page.close();
 });
 
-test('admin : un format complet est publié seul, et un classement garde la note', async () => {
+test('admin : un format complet est publié seul', async () => {
   const { page, calls } = await adminPage();
   const free = page.locator('#free-correction form');
   await free.getByLabel('Épreuve', { exact: true }).selectOption(EVENT);
@@ -97,7 +97,11 @@ test('admin : un format complet est publié seul, et un classement garde la note
   const sent = calls.find((c) => c.method === 'PATCH');
   assert.deepEqual(Object.keys(sent.body.patch), ['formatAvailability']);
   assert.deepEqual(sent.body.patch.formatAvailability.at(-1), { format: 'XS', status: 'complet', evidence: 'Format XS : complet', sourceUrl: 'https://www.klikego.com/inscription/mesquer-2027/triathlon/1-1' });
+  await page.close();
+});
 
+test('admin : classer une alerte garde la note saisie', async () => {
+  const { page, calls } = await adminPage();
   const card = page.locator('#alerts li.card').nth(1);
   await card.getByLabel('Note de classement (facultative)').fill('confirmé avec le club');
   await card.getByRole('button', { name: 'Garder la date du site' }).click();
