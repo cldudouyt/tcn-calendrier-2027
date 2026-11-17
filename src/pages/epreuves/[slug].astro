@@ -5,7 +5,7 @@ import TransportBadge from '../../components/TransportBadge.astro';
 import { events, DEPARTMENT_NAMES, eventUrl, siblings } from '../../lib/events';
 import type { RaceEvent } from '../../lib/types';
 import { formatDay, formatParis } from '../../lib/format';
-import { effectiveStatus, verifiedRegistrationUrl, statusDisplay } from '../../lib/status';
+import { announcedOpening, effectiveStatus, verifiedRegistrationUrl, statusDisplay } from '../../lib/status';
 
 
 export function getStaticPaths() {
@@ -15,6 +15,7 @@ interface Props { event: RaceEvent }
 const { event: e } = Astro.props;
 const status = effectiveStatus(e);
 const display = statusDisplay(e);
+const opening = announcedOpening(e);
 const regUrl = verifiedRegistrationUrl(e);
 const announcementUrl = status === 'annonce' ? e.officialUrl : null;
 const others = siblings(e);
@@ -77,7 +78,7 @@ import TransportAccess from '../../components/TransportAccess.astro';
         <dl class="facts" id="registration-facts">
           <div><dt>Statut</dt><dd>{display.label}<br /><span class="small muted">{display.description}</span></dd></div>
           <div><dt>Dernière vérification</dt><dd>{e.lastCheckedAt ? formatParis(e.lastCheckedAt) : <span class="unknown">Jamais vérifié</span>}</dd></div>
-          {e.registrationOpenAt && status === 'annonce' && <div><dt>Ouverture annoncée</dt><dd>{formatParis(e.registrationOpenAt)}</dd></div>}
+          {status === 'annonce' && opening && <div><dt>Ouverture annoncée</dt><dd>{e.registrationOpenAt ? formatParis(e.registrationOpenAt) : `${opening.text} (jour non précisé par l’organisateur)`}</dd></div>}
           <div><dt>Tarif</dt><dd>{e.price !== null && regUrl ? `${e.price} ${e.currency}` : e.registrationEvidence && /\d\s?€/.test(e.registrationEvidence) && status !== 'non_verifie' ? <span>Selon le format : voir le fait vérifié ci-dessous et la billetterie</span> : <span class="muted">Non communiqué (aucun tarif sourcé)</span>}</dd></div>
           {e.registrationEvidence && status !== 'non_verifie' && <div><dt>Fait vérifié</dt><dd>{e.registrationEvidence}</dd></div>}
         </dl>

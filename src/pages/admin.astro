@@ -177,7 +177,13 @@ const sourceHelp = JSON.stringify({
 
     const openAt = Object.assign(el('input'), { type: 'date' });
     openAt.style.cssText = inputStyle;
-    const openField = field('Date d’ouverture annoncée (facultatif)', openAt, 'Seulement si la date figure en toutes lettres sur la page.');
+    const openWindow = Object.assign(el('input'), { type: 'text', maxLength: 80, placeholder: 'Ex. : décembre 2026' });
+    openWindow.style.cssText = inputStyle;
+    const openField = el('div');
+    openField.append(
+      field('Date d’ouverture annoncée (facultatif)', openAt, 'Seulement si le jour figure en toutes lettres sur la page.'),
+      field('Ou période annoncée (facultatif)', openWindow, 'Si la page ne donne qu’une période (« en décembre », « début janvier »), recopiez-la telle quelle, avec l’année si elle est indiquée.'),
+    );
 
     const evidence = Object.assign(el('textarea'), { rows: 3, maxLength: 500, value: opts.evidence ?? '', placeholder: 'Ce que dit la page, cité tel quel. Ex. : « Inscriptions ouvertes pour l’édition 2027 »' });
     evidence.style.cssText = `${inputStyle};min-height:88px`;
@@ -247,6 +253,7 @@ const sourceHelp = JSON.stringify({
       } else {
         patch = { registrationStatus: status, registrationEvidence: fact, [status === 'annule' ? 'officialUrl' : 'registrationUrl']: link };
         if (status === 'annonce' && openAt.value) patch.registrationOpenAt = openAt.value;
+        else if (status === 'annonce' && openWindow.value.trim()) patch.registrationOpenWindow = openWindow.value.trim();
       }
       const summary = `${label}${fact ? ` — ${fact}` : ''}`.slice(0, 300);
       submit.disabled = true;

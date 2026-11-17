@@ -71,7 +71,8 @@
         "patch": {
           "registrationStatus": "annonce",
           "officialUrl": "https://angerstriathlon.fr/triathlon-angers-2027/",
-          "registrationEvidence": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser."
+          "registrationEvidence": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser.",
+          "registrationOpenWindow": "décembre 2026"
         }
       },
       {
@@ -80,7 +81,8 @@
         "patch": {
           "registrationStatus": "annonce",
           "officialUrl": "https://angerstriathlon.fr/triathlon-angers-2027/",
-          "registrationEvidence": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser."
+          "registrationEvidence": "Le club annonce l’ouverture en décembre 2026 pour le week-end des 15 et 16 mai 2027. Le jour exact reste à préciser.",
+          "registrationOpenWindow": "décembre 2026"
         }
       },
       {
@@ -89,7 +91,8 @@
         "patch": {
           "registrationStatus": "annonce",
           "officialUrl": "https://triathlon-vendee.com/triathlon-international-saint-jean-de-monts/",
-          "registrationEvidence": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour."
+          "registrationEvidence": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour.",
+          "registrationOpenWindow": "décembre"
         }
       },
       {
@@ -98,7 +101,8 @@
         "patch": {
           "registrationStatus": "annonce",
           "officialUrl": "https://triathlon-vendee.com/triathlon-international-saint-jean-de-monts/",
-          "registrationEvidence": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour."
+          "registrationEvidence": "Le club annonce un début des inscriptions en décembre pour les 19 et 20 juin 2027, sans préciser le jour.",
+          "registrationOpenWindow": "décembre"
         }
       },
       {
@@ -107,7 +111,8 @@
         "patch": {
           "registrationStatus": "annonce",
           "officialUrl": "https://triathlonnoirmoutier.fr/evenements/inscriptions-triathlon-noirmoutier-2027/",
-          "registrationEvidence": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise."
+          "registrationEvidence": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise.",
+          "registrationOpenWindow": "dans le courant de 2027"
         }
       },
       {
@@ -116,7 +121,8 @@
         "patch": {
           "registrationStatus": "annonce",
           "officialUrl": "https://triathlonnoirmoutier.fr/evenements/inscriptions-triathlon-noirmoutier-2027/",
-          "registrationEvidence": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise."
+          "registrationEvidence": "L’organisateur annonce une ouverture dans le courant de 2027, sans date précise.",
+          "registrationOpenWindow": "dans le courant de 2027"
         }
       }
     ]

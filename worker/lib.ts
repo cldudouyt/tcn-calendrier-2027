@@ -21,7 +21,7 @@ export function isDailySlot(date: Date): boolean {
 }
 
 export const PATCH_FIELDS = [
-  'registrationStatus', 'registrationUrl', 'officialUrl', 'registrationOpenAt', 'registrationEvidence',
+  'registrationStatus', 'registrationUrl', 'officialUrl', 'registrationOpenAt', 'registrationOpenWindow', 'registrationEvidence',
   'price', 'formatAvailability', 'sourceConflict', 'date', 'formats', 'raceStartLocation', 'raceStartLatLon', 'transportBikePolicy',
 ] as const;
 export type PatchField = (typeof PATCH_FIELDS)[number];
@@ -74,6 +74,10 @@ export function validateChange(raw: unknown, base: Map<string, RaceEvent>): { ok
   if ('registrationStatus' in p && !(REGISTRATION_STATUSES as readonly unknown[]).includes(p.registrationStatus)) errors.push('registrationStatus invalide');
   if ('date' in p && !isValidIsoDate(p.date)) errors.push('date invalide (YYYY-MM-DD)');
   if ('registrationOpenAt' in p && p.registrationOpenAt !== null && !isIsoDateTime(p.registrationOpenAt)) errors.push('registrationOpenAt invalide');
+  if ('registrationOpenWindow' in p && p.registrationOpenWindow !== null &&
+      !(typeof p.registrationOpenWindow === 'string' && p.registrationOpenWindow.trim().length >= 3 && p.registrationOpenWindow.length <= 80)) {
+    errors.push('registrationOpenWindow : période de 3 à 80 caractères, reprise de la source');
+  }
   if ('price' in p && p.price !== null && !(typeof p.price === 'number' && p.price >= 0)) errors.push('price invalide');
   if ('formats' in p && (typeof p.formats !== 'string' || !p.formats.trim())) errors.push('formats invalide');
   if ('raceStartLatLon' in p && p.raceStartLatLon !== null) {

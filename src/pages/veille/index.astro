@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { events, surveys, computeKpis, eventUrl, groupSchedule } from '../../lib/events';
 import { formatParis } from '../../lib/format';
-import { CATEGORY_LABEL, STATUS_META } from '../../lib/status';
+import { announcedOpening, CATEGORY_LABEL, effectiveStatus, STATUS_META } from '../../lib/status';
 import { REGISTRATION_STATUSES } from '../../lib/schema';
 
 const kpis = computeKpis(events);
@@ -62,6 +62,9 @@ for (const s of surveys) for (const c of s.changes) if (!latestChange.has(c.even
                       <strong>{ev ? <a href={eventUrl(ev)}>{ev.name}</a> : c.eventId}</strong>
                       {ev && <div class="small muted">{ev.town ?? 'Lieu à confirmer'} · {groupSchedule(ev)}</div>}
                       <div><span class="badge">{CATEGORY_LABEL[c.category]}</span> {c.summary}</div>
+                      {ev && latestChange.get(c.eventId) === s.id && effectiveStatus(ev) === 'annonce' && announcedOpening(ev) && (
+                        <p class="small" style="margin:4px 0 0"><strong>Ouverture des inscriptions :</strong> {announcedOpening(ev)!.exact ? `le ${announcedOpening(ev)!.text}` : `${announcedOpening(ev)!.text} (jour non précisé)`}</p>
+                      )}
                       {c.previous && <span class="small muted">Statut précédent : {c.previous}</span>}
                       {c.sourceUrl && (latestChange.get(c.eventId) === s.id
                         ? <p class="small" style="margin:5px 0 0"><a href={ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? ev.registrationUrl : ev?.officialUrl ?? c.sourceUrl} rel="noopener">{ev?.registrationStatus === 'ouvert' && ev.registrationUrl ? 'S’inscrire' : ev?.registrationStatus === 'annonce' ? 'Voir l’annonce de l’organisateur' : 'Voir la source officielle'}</a></p>

@@ -37,6 +37,8 @@ export interface RaceEvent {
   statusDetail: string;
   registrationStatus: RegistrationStatus;
   registrationOpenAt: string | null;
+  /** Période d'ouverture annoncée sans jour exact, reprise telle quelle de la source (ex. « décembre 2026 »). */
+  registrationOpenWindow?: string | null;
   registrationUrl: string | null;
   officialUrl: string | null;
   price: number | null;
