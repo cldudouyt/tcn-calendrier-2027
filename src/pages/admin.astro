@@ -3,12 +3,15 @@ import Base from '../layouts/Base.astro';
 import sourcesRaw from '../../data/sources.json?raw';
 import sourcesFile from '../../data/sources.json';
 import { events } from '../lib/events';
-import { sourceLines, SOURCES_EDIT_URL } from '../lib/source-lines';
+import dataRaw from '../../data.json?raw';
+import { DATA_EDIT_URL, eventDateLines, sourceLines, SOURCES_EDIT_URL } from '../lib/source-lines';
 // Où corriger une adresse injoignable : lignes de data/sources.json telles que déployées avec cette page.
 const lines = sourceLines(sourcesRaw);
 const pagesByGroup = new Map<string, string[]>((sourcesFile.sources as { eventGroupId: string; pages: { url: string }[] }[]).map((g) => [g.eventGroupId, g.pages.map((pg) => pg.url)]));
 const sourceHelp = JSON.stringify({
   editUrl: SOURCES_EDIT_URL,
+  dataEditUrl: DATA_EDIT_URL,
+  dateLines: eventDateLines(dataRaw),
   urls: lines.urls,
   groupByEvent: Object.fromEntries(events.map((e) => [e.id, { group: e.eventGroupId, line: lines.groups[e.eventGroupId] ?? null, pages: pagesByGroup.get(e.eventGroupId) ?? [] }])),
 });
@@ -41,11 +44,11 @@ const sourceHelp = JSON.stringify({
       <ul class="timeline" id="changes"></ul>
 
       <h2 style="margin-top:32px">Signalements des membres à vérifier <span class="badge badge-brand" id="count-reports">0</span></h2>
-      <p class="small muted">Signalements que la vérification automatique n’a pas pu confirmer (autre édition, page illisible, domaine inconnu, contradiction). Rien n’a été publié. Si la source est probante, publiez l’information par une correction ; sinon, rejetez.</p>
+      <p class="small muted">Signalements que la vérification automatique n’a pas pu confirmer (autre édition, page illisible, domaine inconnu, contradiction). Rien n’a été publié. Ouvrez la source : si elle est probante, « Publier cette information » ; sinon, rejetez.</p>
       <ul class="timeline" id="reports"></ul>
 
       <h2 style="margin-top:32px">Alertes à examiner <span class="badge badge-brand" id="count-alerts">0</span></h2>
-      <p class="small muted">Les alertes ne modifient rien sur le site. Une alerte traitée n’est jamais recréée à l’identique.</p>
+      <p class="small muted">Une alerte ne modifie rien d’elle-même. Chacune propose l’action adaptée : publier une information d’inscription vérifiée, corriger une adresse ou une date sur GitHub, ou classer l’alerte avec une note. Une alerte classée n’est jamais recréée à l’identique.</p>
       <ul class="timeline" id="alerts" data-source-help={sourceHelp}></ul>
 
       <section id="manual-pages" hidden>
@@ -53,6 +56,10 @@ const sourceHelp = JSON.stringify({
         <p class="small muted">Pages que le robot de veille ne parvient pas à lire mais qu’un administrateur a pu ouvrir. Elles ne sont pas surveillées automatiquement : jetez-y un œil de temps en temps.</p>
         <ul class="small" id="manual-list" style="margin:0;padding-left:18px;display:grid;gap:6px"></ul>
       </section>
+
+      <h2 style="margin-top:32px">Publier une information d’inscription</h2>
+      <p class="small muted">Pour une information vue par vous-même sur une page officielle, sans alerte ni signalement. Le statut, le lien et le fait vérifié sont publiés immédiatement sur la fiche, la carte, le calendrier et la veille. Les dates, distances et lieux se corrigent dans data.json sur GitHub.</p>
+      <div class="card" id="free-correction"></div>
 
       <h2 style="margin-top:32px">Derniers contrôles</h2>
       <div class="card" style="overflow-x:auto">
@@ -74,7 +81,11 @@ const sourceHelp = JSON.stringify({
   interface Alert { id: number; event_id: string | null; kind: string; message: string; source_url: string | null; quote: string | null; created_at: string }
   interface Report { id: number; event_id: string; type: string; format: string; source_url: string; received_at: string; attempts: number; reason: string | null; evidence: string | null }
   interface Run { started_at: string; trigger_kind: string; links_checked: number; links_failed: number; state: string; note: string | null }
-  interface EventLite { id: string; name: string; date: string }
+  interface EventLite {
+    id: string; name: string; date: string; town?: string; formatTags?: string[];
+    formatAvailability?: { format: string; status: string; evidence: string; sourceUrl: string }[];
+    registrationStatus?: string; registrationUrl?: string | null; registrationEvidence?: string | null;
+  }
 
   const KEY = 'tcn-admin-token';
   const fmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' });
@@ -116,6 +127,180 @@ const sourceHelp = JSON.stringify({
     return p;
   };
 
+  // ---------------------------------------------------------------------------
+  // Formulaire « Publier une information d'inscription » (route PATCH /api/admin/events/:id,
+  // même validation que les propositions : statut, lien https officiel et fait vérifié obligatoires).
+  const PUBLISHABLE: [string, string][] = [
+    ['ouvert', 'Inscriptions ouvertes'], ['annonce', 'Ouverture annoncée'], ['complet', 'Complet'],
+    ['ferme', 'Inscriptions fermées'], ['annule', 'Épreuve annulée'], ['non_verifie', 'Revenir à « non vérifié »'],
+  ];
+  const inputStyle = 'font:inherit;min-height:44px;padding:8px 12px;border:1px solid var(--line-input);border-radius:10px;width:100%;background:#fff';
+  let formSeq = 0;
+  interface CorrectionOpts { eventId?: string | null; status?: string; format?: string; url?: string | null; evidence?: string | null; submitLabel?: string; onDone?: (summary: string) => Promise<void> }
+
+  const field = (labelText: string, control: HTMLElement, hint?: string): HTMLDivElement => {
+    const wrap = el('div', '', 'field');
+    const id = `cf-${(formSeq += 1)}`;
+    control.id = id;
+    wrap.append(Object.assign(el('label', labelText), { htmlFor: id }), control);
+    if (hint) wrap.append(el('p', hint, 'small muted'));
+    return wrap;
+  };
+
+  function correctionForm(opts: CorrectionOpts): HTMLFormElement {
+    const form = Object.assign(el('form', '', 'filters'), { noValidate: true });
+    form.style.marginTop = '12px';
+    let eventId = opts.eventId ?? '';
+
+    const eventSelect = el('select');
+    eventSelect.style.cssText = inputStyle;
+    if (!opts.eventId) {
+      eventSelect.append(Object.assign(el('option', 'Choisir une épreuve…'), { value: '' }));
+      for (const e of [...names.values()].sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name))) {
+        eventSelect.append(Object.assign(el('option', `${fmtDay.format(new Date(`${e.date}T12:00:00Z`))} — ${e.name}${e.town ? ` (${e.town})` : ''}`), { value: e.id }));
+      }
+      form.append(field('Épreuve', eventSelect));
+    }
+
+    const statusSelect = el('select');
+    statusSelect.style.cssText = inputStyle;
+    for (const [value, label] of PUBLISHABLE) statusSelect.append(Object.assign(el('option', label), { value }));
+    statusSelect.value = opts.status ?? 'ouvert';
+
+    const formatSelect = el('select');
+    formatSelect.style.cssText = inputStyle;
+    const formatField = field('Format concerné', formatSelect, 'Un seul format complet ne rend pas toute l’épreuve complète.');
+
+    const url = Object.assign(el('input'), { type: 'url', inputMode: 'url', maxLength: 500, placeholder: 'https://… (billetterie ou page de l’organisateur)', value: opts.url ?? '' });
+    url.style.cssText = inputStyle;
+    const urlField = field('Lien officiel où l’information figure', url);
+
+    const openAt = Object.assign(el('input'), { type: 'date' });
+    openAt.style.cssText = inputStyle;
+    const openField = field('Date d’ouverture annoncée (facultatif)', openAt, 'Seulement si la date figure en toutes lettres sur la page.');
+
+    const evidence = Object.assign(el('textarea'), { rows: 3, maxLength: 500, value: opts.evidence ?? '', placeholder: 'Ce que dit la page, cité tel quel. Ex. : « Inscriptions ouvertes pour l’édition 2027 »' });
+    evidence.style.cssText = `${inputStyle};min-height:88px`;
+    const evidenceField = field('Fait vérifié', evidence);
+
+    const confirm = Object.assign(el('input'), { type: 'checkbox' });
+    const confirmLabel = el('label', '', 'small');
+    confirmLabel.style.cssText = 'display:flex;gap:8px;align-items:flex-start;min-height:44px';
+    confirmLabel.append(confirm, el('span', 'J’ai ouvert cette page officielle : elle concerne bien l’édition 2027 de cette épreuve (et de ce format).'));
+
+    const submit = Object.assign(el('button', opts.submitLabel ?? 'Publier sur le site', 'btn btn-primary'), { type: 'submit' });
+    const result = el('p', '', 'small');
+    result.setAttribute('role', 'status');
+    result.hidden = true;
+    const actions = el('div', '', 'actions');
+    actions.append(submit);
+    form.append(field('Information à publier', statusSelect), formatField, urlField, openField, evidenceField, confirmLabel, actions, result);
+
+    const refresh = (): void => {
+      if (!opts.eventId) eventId = eventSelect.value;
+      const ev = names.get(eventId);
+      const formats = ev?.formatTags ?? [];
+      const status = statusSelect.value;
+      if (formatSelect.dataset.for !== eventId) {
+        formatSelect.replaceChildren(Object.assign(el('option', 'Toute l’épreuve (tous les formats)'), { value: '' }), ...formats.map((f) => Object.assign(el('option', f), { value: f })));
+        formatSelect.dataset.for = eventId;
+        if (opts.format && formats.includes(opts.format)) formatSelect.value = opts.format;
+      }
+      formatField.hidden = status !== 'complet' || formats.length < 2;
+      openField.hidden = status !== 'annonce';
+      const plain = status === 'non_verifie';
+      urlField.hidden = plain; evidenceField.hidden = plain; confirmLabel.hidden = plain;
+      if (!url.value && ev?.registrationUrl && !plain) url.value = ev.registrationUrl;
+    };
+    eventSelect.addEventListener('change', refresh);
+    statusSelect.addEventListener('change', refresh);
+    refresh();
+
+    const show = (text: string, ok: boolean): void => {
+      result.hidden = false;
+      result.textContent = text;
+      result.style.color = ok ? 'var(--success)' : 'var(--warning)';
+    };
+
+    form.addEventListener('submit', async (evt) => {
+      evt.preventDefault();
+      if (!opts.eventId) eventId = eventSelect.value;
+      // Épreuve fixée par l'alerte ou le signalement : publiable même si la liste des épreuves n'a pas pu être chargée.
+      const ev = names.get(eventId) ?? (opts.eventId ? { id: opts.eventId, name: opts.eventId, date: '' } as EventLite : undefined);
+      const status = statusSelect.value;
+      const link = url.value.trim();
+      const fact = evidence.value.trim();
+      if (!ev) { show('Choisissez l’épreuve concernée.', false); eventSelect.focus(); return; }
+      if (status !== 'non_verifie') {
+        if (!/^https:\/\/\S+\.\S+/.test(link)) { show('Indiquez le lien officiel complet (il commence par https://).', false); url.focus(); return; }
+        if (fact.length < 10) { show('Recopiez ce que dit la page officielle (au moins quelques mots).', false); evidence.focus(); return; }
+        if (!confirm.checked) { show('Cochez la case après avoir vérifié l’édition 2027 sur la page officielle.', false); confirm.focus(); return; }
+      }
+      const format = formatField.hidden ? '' : formatSelect.value;
+      let patch: Record<string, unknown>;
+      let label = PUBLISHABLE.find(([v]) => v === status)?.[1] ?? status;
+      if (status === 'complet' && format) {
+        patch = { formatAvailability: [...(ev.formatAvailability ?? []).filter((f) => f.format !== format), { format, status: 'complet', evidence: fact, sourceUrl: link }] };
+        label = `Format ${format} complet`;
+      } else if (status === 'non_verifie') {
+        patch = { registrationStatus: 'non_verifie' };
+      } else {
+        patch = { registrationStatus: status, registrationEvidence: fact, [status === 'annule' ? 'officialUrl' : 'registrationUrl']: link };
+        if (status === 'annonce' && openAt.value) patch.registrationOpenAt = openAt.value;
+      }
+      const summary = `${label}${fact ? ` — ${fact}` : ''}`.slice(0, 300);
+      submit.disabled = true;
+      submit.textContent = 'Publication…';
+      try {
+        await api(`/events/${ev.id}`, { method: 'PATCH', body: JSON.stringify({ checkedAt: new Date().toISOString(), summary, patch }) });
+        show(`Publié sur le site : ${label}.`, true);
+        if (opts.onDone) await opts.onDone(summary);
+        names = new Map();
+        say(`Publié pour « ${ev.name} » : ${label}.`);
+        await load();
+      } catch (err) {
+        show(`Non publié : ${(err as Error).message}`, false);
+        submit.disabled = false;
+        submit.textContent = opts.submitLabel ?? 'Publier sur le site';
+      }
+    });
+    return form;
+  }
+
+  /** Bouton qui déplie le formulaire de publication sous la carte. */
+  function publishToggle(label: string, opts: CorrectionOpts): [HTMLButtonElement, HTMLDivElement] {
+    const holder = el('div');
+    const btn = Object.assign(el('button', label, 'btn btn-primary'), { type: 'button' });
+    btn.setAttribute('aria-expanded', 'false');
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.setAttribute('aria-expanded', String(open));
+      holder.replaceChildren(...(open ? [correctionForm(opts)] : []));
+      if (open) (holder.querySelector('select, input, textarea') as HTMLElement | null)?.focus();
+    });
+    return [btn, holder];
+  }
+
+  /** Classement d'une alerte avec une note (motif conservé dans la base). */
+  function closeButton(alertId: number, label: string, note: () => string, cls = 'btn btn-secondary'): HTMLButtonElement {
+    const btn = Object.assign(el('button', label, cls), { type: 'button' });
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        await api(`/alerts/${alertId}/close`, { method: 'POST', body: JSON.stringify({ note: note() || label }) });
+        say(`Alerte classée : ${label}.`);
+        await load();
+      } catch (err) { say(`Échec : ${(err as Error).message}`); btn.disabled = false; }
+    });
+    return btn;
+  }
+  const noteInput = (placeholder: string): HTMLInputElement => {
+    const input = Object.assign(el('input'), { type: 'text', placeholder, maxLength: 300 });
+    input.setAttribute('aria-label', placeholder);
+    input.style.cssText = `${inputStyle};margin:8px 0`;
+    return input;
+  };
+
   function renderChanges(changes: Change[]): void {
     const list = $('changes');
     list.replaceChildren();
@@ -150,8 +335,17 @@ const sourceHelp = JSON.stringify({
       const ko = Object.assign(el('button', 'Rejeter', 'btn btn-secondary'), { type: 'button' });
       ok.addEventListener('click', () => { void decide('validate', ok); });
       ko.addEventListener('click', () => { void decide('reject', ko); });
-      actions.append(ok, ko);
-      li.append(note, actions);
+      const [edit, holder] = publishToggle('Modifier puis publier', {
+        eventId: c.event_id,
+        status: typeof patch.registrationStatus === 'string' ? patch.registrationStatus : 'ouvert',
+        url: (typeof patch.registrationUrl === 'string' ? patch.registrationUrl : null) ?? c.source_url,
+        evidence: c.evidence,
+        submitLabel: 'Publier la version corrigée',
+        onDone: async () => { await api(`/changes/${c.id}/reject`, { method: 'POST', body: JSON.stringify({ note: 'Remplacée par une correction publiée par un administrateur' }) }); },
+      });
+      edit.className = 'btn btn-secondary';
+      actions.append(ok, edit, ko);
+      li.append(note, actions, holder);
       list.append(li);
     }
   }
@@ -167,26 +361,76 @@ const sourceHelp = JSON.stringify({
       if (a.quote) li.append(el('p', `« ${a.quote} »`, 'small'));
       const meta = el('p', `Signalée le ${fmt.format(new Date(a.created_at))} · `, 'small muted');
       meta.append(link(a.source_url, a.kind === 'source_injoignable' ? 'ouvrir l’adresse en échec' : 'ouvrir la source'));
-      const btn = Object.assign(el('button', 'Marquer comme traitée', 'btn btn-secondary'), { type: 'button' });
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        try { await api(`/alerts/${a.id}/close`, { method: 'POST', body: '{}' }); await load(); } catch (err) { say(`Échec : ${(err as Error).message}`); btn.disabled = false; }
-      });
       li.append(meta);
-      if (a.kind === 'source_injoignable' && a.source_url) li.append(replaceHelp(a.source_url, a.event_id));
-      const actions = el('div', '', 'actions');
-      if (a.kind === 'source_injoignable' && a.source_url && !isReplaced(a.source_url, a.event_id)) {
-        const readable = Object.assign(el('button', 'J’arrive à lire la page', 'btn btn-secondary'), { type: 'button', title: 'La page s’ouvre normalement dans votre navigateur : seul le robot de veille est bloqué.' });
-        readable.addEventListener('click', async () => {
-          readable.disabled = true;
-          try { await api(`/alerts/${a.id}/close`, { method: 'POST', body: JSON.stringify({ note: MANUAL_NOTE }) }); await load(); } catch (err) { say(`Échec : ${(err as Error).message}`); readable.disabled = false; }
-        });
-        actions.append(readable);
-      }
-      actions.append(btn);
-      li.append(actions);
+      li.append(...alertActions(a));
       list.append(li);
     }
+  }
+
+  /** Actions proposées selon le type d'alerte ; chaque issue est consignée dans la note de l'alerte. */
+  function alertActions(a: Alert): HTMLElement[] {
+    const out: HTMLElement[] = [];
+    const actions = el('div', '', 'actions');
+    const note = noteInput('Note de classement (facultative)');
+    const withNote = (base: string) => (): string => (note.value.trim() ? `${base} — ${note.value.trim()}` : base);
+    const guide = (text: string): HTMLParagraphElement => { const p = el('p', text, 'small'); p.style.margin = '8px 0'; return p; };
+    let holder: HTMLDivElement | null = null;
+    const publish = (status: string, label = 'Publier une info d’inscription'): void => {
+      if (!a.event_id) return;
+      const [btn, h] = publishToggle(label, {
+        eventId: a.event_id, status, url: a.source_url,
+        onDone: async (summary) => { await api(`/alerts/${a.id}/close`, { method: 'POST', body: JSON.stringify({ note: `Information publiée : ${summary}` }) }); },
+      });
+      actions.append(btn);
+      holder = h;
+    };
+
+    switch (a.kind) {
+      case 'page_modifiee':
+        out.push(guide('Ouvrez la source et lisez les passages nouveaux. S’ils annoncent ou ouvrent les inscriptions 2027, publiez l’information ; sinon, classez l’alerte.'));
+        publish('ouvert');
+        actions.append(closeButton(a.id, 'Rien à publier', withNote('Rien à publier')));
+        break;
+      case 'formats_complets':
+        out.push(guide('Vérifiez sur la source quel format est complet pour l’édition 2027, puis publiez-le format par format.'));
+        publish('complet', 'Publier le format complet');
+        actions.append(closeButton(a.id, 'Rien à publier', withNote('Rien à publier')));
+        break;
+      case 'date_differente': {
+        const line = a.event_id ? sourceHelp.dateLines?.[a.event_id] : undefined;
+        out.push(guide(line
+          ? `Si la date FFTRI est la bonne, corrigez la ligne ${line} de data.json (champ « date » uniquement, sans toucher à l’« id ») puis validez le commit sur main : le site se redéploie. Si la date du site est la bonne, gardez-la.`
+          : 'Si la date FFTRI est la bonne, corrigez le champ « date » de l’épreuve dans data.json (sans toucher à l’« id ») puis validez le commit sur main. Si la date du site est la bonne, gardez-la.'));
+        actions.append(
+          Object.assign(el('a', 'Corriger la date sur GitHub', 'btn btn-primary'), { href: sourceHelp.dataEditUrl, target: '_blank', rel: 'noopener noreferrer' }),
+          closeButton(a.id, 'Date corrigée', withNote('Date corrigée dans data.json')),
+          closeButton(a.id, 'Garder la date du site', withNote('Date du site maintenue')),
+        );
+        break;
+      }
+      case 'manifestation_non_suivie':
+        out.push(guide('Une manifestation du calendrier FFTRI ne correspond à aucune épreuve du site. Si elle fait partie du périmètre, ajoutez-la dans data.json sur GitHub ; sinon, classez-la.'));
+        actions.append(
+          Object.assign(el('a', 'Ajouter dans data.json', 'btn btn-secondary'), { href: sourceHelp.dataEditUrl, target: '_blank', rel: 'noopener noreferrer' }),
+          closeButton(a.id, 'Ajoutée au référentiel', withNote('Ajoutée dans data.json')),
+          closeButton(a.id, 'Hors périmètre ou déjà suivie', withNote('Hors périmètre ou déjà suivie')),
+        );
+        break;
+      case 'source_injoignable':
+        if (a.source_url) out.push(replaceHelp(a.source_url, a.event_id));
+        if (a.source_url && !isReplaced(a.source_url, a.event_id)) {
+          const readable = closeButton(a.id, 'J’arrive à lire la page', () => MANUAL_NOTE);
+          readable.title = 'La page s’ouvre normalement dans votre navigateur : seul le robot de veille est bloqué.';
+          actions.append(readable);
+        }
+        actions.append(closeButton(a.id, 'Adresse remplacée', withNote('Adresse remplacée dans data/sources.json')));
+        break;
+      default:
+        actions.append(closeButton(a.id, 'Marquer comme traitée', withNote('Traitée')));
+    }
+    out.push(note, actions);
+    if (holder) out.push(holder);
+    return out;
   }
 
   // Page lisible par un administrateur mais pas par le robot (blocage des lecteurs automatiques, 403…).
@@ -208,7 +452,7 @@ const sourceHelp = JSON.stringify({
   }
 
   // Remplacement d'une adresse injoignable : on indique la ligne de data/sources.json et on ouvre l'éditeur GitHub.
-  interface SourceHelp { editUrl: string; urls: Record<string, number[]>; groupByEvent: Record<string, { group: string; line: number | null; pages: string[] }> }
+  interface SourceHelp { editUrl: string; dataEditUrl: string; dateLines: Record<string, number>; urls: Record<string, number[]>; groupByEvent: Record<string, { group: string; line: number | null; pages: string[] }> }
   const sourceHelp = JSON.parse($('alerts').dataset.sourceHelp ?? '{}') as SourceHelp;
   const readableUrl = (u: string): string => { try { return decodeURI(u).replace(/^https:\/\//, ''); } catch { return u.replace(/^https:\/\//, ''); } };
   /** L'adresse en échec n'est plus dans data/sources.json alors que l'épreuve y a sa page. */
@@ -276,7 +520,13 @@ const sourceHelp = JSON.stringify({
         });
         actions.append(btn);
       }
-      li.append(meta, actions);
+      const statusByType: Record<string, string> = { inscriptions_ouvertes: 'ouvert', complet: 'complet', ouverture_annoncee: 'annonce' };
+      const [publishBtn, holder] = publishToggle('Publier cette information', {
+        eventId: r.event_id, status: statusByType[r.type] ?? 'ouvert', format: r.format, url: r.source_url, evidence: r.evidence,
+        onDone: async () => { await api(`/reports/${r.id}/traite`, { method: 'POST', body: '{}' }); },
+      });
+      actions.prepend(publishBtn);
+      li.append(meta, actions, holder);
       list.append(li);
     }
   }
@@ -312,6 +562,8 @@ const sourceHelp = JSON.stringify({
       renderReports(rep.reports, rep.labels);
       renderAlerts(a.alerts, a.labels);
       renderRuns(r.runs);
+      const free = $('free-correction');
+      if (!free.childElementCount) free.append(correctionForm({}));
       $('admin-content').hidden = false;
       $('logout').hidden = false;
       if (status.textContent?.startsWith('Connexion')) say('');

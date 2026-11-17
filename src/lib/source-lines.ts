@@ -22,3 +22,17 @@ export function sourceLines(raw: string): SourceLines {
 }
 
 export const SOURCES_EDIT_URL = 'https://github.com/cldudouyt/tcn-calendrier-2027/edit/main/data/sources.json';
+
+/** Ligne du champ « date » de chaque épreuve de data.json (pour corriger une date signalée par la FFTRI). */
+export function eventDateLines(raw: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  let current: string | null = null;
+  raw.split('\n').forEach((line, i) => {
+    const id = /^\s*"id":\s*"([^"]+)"/.exec(line)?.[1];
+    if (id) { current = id; return; }
+    if (current && /^\s*"date":\s*"\d{4}-\d{2}-\d{2}"/.test(line)) { out[current] = i + 1; current = null; }
+  });
+  return out;
+}
+
+export const DATA_EDIT_URL = 'https://github.com/cldudouyt/tcn-calendrier-2027/edit/main/data.json';
