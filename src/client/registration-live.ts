@@ -1,7 +1,7 @@
 // Harmonise les informations d'inscription de la fiche avec les changements publiés dans D1.
 // Le HTML statique reste utilisable si l'API est indisponible.
 import { formatParis } from '../lib/format';
-import { effectiveStatus, statusDisplay, verifiedRegistrationUrl } from '../lib/status';
+import { announcedOpening, effectiveStatus, statusDisplay, verifiedRegistrationUrl } from '../lib/status';
 import type { RaceEvent } from '../lib/types';
 
 const panel = document.getElementById('registration-panel') as HTMLElement | null;
@@ -49,8 +49,9 @@ export function updateRegistrationPanel(event: RaceEvent): void {
   const newFacts = document.createDocumentFragment();
   fact(newFacts, 'Statut', display.label, display.description);
   fact(newFacts, 'Dernière vérification', event.lastCheckedAt ? formatParis(event.lastCheckedAt) : 'Jamais vérifié');
-  if (event.registrationOpenAt && status === 'annonce') {
-    fact(newFacts, 'Ouverture annoncée', formatParis(event.registrationOpenAt));
+  const opening = status === 'annonce' ? announcedOpening(event) : null;
+  if (opening) {
+    fact(newFacts, 'Ouverture annoncée', event.registrationOpenAt ? formatParis(event.registrationOpenAt) : `${opening.text} (jour non précisé par l’organisateur)`);
   }
   const hasPriceInEvidence = /\d\s?€/.test(event.registrationEvidence ?? '');
   const tariff = event.price !== null && registrationUrl

@@ -60,7 +60,7 @@ a:hover { color: var(--ink); }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* Badges : toujours un libellé, jamais la couleur seule */
-.badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--cond); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-input); background: var(--sunk); color: var(--body); white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--cond); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-input); background: var(--sunk); color: var(--body); white-space: normal; max-width: 100%; overflow-wrap: break-word; text-wrap: balance; }
 .badge-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
 .badge-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
 .badge-dark { background: var(--ink); border-color: var(--ink); color: var(--white); }

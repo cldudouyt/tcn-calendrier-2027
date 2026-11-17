@@ -1,3 +1,4 @@
+import { formatParis } from './format';
 import type { RaceEvent, RegistrationStatus, ChangeCategory } from './types';
 
 export interface StatusMeta { label: string; tone: 'success' | 'warning' | 'neutral' | 'dark'; description: string }
@@ -49,8 +50,31 @@ export function fullFormats(e: Pick<RaceEvent, 'formatAvailability'>): string[] 
  * Libellé affiché : identique au statut, sauf « ouvert » avec des formats complets, qui devient
  * « ouvert en partie » pour ne pas laisser croire que tous les formats sont disponibles.
  */
-export function statusDisplay(e: Evidence & Pick<RaceEvent, 'formatAvailability'>): StatusMeta & { status: RegistrationStatus; partial: boolean } {
+type Opening = Partial<Pick<RaceEvent, 'registrationOpenAt' | 'registrationOpenWindow'>>;
+
+/**
+ * Ouverture annoncée, telle que la source la donne : un jour exact (« 1 décembre 2026 ») ou une période
+ * (« décembre 2026 »). Rien n'est déduit : sans date ni période sourcée, null.
+ */
+export function announcedOpening(e: Opening): { text: string; exact: boolean } | null {
+  if (e.registrationOpenAt) return { text: formatParis(e.registrationOpenAt, 'date'), exact: true };
+  const window = e.registrationOpenWindow?.trim();
+  return window ? { text: window, exact: false } : null;
+}
+
+export function statusDisplay(e: Evidence & Pick<RaceEvent, 'formatAvailability'> & Opening): StatusMeta & { status: RegistrationStatus; partial: boolean } {
   const status = effectiveStatus(e);
+  const opening = status === 'annonce' ? announcedOpening(e) : null;
+  if (opening) {
+    return {
+      ...STATUS_META.annonce, status, partial: false,
+      // Espace insécable avant le deux-points : il ne passe jamais seul en début de ligne.
+      label: opening.exact ? `Ouverture le ${opening.text}` : `Ouverture annoncée : ${opening.text}`,
+      description: opening.exact
+        ? `L’organisateur annonce l’ouverture des inscriptions le ${opening.text}.`
+        : `Période d’ouverture annoncée par l’organisateur : ${opening.text} (jour non précisé).`,
+    };
+  }
   const full = status === 'ouvert' ? fullFormats(e) : [];
   if (!full.length) return { ...STATUS_META[status], status, partial: false };
   const list = full.join(', ');
