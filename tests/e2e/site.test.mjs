@@ -39,6 +39,8 @@ const visibleCards = (page) => page.locator('#view-liste .event-card:visible').c
 test('accueil : 78 rendez-vous et indicateurs calculés', async () => {
   const page = await open('/');
   assert.match(await page.locator('h1').innerText(), /TRIATHLON\s+PAYS DE LA LOIRE 2027/i);
+  // Indicateurs mis à jour après le chargement avec les statuts publiés : on attend qu'ils soient appliqués.
+  await page.waitForFunction((v) => document.querySelector('[data-kpi="open"]')?.textContent === String(v), openCount, { timeout: 10000 });
   assert.equal(await page.locator('[data-kpi="total"]').innerText(), '78');
   assert.equal(await page.locator('[data-kpi="open"]').innerText(), String(openCount));
   assert.equal(await page.locator('[data-kpi="toConfirm"]').innerText(), String(78 - published.size));
@@ -195,6 +197,8 @@ test('carte : statut d’inscription visible sur les repères et filtrable en un
   const page = await open('/carte/?passees=1');
   await page.waitForSelector('.leaflet-marker-icon');
   const n = (g) => page.locator(`.status-pill[data-status-group="${g}"] [data-n]`).innerText();
+  // Les compteurs sont mis à jour après le chargement avec les statuts publiés : on attend qu'ils soient appliqués.
+  await page.waitForFunction((v) => document.querySelector('.status-pill[data-status-group="ouvert"] [data-n]')?.textContent === String(v), openCount, { timeout: 10000 });
   assert.deepEqual([await n('ouvert'), await n('annonce'), await n('non_verifie'), await n('clos')], [openCount, announcedCount, 78 - published.size, closedCount].map(String));
   // Aucun statut inventé : tous les repères isolés portent le symbole « non vérifié ».
   assert.ok(await page.locator('.leaflet-marker-icon .pin-wrap .pin + .st-non_verifie').count() > 0);
