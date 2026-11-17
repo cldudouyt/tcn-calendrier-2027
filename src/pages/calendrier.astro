@@ -118,6 +118,18 @@ const icsData = events.map((e) => ({ id: e.id, date: e.date, name: e.name, town:
 
   initFilters((f) => { filters = f; visible = new Set(applyFilters(data, f).map((e) => e.id)); render(); });
 
+  // Statuts publiés côté serveur (veille validée, corrections de l'admin) : le filtre « inscriptions »
+  // les prend en compte sans attendre un nouveau build, comme la carte. Sans API, statuts du build.
+  fetch('/api/status', { headers: { accept: 'application/json' } })
+    .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? (r.json() as Promise<{ statuses: { id: string; status: string }[] }>) : null))
+    .then((body) => {
+      if (!body) return;
+      const byId = new Map(body.statuses.map((s) => [s.id, s.status]));
+      for (const e of data) { const s = byId.get(e.id); if (s) e.status = s; }
+      if (filters) { visible = new Set(applyFilters(data, filters).map((e) => e.id)); render(); }
+    })
+    .catch(() => { /* API indisponible : statuts du build */ });
+
   // Vues liste / mois, mémorisées dans l'URL (?vue=mois).
   const setView = (view: string): void => {
     document.getElementById('view-liste')!.hidden = view !== 'liste';
