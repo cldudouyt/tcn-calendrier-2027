@@ -13,4 +13,4 @@ npx wrangler d1 execute tcn-calendrier-2027 --local --file worker/schema.sql > /
 npx wrangler dev --port "$PORT" > /tmp/tcn-wrangler-test.log 2>&1 &
 WRANGLER=$!
 for _ in $(seq 1 60); do curl -sf "http://localhost:$PORT/api/status" > /dev/null && break; sleep 1; done
-BASE_URL="http://localhost:$PORT" ADMIN_TOKEN="$TOKEN" node --test tests/integration/reports.test.mjs
+BASE_URL="http://localhost:$PORT" ADMIN_TOKEN="$TOKEN" node --test tests/integration/reports.test.mjs tests/integration/admin.test.mjs

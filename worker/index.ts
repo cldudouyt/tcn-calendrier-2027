@@ -182,7 +182,13 @@ async function adminApi(request: Request, url: URL, env: Env, ctx: ExecutionCont
     const b = await body();
     const report = await importChanges(db, [{ ...b, eventId: correction[1] }], 'correction', events);
     const id = report.queued[0];
-    if (id === undefined) return json({ error: 'Correction non enregistrée', report }, 422);
+    if (id === undefined) {
+      // Raison lisible pour l'administrateur : erreurs de validation, information déjà publiée ou correction identique déjà enregistrée.
+      const details = report.rejected[0]?.errors
+        ?? (report.unchanged ? ['cette information est déjà publiée sur le site']
+          : report.duplicates ? ['une proposition ou correction identique existe déjà : validez-la depuis « Propositions en attente », ou modifiez le lien ou le fait vérifié'] : []);
+      return json({ error: 'Correction non enregistrée', details, report }, 422);
+    }
     return publishChange(db, id, events, 'correction manuelle');
   }
   if (method === 'POST' && path === '/check') {
