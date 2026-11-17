@@ -86,6 +86,15 @@ test('calendrier : 78 entrées, répartition 20/10/15/13/20, aucun statut invent
   await page.close();
 });
 
+test('calendrier : le filtre « inscriptions ouvertes » suit les statuts publiés (admin compris)', async () => {
+  const page = await open('/calendrier/?status=ouvert&passees=1');
+  await page.waitForFunction((n) => document.getElementById('result-count')?.textContent === String(n), openCount, { timeout: 10000 });
+  const shown = await page.locator('#view-liste .event-card:visible').evaluateAll((cards) => cards.map((c) => c.getAttribute('data-event-id')));
+  const expected = [...published.entries()].filter(([, status]) => status === 'ouvert').map(([id]) => id).sort();
+  assert.deepEqual(shown.sort(), expected);
+  await page.close();
+});
+
 test('calendrier : filtres cumulables, recherche, URL partageable, vue mois', async () => {
   const page = await open('/calendrier/?passees=1');
   await page.locator('#filter-details summary').click();
